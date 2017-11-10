@@ -26,11 +26,11 @@ Sky Walking for php SDK| [English](README.md)
 
 
 # 使用安装
-  php扩展包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sky-php7ext)
-  php代码类包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sdk-php)
+*  php扩展包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sky-php7ext)
+*  php代码类包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sdk-php)
 
 # 对应版本支持
-  1.0对应版本:Skywalking 3.1
+*  1.0对应版本:Skywalking 3.1
 
 # 将要完成
   * 其它php版本扩展支持
