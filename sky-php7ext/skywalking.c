@@ -925,8 +925,6 @@ static void _init(const char *appCode, zval *this_ptr){
   	add_assoc_null(&allparts_property, SKYWALKING_ENDTIME);
   	SKY_ADD_ASSOC_ZVAL(&allparts_property, SKYWALKING_FATHER_NODE_DATA);
   	SKY_ADD_ASSOC_ZVAL(&allparts_property, SKYWALKING_SPANS_NODE_DATA);
-  	//add_assoc_zval(&allparts_property, SKYWALKING_FATHER_NODE_DATA, &null_array);
-  	//add_assoc_zval(&allparts_property, SKYWALKING_SPANS_NODE_DATA, &null_array);
   	add_assoc_null(&allparts_property, SKYWALKING_APP_CODE);
   	add_assoc_null(&allparts_property, SKYWALKING_DISTRIBUTED_TRACEIDS);
   	zend_update_property(skywalking_ce_entry, this_ptr,  ZEND_STRL("_allPartsNodesStruct"), &allparts_property);
@@ -975,7 +973,7 @@ static void _init(const char *appCode, zval *this_ptr){
 
 	zend_update_property_string(skywalking_ce_entry, this_ptr, ZEND_STRL("_appCode"), appCode);
 
-	//对节点数据进行结构初始化  
+	//对节点数据进行结构初始化
 	zval *all_parts_nodes_struct, all_node_data;
 	all_parts_nodes_struct = zend_read_property(skywalking_ce_entry, this_ptr, ZEND_STRL("_allPartsNodesStruct"), 1, NULL);
 	array_init(&all_node_data);
