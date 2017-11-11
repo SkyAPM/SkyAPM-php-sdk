@@ -29,7 +29,7 @@ this extension references something external, use with: pphcurl、phpjson and ph
 - https://github.com/OpenSkywalking/skywalking/wiki
 
 ### Quick Start and Examples
-set php.ini skywalking.auto_open = On (Automatic writing  **Ignore the following**)
+set php.ini skywalking.auto_open = On (Automatic writing  **Ignore the following**)  
 OR  skywalking.auto_open = OFF (the project int code )As below:
 
     // must put these code at the beginning !!!
