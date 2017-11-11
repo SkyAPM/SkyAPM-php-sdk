@@ -13,8 +13,7 @@
 
 To install PHP SkyWalking extend, simply:
 copy ini to php.ini
-commands::
-	
+
 	git clone https://github.com/SkywalkingContrib/skywalking-php-sdk.git
 	cd skywalking-php-sdk/sky-php7ext
 	phpize
@@ -30,11 +29,9 @@ this extension references something external, use with: pphcurl、phpjson and ph
 - https://github.com/OpenSkywalking/skywalking/wiki
 
 ### Quick Start and Examples
+set php.ini skywalking.auto_open = On (Automatic writing  **Ignore the following**)
+OR  skywalking.auto_open = OFF (the project int code )As below:
 
-    set php.ini skywalking.auto_open = On (Automatic writing  **Ignore the following**)
-
-    OR  skywalking.auto_open = OFF (the project int code )As below:
-commands::
     // must put these code at the beginning !!!
     
     ....
