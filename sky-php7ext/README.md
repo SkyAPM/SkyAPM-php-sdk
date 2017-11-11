@@ -17,7 +17,7 @@ copy ini to php.ini
 	git clone https://github.com/SkywalkingContrib/skywalking-php-sdk.git
 	cd skywalking-php-sdk/sky-php7ext
 	phpize
-	.configure
+	./configure
 	make -j [number_of_processor_cores] # eg. make -j 4
 	make install
 ### Requirements
