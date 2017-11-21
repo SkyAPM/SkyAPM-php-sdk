@@ -1,4 +1,4 @@
-Sky Walking for php SDK| [中文](README.md)
+Sky Walking for php SDK| [中文](README_ZH.md)
 ==========
 **SkyWalking php SDK**: A client tool developed for PHP using SkyWalking APM tools. (It is a pity that it only supports writing log and checking curl currently.)
 SkyWalking APM : https://github.com/OpenSkywalking/skywalking
