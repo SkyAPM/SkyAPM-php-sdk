@@ -12,8 +12,6 @@ SkyWalking APM : https://github.com/OpenSkywalking/skywalking
   * It can compatible any versions of php.You can look over the codes in the class 'SkyWalking'.
   * You need to add  business codes to monnitor.
   
-# wiki document
-* [WIKI](https://github.com/OpenSkywalking/skywalking/wiki)
 
 
 # Using and installing
@@ -26,3 +24,6 @@ SkyWalking APM : https://github.com/OpenSkywalking/skywalking
 # In the future.
   * more php versions.
   * more os.
+# Contact Us
+  * Submit an issue
+  * QQ Group: 155841680

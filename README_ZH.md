@@ -15,10 +15,6 @@ SkyWalking APM : https://github.com/OpenSkywalking/skywalking
   * 需要植入业务代码进行监控
 
 
-# wiki文档
-* [WIKI](https://github.com/OpenSkywalking/skywalking/wiki)
-
-
 
 # 使用安装
 *  php扩展包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sky-php7ext)
@@ -30,3 +26,6 @@ SkyWalking APM : https://github.com/OpenSkywalking/skywalking
 # 将要完成
   * 其它php版本扩展支持
   * 更多系统支持
+# 联系
+  * 直接提交Issue
+  * QQ群: 155841680
