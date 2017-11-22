@@ -1,32 +1,29 @@
-Sky Walking SDK for PHP | [English](README_EN.md)
+Sky Walking for php SDK| [中文](README_ZH.md)
 ==========
-
-
-**SkyWalking php SDK**: 针对SkyWalking APM工具为php开发的客户端工具 (目前只支持写日志方式和只针对curl检测)
+**SkyWalking php SDK**: A client tool developed for PHP using SkyWalking APM tools. (It is a pity that it only supports writing log and checking curl currently.)
 SkyWalking APM : https://github.com/OpenSkywalking/skywalking
 
-* PHP 自动探针 **不需要修改应用程序代码**        
-  * 使用zendAPI开发的 php扩展
-  * 自动钩子,自动SkyWalking节点收集日志。
-  * 自动链路header传输
-* 手动探针
-  * php扩展 和 php代码sdk类包 
-  * php代码SkyWalking类进行php各种版本兼容 
-  * 需要植入业务代码进行监控
+* Automatic probe for PHP. **You don't need to modify the application code.**        
+  * It is a PHP extension developed by zendAPI.
+  * It can hook automatically for monnitoring nodes and collecting logs.
+  * It transfers with header informations automatically.
+* Manual probe.
+  * It is a php extension and contains some php classes. 
+  * It can compatible any versions of php.You can look over the codes in the class 'SkyWalking'.
+  * You need to add  business codes to monnitor.
+  
 
 
-# wiki文档
-* [WIKI](https://github.com/OpenSkywalking/skywalking/wiki)
+# Using and installing
+*  php extensions(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sky-php7ext)
+*  php classes (https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sdk-php)
 
+# Apply to
+*  version 1.0 applies to Skywalking 3.1 .
 
-
-# 使用安装
-*  php扩展包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sky-php7ext)
-*  php代码类包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sdk-php)
-
-# 对应版本支持
-*  1.0对应版本:Skywalking 3.1
-
-# 将要完成
-  * 其它php版本扩展支持
-  * 更多系统支持
+# In the future.
+  * more php versions.
+  * more os.
+# Contact Us
+  * Submit an issue
+  * QQ Group: 155841680

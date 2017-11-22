@@ -16,14 +16,14 @@ To install PHP SkyWalking Class, simply:
 
 ### Requirements
 
-PHP Curl Class works with PHP 5.0,5.3, 5.4, 5.5, 5.6, 7.0, and HHVM.
+PHP Curl Class works with PHP 5.2 - 7.9.99 , and HHVM.
 
 ### Quick Start and Examples
     
     // must put these code at the beginning !!!
     // that would auto register shutdown function !!!
     
-    include_once ("./SkyWalking.php");// or use composer
+    include_once ("./sdk-php/SkyWalking.php");// or use composer
     
     //LOG_PATH is skywalking's logfile path
     SkyWalking::getInstance("api")->setLogPath(LOG_PATH)->setSamplingRate(5);
@@ -45,7 +45,7 @@ PHP Curl Class works with PHP 5.0,5.3, 5.4, 5.5, 5.6, 7.0, and HHVM.
     curl_setopt($ch);
     $rs = curl_exec($ch);
     
-    SkyWalking::getInstance()->endSpanOfcurl($curl);
+    SkyWalking::getInstance()->endSpanOfcurl($ch);
     
     ....
     ....
