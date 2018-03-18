@@ -1,7 +1,7 @@
 Sky Walking for php SDK| [中文](README.md)
 ==========
 **SkyWalking php SDK**: A client tool developed for PHP using SkyWalking APM tools. (It is a pity that it only supports writing log and checking curl currently.)
-SkyWalking APM : https://github.com/OpenSkywalking/skywalking
+SkyWalking APM : https://github.com/apache/incubator-skywalking
 
 * Automatic probe for PHP. **You don't need to modify the application code.**        
   * It is a PHP extension developed by zendAPI.
@@ -20,7 +20,7 @@ SkyWalking APM : https://github.com/OpenSkywalking/skywalking
 
 # Apply to
 *  version 1.0 applies to Skywalking 3.1 .
-
+*  version 2.0 applies to Skywalking 3.X .
 # In the future.
   * more php versions.
   * more os.
