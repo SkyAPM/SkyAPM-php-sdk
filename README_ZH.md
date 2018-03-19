@@ -1,4 +1,4 @@
-Sky Walking SDK for PHP | [English](README_EN.md)
+Sky Walking SDK for PHP | [English](README.md)
 ==========
 
 
