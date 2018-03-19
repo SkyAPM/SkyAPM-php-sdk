@@ -62,6 +62,43 @@ if test "$PHP_SKYWALKING" != "no"; then
   dnl ])
   dnl
   dnl PHP_SUBST(SKYWALKING_SHARED_LIBADD)
+  PHP_REQUIRE_CXX()
 
-  PHP_NEW_EXTENSION(skywalking, skywalking.c, $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  KYWALKING_LIBS=" -L/usr/local/lib "
+  KYWALKING_LIBS+=`pkg-config --libs protobuf grpc++ grpc`
+  KYWALKING_LIBS+="-Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl"
+
+  AC_OUTPUT_COMMANDS(
+    protoc -I ./protos --cpp_out=./grpc ./protos/DiscoveryService.proto
+    protoc -I ./protos --cpp_out=./grpc ./protos/ApplicationRegisterService.proto
+    protoc -I ./protos --cpp_out=./grpc ./protos/TraceSegmentService.proto
+  )
+  AC_OUTPUT_COMMANDS(
+    protoc -I ./protos --grpc_out=./grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./protos/DiscoveryService.proto 
+    protoc -I ./protos --grpc_out=./grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./protos/ApplicationRegisterService.proto 
+    protoc -I ./protos --grpc_out=./grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./protos/TraceSegmentService.proto 
+  )
+  AC_OUTPUT_COMMANDS(
+    mv grpc/DiscoveryService.grpc.pb.cc grpc/DiscoveryService-grpc.pb.cc
+    mv grpc/ApplicationRegisterService.grpc.pb.cc grpc/ApplicationRegisterService-grpc.pb.cc
+    mv grpc/TraceSegmentService.grpc.pb.cc grpc/TraceSegmentService-grpc.pb.cc
+  )
+
+  PHP_EVAL_LIBLINE($KYWALKING_LIBS, SKYWALKING_SHARED_LIBADD)
+
+
+  PHP_NEW_EXTENSION(skywalking, \
+      skywalking.c \
+      grpc/greeter_client.cc \
+      grpc/DiscoveryService.pb.cc \
+      grpc/DiscoveryService-grpc.pb.cc \
+      grpc/ApplicationRegisterService.pb.cc \
+      grpc/ApplicationRegisterService-grpc.pb.cc \
+      grpc/TraceSegmentService.pb.cc \
+      grpc/TraceSegmentService-grpc.pb.cc \
+  , $ext_shared,, -std=c++11 -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+
+  PHP_ADD_BUILD_DIR($ext_builddir/grpc)
+
+  PHP_SUBST(SKYWALKING_SHARED_LIBADD)
 fi

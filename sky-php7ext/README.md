@@ -24,31 +24,9 @@ copy ini to php.ini
 
 the current phpext works with PHP 7.0-7.9.99 。
 this extension references something external, use with: pphcurl、phpjson and phpstandard
-
+need to install, Please refer to: https://github.com/grpc/grpc/blob/master/INSTALL.md
 ### Documentation
 - https://github.com/OpenSkywalking/skywalking/wiki
 
 ### Quick Start and Examples
 set php.ini skywalking.auto_open = On (Automatic writing  **Ignore the following**)  
-OR  skywalking.auto_open = OFF (the project int code )As below:
-
-    // must put these code at the beginning !!!
-    
-    ....
-    ....
-    
-    
-    $ch = curl_init();
-    curl_setopt($ch);
-    
-    SkyWalking::getInstance()->startSpanOfCurl("www.api.com", $headers);
-    ....
-    ....
-    
-    curl_setopt($ch);
-    $rs = curl_exec($ch);
-    
-    SkyWalking::getInstance()->endSpanOfcurl($ch);
-    
-    ....
-    ....

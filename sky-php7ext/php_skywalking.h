@@ -24,7 +24,7 @@
 extern zend_module_entry skywalking_module_entry;
 #define phpext_skywalking_ptr &skywalking_module_entry
 
-#define PHP_SKYWALKING_VERSION "0.1.0" /* Replace with version number for your extension */
+#define PHP_SKYWALKING_VERSION "0.2.0" /* Replace with version number for your extension */
 
 #ifdef PHP_WIN32
 #	define PHP_SKYWALKING_API __declspec(dllexport)
@@ -44,25 +44,58 @@ extern zend_module_entry skywalking_module_entry;
 #define SKY_G(v) (skywalking_globals.v)
 #endif
 
-#define SKYWALKING_TRACEID "ts"  //TraceId
-#define SKYWALKING_STARTTIME "st"//开始时间
-#define SKYWALKING_ENDTIME "et" //结束时间
-#define SKYWALKING_APP_CODE "ac"// App Code
-#define SKYWALKING_FATHER_NODE_DATA "rs"//父节点数据
-#define SKYWALKING_SPANS_NODE_DATA "ss"//span节点数据集合
-#define SKYWALKING_DISTRIBUTED_TRACEIDS "gt" //DistributedTraceIds
-#define SKYWALKING_SPAN_ID "si"//SpanId
-#define SKYWALKING_PEERHOST "ph"//PeerHost
-#define SKYWALKING_FATHER_SPAN_ID "ps"//父节点传过来的SpanId
-#define SKYWALKING_SPAN_SERVER_URI "on" // Span 的服务URI
-#define SKYWALKING_SPAN_STRING_PARAM "ts" //Span 的字符串型参数
-#define SKYWALKING_SPAN_BOOL_PARAM "tb" //Span 的字符串型参数
-#define SKYWALKING_SPAN_INT_PARAM "ti" //Span 的字符串型参数
-#define SKYWALKING_SPAN_LOG "lo"//Span 的日志
+#define S_SEND_TYPE_CLOSE   (1<<0L)
+#define S_SEND_TYPE_GRPC    (1<<1L)
+#define S_SEND_TYPE_WRITE   (1<<2L)
+
+#define USE_PARENT_TRACE_ID 1
+#define DONOT_USE_PARENT_TRACE_ID 0
 
 
-int ski_zval_key = 0;
-#define SKY_MAKE_NULL_ARRAY_NAME(i_zval_key)  null_array_##i_zval_key
+
+#define SKYWALKING_SEGMENT "sg" //全部段节点
+#define SKYWALKING_DISTRIBUTED_TRACEIDS "gt"//DistributedTraceIds
+#define SKYWALKING_TRACE_SEGMENT_ID "ts"//本次请求id
+#define SKYWALKING_APPLICATION_ID "ai"//app id
+#define SKYWALKING_APPLICATION_INSTANCE_ID "ii"//实例id
+#define SKYWALKING_FATHER_NODE_DATA "rs" //父节点数据
+#define SKYWALKING_SPANS_NODE_DATA "ss" //span节点数据集合
+
+#define SKYWALKING_PARENT_TRACE_SEGMENT_ID "ts" //本次请求id
+#define SKYWALKING_PARENT_APPLICATION_ID "ai"//app id
+#define SKYWALKING_PARENT_SPAN_ID "si"//spanid
+#define SKYWALKING_PARENT_SERVICE_ID "vi"//
+#define SKYWALKING_PARENT_SERVICE_NAME "vn"
+#define SKYWALKING_NETWORK_ADDRESS_ID "ni"
+#define SKYWALKING_NETWORK_ADDRESS "nn"
+#define SKYWALKING_ENTRY_APPLICATION_INSTANCE_ID "ea"
+#define SKYWALKING_ENTRY_SERVICE_ID "ei"
+#define SKYWALKING_ENTRY_SERVICE_NAME "en"
+#define SKYWALKING_REF_TYPE_VALUE "rv"
+
+#define SKYWALKING_SPAN_ID "si" //SpanId
+#define SKYWALKING_SPAN_TYPE_VALUE "tv"
+#define SKYWALKING_SPAN_LAYER_VALUE "lv"
+#define SKYWALKING_FATHER_SPAN_ID "ps" //父节点传过来的SpanId
+#define SKYWALKING_STARTTIME "st" //开始时间
+#define SKYWALKING_ENDTIME "et"  //结束时间
+#define SKYWALKING_COMPONENT_ID "ci"
+#define SKYWALKING_COMPONENT_NAME "cn"
+#define SKYWALKING_OPERATION_NAME_ID "oi"
+#define SKYWALKING_OPERATION_NAME "on"// Span 的服务URI
+#define SKYWALKING_PEER_ID "pi"
+#define SKYWALKING_PEER "pn"
+#define SKYWALKING_IS_ERROR "ie"
+#define SKYWALKING_TAGS "to"
+#define SKYWALKING_LOGS "lo"
+
+#define SKYWALKING_KEY "k"
+#define SKYWALKING_VALUE "v"
+
+#define SKYWALKING_TIME "ti"
+#define SKYWALKING_LOG_DATA "ld"
+
+
 
 #define RAND_RANGE(__n, __min, __max, __tmax) \
     (__n) = ((__min) + (zend_long) ((double) ( (double) (__max) - (__min) + 1.0) * ((__n) / ((__tmax) + 1.0))))
@@ -88,40 +121,54 @@ void *SKY_UPDATE_PROPERTY(zend_class_entry *cls, zval *tp, const char *name, siz
     array_init(&null_array);  
     zend_update_property(cls, tp, name, name_length, &null_array);
 } 
+
+static void *write_log_text(char *text);
 static char *sky_json_encode(zval *parameter);
-static int _php_filter_validate_domain(char * domain, int len, zend_long flags) ;
-static int _php_filter_validate_ipv4(char *str, size_t str_len, int *ip);
-static int _php_filter_validate_ipv6(char *str, size_t str_len);
-static int _php_filter_validate_url(char *value);
-static zval *sky_instance(zval *this_ptr, const char *appCode);
-static void date_register_classes(TSRMLS_D);
-static void _init(const char *appCode, zval *this_ptr);
-static char *build_SWheader_value(const char *peer_host, zval *this_ptr);
-static zval *receive_SWHeader_from_caller(zval *this_ptr);
+static char *build_SWheader_value(const char *peer_host);
+static zval receive_SWHeader_from_caller();
 static char *get_millisecond();
 static char *uniqid();
 static char *make_trace_id();
-static zend_always_inline zend_uchar is_sampling(zval *this_ptr);
-static char *generate_trace_id(zval *this_ptr);
+static zend_always_inline zend_uchar is_sampling();
+static char *generate_trace_id();
 static char *get_ip();
 static char *get_page_url_and_peer();
-static long generate_span_id(zval *this_ptr);
-static char *generate_distributed_trace_ids(zval *this_ptr);
-static void *write_log(zval *this_ptr, char *text);
-static zval *set_span_nodes_data(zval *this_ptr, zval *node_data);
-static char *sky_finishAll();
+static long generate_span_id();
+static void *write_log( char *text);
+static zval *set_span_nodes_data(zval *node_data);
 static long sky_array_unshift(zval *stack, zval *var);
-static void set_sampling_rate(zval *this_ptr, double degrees);
-static void start_span_of_curl(char *peer_host, zval *headers, zval *this_pr);
-static void set_span_param_of_curl(char *peer_host, zval *this_pr);
-static void make_span_curl_header(char *peer_host, zval *headers, zval *this_pr);
+static void set_sampling_rate(double degrees);
+static void set_span_param_of_curl(char *peer_host);
+static void make_span_curl_header(char *peer_host, zval *headers);
 static void start_span(zval *this_pr);
 static int is_auto_open();
-static void end_span_of_curl(zval *this_ptr,zval *curl);
+
 void accel_sky_curl_init(INTERNAL_FUNCTION_PARAMETERS);
 void accel_sky_curl_setopt(INTERNAL_FUNCTION_PARAMETERS);
 void accel_sky_curl_exec(INTERNAL_FUNCTION_PARAMETERS);
+void list_poll(comList* myroot);
 
+static void *sky_flush_all();
+static char* _get_current_machine_ip();
+static int get_app_instance_id();
+static int  get_app_id();
+static char *generate_parent_info_from_header(char *header_name);
+static void start_node_span_of_curl();
+static char *generate_parent_trace_id();
+static zval* generate_trace_id_for_array(int use_parent_tid, zval* z_trace_id);
+static char* _entry_app_name();
+static char *generate_distributed_trace_ids();
+static int _entry_app_instance_id();
+static void end_node_span_of_curl(zval *curl);
+static void* send_grpc_param(zval *all_node_data);
+static comList* create_com_list();
+static long _entry_app_name_operation_id();
+static long _parent_appname_operation_id();
+static int sky_live_pthread(pthread_t tid);
+static int add_com_list(comList *com_list, UniqueIdStruct* data);
+static void (*orig_curl_init)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+static void (*orig_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+static void (*orig_curl_exec)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
 /*
   	Declare any global variables you may need between the BEGIN
 	and END macros here:
@@ -130,8 +177,10 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
 	char *global_log_path;
   char *global_header_client_ip_name;
   char *global_app_code;
+  long global_send_type;
   zend_bool global_auto_open;
   double global_sampling_rate;
+  char *global_app_grpc_trace;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
@@ -145,6 +194,41 @@ extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
 #if defined(ZTS) && defined(COMPILE_DL_SKYWALKING)
 ZEND_TSRMLS_CACHE_EXTERN()
 #endif
+
+
+#ifdef __unix
+
+
+#ifdef __linux
+#define SKY_OS_NAME "Linux"
+#endif
+
+#ifdef __sun
+    #ifdef __sparc
+#define SKY_OS_NAME "Sun SPARC"
+    #else
+#define SKY_OS_NAME "Sun X86"
+    #endif
+#endif
+
+#ifdef _AIX
+#define SKY_OS_NAME "AIX"
+#endif
+ 
+
+#else
+
+
+#ifdef WINVER
+#define SKY_OS_NAME "Windows"
+#else
+#define SKY_OS_NAME "Unknown"
+#endif
+ 
+
+#endif
+
+
 
 #endif	/* PHP_SKYWALKING_H */
 

@@ -3,7 +3,7 @@ Sky Walking SDK for PHP | [English](README.md)
 
 
 **SkyWalking php SDK**: 针对SkyWalking APM工具为php开发的客户端工具 (目前只支持写日志方式和只针对curl检测)
-SkyWalking APM : https://github.com/OpenSkywalking/skywalking
+SkyWalking APM : https://github.com/apache/incubator-skywalking
 
 * PHP 自动探针 **不需要修改应用程序代码**        
   * 使用zendAPI开发的 php扩展
@@ -17,12 +17,12 @@ SkyWalking APM : https://github.com/OpenSkywalking/skywalking
 
 
 # 使用安装
-*  php扩展包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sky-php7ext)
-*  php代码类包(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sdk-php)
+*  php扩展包(https://github.com/SkywalkingContrib/skywalking-php-sdk/blob/songzhian/sky-php7ext/README_ZH.md)
+*  php代码类包(https://github.com/SkywalkingContrib/skywalking-php-sdk/blob/songzhian/sdk-php/README_ZH.md)
 
 # 对应版本支持
 *  1.0对应版本:Skywalking 3.1
-
+*  2.0对应版本:Skywalking 3.x
 # 将要完成
   * 其它php版本扩展支持
   * 更多系统支持
