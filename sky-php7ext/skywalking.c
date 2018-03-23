@@ -770,10 +770,10 @@ static zval* get_father_node_data(zval* father_nodes_data){
 	add_assoc_zval(father_nodes_data, SKYWALKING_PARENT_TRACE_SEGMENT_ID, generate_trace_id_for_array(USE_PARENT_TRACE_ID, &z_trace_id));
 
 	char *parent_app_instance_id = generate_parent_info_from_header("ParentAppInstanceid");
-	add_assoc_long(father_nodes_data, SKYWALKING_PARENT_APPLICATION_ID, zend_atoi(parent_app_instance_id, str_len(parent_app_instance_id)));
+	add_assoc_long(father_nodes_data, SKYWALKING_PARENT_APPLICATION_ID, zend_atoi(parent_app_instance_id, strlen(parent_app_instance_id)));
 	
 	char *span_id = generate_parent_info_from_header("SpanId");
-	add_assoc_long(father_nodes_data, SKYWALKING_PARENT_SPAN_ID, zend_atoi(span_id, str_len(span_id)));
+	add_assoc_long(father_nodes_data, SKYWALKING_PARENT_SPAN_ID, zend_atoi(span_id, strlen(span_id)));
 	add_assoc_string(father_nodes_data, SKYWALKING_PARENT_SERVICE_ID, generate_parent_info_from_header("ParentAppname"));
 	add_assoc_string(father_nodes_data, SKYWALKING_PARENT_SERVICE_NAME, generate_parent_info_from_header("ParentAppname"));
 	add_assoc_string(father_nodes_data, SKYWALKING_NETWORK_ADDRESS_ID, generate_parent_info_from_header("PeerHost"));
@@ -781,7 +781,7 @@ static zval* get_father_node_data(zval* father_nodes_data){
 	add_assoc_string(father_nodes_data, SKYWALKING_PARENT_SERVICE_ID, generate_parent_info_from_header("ParentAppname"));
 	add_assoc_string(father_nodes_data, SKYWALKING_ENTRY_APPLICATION_INSTANCE_ID, generate_parent_info_from_header("EntryAppInstanceid"));
 	char *entry_app_id = generate_parent_info_from_header("EntryAppId");
-	add_assoc_long(father_nodes_data, SKYWALKING_ENTRY_SERVICE_ID, zend_atoi(entry_app_id, str_len(entry_app_id)));
+	add_assoc_long(father_nodes_data, SKYWALKING_ENTRY_SERVICE_ID, zend_atoi(entry_app_id, strlen(entry_app_id)));
 	add_assoc_string(father_nodes_data, SKYWALKING_ENTRY_SERVICE_NAME, generate_parent_info_from_header("EntryAppname"));
 	add_assoc_long(father_nodes_data, SKYWALKING_REF_TYPE_VALUE, 0);
 
