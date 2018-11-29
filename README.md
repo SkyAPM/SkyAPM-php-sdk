@@ -15,12 +15,13 @@ SkyWalking APM : https://github.com/apache/incubator-skywalking
 
 
 # Using and installing
-*  php extensions(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sky-php7ext)
-*  php classes (https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/songzhian/sdk-php)
+*  php extensions(https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/master/sky-php7ext)
+*  php classes (https://github.com/SkywalkingContrib/skywalking-php-sdk/tree/master/sdk-php)
 
 # Apply to
 *  version 1.0 applies to Skywalking 3.1 .
 *  version 2.0 applies to Skywalking 3.X .
+*  version 5.0 applies to Skywalking 5.X .
 # In the future.
   * more php versions.
   * more os.

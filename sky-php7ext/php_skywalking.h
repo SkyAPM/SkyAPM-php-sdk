@@ -24,7 +24,7 @@
 extern zend_module_entry skywalking_module_entry;
 #define phpext_skywalking_ptr &skywalking_module_entry
 
-#define PHP_SKYWALKING_VERSION "0.2.0" /* Replace with version number for your extension */
+#define PHP_SKYWALKING_VERSION "5.0.0" /* Replace with version number for your extension */
 
 #ifdef PHP_WIN32
 #	define PHP_SKYWALKING_API __declspec(dllexport)
