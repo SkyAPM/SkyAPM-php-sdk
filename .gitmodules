@@ -1,3 +1,3 @@
 [submodule "sky-php7ext/protos"]
-	path = sky-php7ext/protos
+	path = sky-php7ext/src/protos
 	url = https://github.com/apache/incubator-skywalking-data-collect-protocol.git

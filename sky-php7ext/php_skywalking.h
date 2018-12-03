@@ -52,7 +52,7 @@ extern zend_module_entry skywalking_module_entry;
 #define DONOT_USE_PARENT_TRACE_ID 0
 
 
-
+#define SHARED_MEMORY_KEY 428935192
 #define SKYWALKING_SEGMENT "sg" //全部段节点
 #define SKYWALKING_DISTRIBUTED_TRACEIDS "gt"//DistributedTraceIds
 #define SKYWALKING_TRACE_SEGMENT_ID "ts"//本次请求id
@@ -128,14 +128,17 @@ static char *build_SWheader_value(const char *peer_host);
 static zval receive_SWHeader_from_caller();
 static char *get_millisecond();
 static char *uniqid();
-static char *make_trace_id();
+static char *generate_sw3(zend_long span_id, zend_string *peer_host, zend_string *operation_name);
+static void make_trace_id();
 static zend_always_inline zend_uchar is_sampling();
 static char *generate_trace_id();
 static char *get_ip();
+static char *get_page_request_uri();
 static char *get_page_url_and_peer();
 static long generate_span_id();
 static void *write_log( char *text);
 static zval *set_span_nodes_data(zval *node_data);
+static void request_init();
 static long sky_array_unshift(zval *stack, zval *var);
 static void set_sampling_rate(double degrees);
 static void set_span_param_of_curl(char *peer_host);
@@ -145,10 +148,12 @@ static int is_auto_open();
 
 void accel_sky_curl_init(INTERNAL_FUNCTION_PARAMETERS);
 void accel_sky_curl_setopt(INTERNAL_FUNCTION_PARAMETERS);
-void accel_sky_curl_exec(INTERNAL_FUNCTION_PARAMETERS);
+void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS);
 void list_poll(comList* myroot);
 
 static void *sky_flush_all();
+static zval *get_first_span();
+static zval *get_spans();
 static char* _get_current_machine_ip();
 static int get_app_instance_id();
 static int  get_app_id();
@@ -181,6 +186,8 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
   zend_bool global_auto_open;
   double global_sampling_rate;
   char *global_app_grpc_trace;
+  zval UpstreamSegment;
+  zval context;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
@@ -189,7 +196,11 @@ extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
    You are encouraged to rename these macros something shorter, see
    examples in any other php module directory.
 */
+#ifdef ZTS
+#define SKYWALKING_G(v) TSRMG(skywalking_globals_id, zend_skywalking_globals *, v)
+#else
 #define SKYWALKING_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(skywalking, v)
+#endif
 
 #if defined(ZTS) && defined(COMPILE_DL_SKYWALKING)
 ZEND_TSRMLS_CACHE_EXTERN()

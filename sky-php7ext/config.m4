@@ -21,6 +21,13 @@ dnl [  --enable-skywalking           Enable skywalking support])
 PHP_ARG_ENABLE(skywalking, whether to enable skywalking support,
 [  --enable-skywalking           Enable skywalking support])
 
+if test -z "$PHP_DEBUG"; then
+    AC_ARG_ENABLE(debug,
+        [--enable-debug compile with debugging system],
+        [PHP_DEBUG=$enableval], [PHP_DEBUG=no]
+    )
+fi
+
 if test "$PHP_SKYWALKING" != "no"; then
   dnl Write more examples of tests here...
 
@@ -62,26 +69,28 @@ if test "$PHP_SKYWALKING" != "no"; then
   dnl ])
   dnl
   dnl PHP_SUBST(SKYWALKING_SHARED_LIBADD)
+  CXXFLAGS+=" -std=c++11 "
   PHP_REQUIRE_CXX()
 
   KYWALKING_LIBS=" -L/usr/local/lib "
   KYWALKING_LIBS+=`pkg-config --libs protobuf grpc++ grpc`
-  KYWALKING_LIBS+="-Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl"
+  KYWALKING_LIBS+=" -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl "
 
   AC_OUTPUT_COMMANDS(
-    protoc -I ./protos --cpp_out=./grpc ./protos/DiscoveryService.proto
-    protoc -I ./protos --cpp_out=./grpc ./protos/ApplicationRegisterService.proto
-    protoc -I ./protos --cpp_out=./grpc ./protos/TraceSegmentService.proto
+    protoc -I ./src/protos --cpp_out=./src/grpc ./src/protos/*.proto
+    protoc -I ./src/protos --grpc_out=./src/grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./src/protos/*.proto
   )
+
   AC_OUTPUT_COMMANDS(
-    protoc -I ./protos --grpc_out=./grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./protos/DiscoveryService.proto 
-    protoc -I ./protos --grpc_out=./grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./protos/ApplicationRegisterService.proto 
-    protoc -I ./protos --grpc_out=./grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./protos/TraceSegmentService.proto 
-  )
-  AC_OUTPUT_COMMANDS(
-    mv grpc/DiscoveryService.grpc.pb.cc grpc/DiscoveryService-grpc.pb.cc
-    mv grpc/ApplicationRegisterService.grpc.pb.cc grpc/ApplicationRegisterService-grpc.pb.cc
-    mv grpc/TraceSegmentService.grpc.pb.cc grpc/TraceSegmentService-grpc.pb.cc
+   mv src/grpc/ApplicationRegisterService.grpc.pb.cc src/grpc/ApplicationRegisterService-grpc.pb.cc
+   mv src/grpc/Common.grpc.pb.cc src/grpc/Common-grpc.pb.cc
+   mv src/grpc/DiscoveryService.grpc.pb.cc src/grpc/DiscoveryService-grpc.pb.cc
+   mv src/grpc/Downstream.grpc.pb.cc src/grpc/Downstream-grpc.pb.cc
+   mv src/grpc/JVMMetricsService.grpc.pb.cc src/grpc/JVMMetricsService-grpc.pb.cc
+   mv src/grpc/KeyWithIntegerValue.grpc.pb.cc src/grpc/KeyWithIntegerValue-grpc.pb.cc
+   mv src/grpc/KeyWithStringValue.grpc.pb.cc src/grpc/KeyWithStringValue-grpc.pb.cc
+   mv src/grpc/NetworkAddressRegisterService.grpc.pb.cc src/grpc/NetworkAddressRegisterService-grpc.pb.cc
+   mv src/grpc/TraceSegmentService.grpc.pb.cc src/grpc/TraceSegmentService-grpc.pb.cc
   )
 
   PHP_EVAL_LIBLINE($KYWALKING_LIBS, SKYWALKING_SHARED_LIBADD)
@@ -89,16 +98,9 @@ if test "$PHP_SKYWALKING" != "no"; then
 
   PHP_NEW_EXTENSION(skywalking, \
       skywalking.c \
-      grpc/greeter_client.cc \
-      grpc/DiscoveryService.pb.cc \
-      grpc/DiscoveryService-grpc.pb.cc \
-      grpc/ApplicationRegisterService.pb.cc \
-      grpc/ApplicationRegisterService-grpc.pb.cc \
-      grpc/TraceSegmentService.pb.cc \
-      grpc/TraceSegmentService-grpc.pb.cc \
-  , $ext_shared,, -std=c++11 -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 
-  PHP_ADD_BUILD_DIR($ext_builddir/grpc)
-
+  PHP_ADD_BUILD_DIR($ext_builddir/src/grpc)
+  PHP_ADD_LIBRARY(stdc++, 1, SKYWALKING_SHARED_LIBADD)
   PHP_SUBST(SKYWALKING_SHARED_LIBADD)
 fi
