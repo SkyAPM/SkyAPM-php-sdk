@@ -1,5 +1,8 @@
 <?php
-
+$ch = curl_init("https://www.qingyidai.com/hahahaa/aaa");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $res = curl_exec($ch);
+        exit;
 $file = new SplFileObject('appid.pid', "w");
 $written = $file->fwrite("124124");
 

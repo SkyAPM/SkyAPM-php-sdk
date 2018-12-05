@@ -98,6 +98,25 @@ if test "$PHP_SKYWALKING" != "no"; then
 
   PHP_NEW_EXTENSION(skywalking, \
       skywalking.c \
+      src/greeter_client.cc \
+      src/grpc/ApplicationRegisterService-grpc.pb.cc \
+      src/grpc/ApplicationRegisterService.pb.cc \
+      src/grpc/Common-grpc.pb.cc \
+      src/grpc/Common.pb.cc \
+      src/grpc/DiscoveryService-grpc.pb.cc \
+      src/grpc/DiscoveryService.pb.cc \
+      src/grpc/Downstream-grpc.pb.cc \
+      src/grpc/Downstream.pb.cc \
+      src/grpc/JVMMetricsService-grpc.pb.cc \
+      src/grpc/JVMMetricsService.pb.cc \
+      src/grpc/KeyWithIntegerValue-grpc.pb.cc \
+      src/grpc/KeyWithIntegerValue.pb.cc \
+      src/grpc/KeyWithStringValue-grpc.pb.cc \
+      src/grpc/KeyWithStringValue.pb.cc \
+      src/grpc/NetworkAddressRegisterService-grpc.pb.cc \
+      src/grpc/NetworkAddressRegisterService.pb.cc \
+      src/grpc/TraceSegmentService-grpc.pb.cc \
+      src/grpc/TraceSegmentService.pb.cc \
   , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 
   PHP_ADD_BUILD_DIR($ext_builddir/src/grpc)

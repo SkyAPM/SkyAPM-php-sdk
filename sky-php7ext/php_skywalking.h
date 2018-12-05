@@ -111,83 +111,41 @@ extern zend_module_entry skywalking_module_entry;
 
 void *SKY_ADD_ASSOC_ZVAL(zval *z, const char *k) {
 
-    zval null_array;  
-    array_init(&null_array);  
-    add_assoc_zval(z, k, &null_array); 
+    zval null_array;
+    array_init(&null_array);
+    add_assoc_zval(z, k, &null_array);
+    return NULL;
 }
 
-void *SKY_UPDATE_PROPERTY(zend_class_entry *cls, zval *tp, const char *name, size_t name_length)  {
-    zval null_array;  
-    array_init(&null_array);  
-    zend_update_property(cls, tp, name, name_length, &null_array);
-} 
 
-static void *write_log_text(char *text);
 static char *sky_json_encode(zval *parameter);
-static char *build_SWheader_value(const char *peer_host);
-static zval receive_SWHeader_from_caller();
+static long get_second();
 static char *get_millisecond();
-static char *uniqid();
 static char *generate_sw3(zend_long span_id, zend_string *peer_host, zend_string *operation_name);
-static void make_trace_id();
-static zend_always_inline zend_uchar is_sampling();
-static char *generate_trace_id();
-static char *get_ip();
+static void generate_context();
 static char *get_page_request_uri();
-static char *get_page_url_and_peer();
-static long generate_span_id();
-static void *write_log( char *text);
-static zval *set_span_nodes_data(zval *node_data);
+static void write_log( char *text);
 static void request_init();
-static long sky_array_unshift(zval *stack, zval *var);
-static void set_sampling_rate(double degrees);
-static void set_span_param_of_curl(char *peer_host);
-static void make_span_curl_header(char *peer_host, zval *headers);
-static void start_span(zval *this_pr);
 static int is_auto_open();
 
-void accel_sky_curl_init(INTERNAL_FUNCTION_PARAMETERS);
-void accel_sky_curl_setopt(INTERNAL_FUNCTION_PARAMETERS);
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS);
-void list_poll(comList* myroot);
 
-static void *sky_flush_all();
+static void sky_flush_all();
 static zval *get_first_span();
 static zval *get_spans();
 static char* _get_current_machine_ip();
-static int get_app_instance_id();
-static int  get_app_id();
-static char *generate_parent_info_from_header(char *header_name);
-static void start_node_span_of_curl();
-static char *generate_parent_trace_id();
-static zval* generate_trace_id_for_array(int use_parent_tid, zval* z_trace_id);
-static char* _entry_app_name();
-static char *generate_distributed_trace_ids();
-static int _entry_app_instance_id();
-static void end_node_span_of_curl(zval *curl);
-static void* send_grpc_param(zval *all_node_data);
-static comList* create_com_list();
-static long _entry_app_name_operation_id();
-static long _parent_appname_operation_id();
-static int sky_live_pthread(pthread_t tid);
-static int add_com_list(comList *com_list, UniqueIdStruct* data);
-static void (*orig_curl_init)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
-static void (*orig_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
 static void (*orig_curl_exec)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
 /*
   	Declare any global variables you may need between the BEGIN
 	and END macros here:
 */
 ZEND_BEGIN_MODULE_GLOBALS(skywalking)
-	char *global_log_path;
-  char *global_header_client_ip_name;
-  char *global_app_code;
-  long global_send_type;
-  zend_bool global_auto_open;
-  double global_sampling_rate;
-  char *global_app_grpc_trace;
-  zval UpstreamSegment;
-  zval context;
+    char *log_path;
+    char *app_code;
+    zend_bool enable;
+    char *grpc;
+    zval UpstreamSegment;
+    zval context;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
@@ -225,7 +183,6 @@ ZEND_TSRMLS_CACHE_EXTERN()
 #ifdef _AIX
 #define SKY_OS_NAME "AIX"
 #endif
- 
 
 #else
 
@@ -233,7 +190,11 @@ ZEND_TSRMLS_CACHE_EXTERN()
 #ifdef WINVER
 #define SKY_OS_NAME "Windows"
 #else
+#ifdef __APPLE__
+#define SKY_OS_NAME "Darwin"
+#else
 #define SKY_OS_NAME "Unknown"
+#endif
 #endif
  
 
