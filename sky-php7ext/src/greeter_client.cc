@@ -62,13 +62,16 @@ public:
         Status status = stub_->applicationCodeRegister(&context, request, &reply);
 
         if (status.ok()) {
-            return reply.application().value();
+            if (reply.has_application()) {
+                return reply.application().value();
+            }
+            return -100000;
         }
 
         return -100000;
     }
 
-    int registerInstance(int applicationid, int registertime, char *uuid, char *osname, char *hostname, int processno,
+    int registerInstance(int applicationid, long registertime, char *uuid, char *osname, char *hostname, int processno,
                          char *ipv4s) {
 
         std::unique_ptr <InstanceDiscoveryService::Stub> stub_;
@@ -80,8 +83,8 @@ public:
         request.set_applicationid(applicationid);
         request.set_registertime(registertime);
 
-
         OSInfo *osInfo = new OSInfo;
+
         request.set_allocated_osinfo(osInfo);
         osInfo->set_osname(osname);
         osInfo->set_hostname(hostname);
@@ -96,10 +99,13 @@ public:
         Status status = stub_->registerInstance(&context, request, &reply);
 
         if (status.ok()) {
-            return reply.applicationinstanceid();
+            if (reply.applicationinstanceid() != 0) {
+                return reply.applicationinstanceid();
+            }
+            return -100000;
         }
 
-        return -1;
+        return -100000;
 
     }
 

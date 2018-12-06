@@ -43,6 +43,8 @@
 #include <curl/curl.h>
 #include <curl/easy.h>
 
+#include <uuid/uuid.h>
+
 #include <unistd.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -509,7 +511,14 @@ static void module_init() {
 
     application_instance = -100000;
     application_id = -100000;
-    application_id = applicationCodeRegister(SKYWALKING_G(grpc), SKYWALKING_G(app_code));
+
+    int i = 0;
+
+    do {
+        application_id = applicationCodeRegister(SKYWALKING_G(grpc), SKYWALKING_G(app_code));
+
+        i++;
+    } while (application_id == -100000 && i <= 3);
 
     if (application_id == -100000) {
         sky_close = 1;
@@ -517,9 +526,11 @@ static void module_init() {
     }
 
     char *ipv4s = _get_current_machine_ip();
-    char uuid[80];
-    strcat(uuid, SKYWALKING_G(app_code));
-    strcat(uuid, ipv4s);
+    char uuid[37];
+    uuid_t uuid1;
+    uuid_generate_random(uuid1);
+
+    uuid_unparse_lower(uuid1, uuid);
 
     char hostname[100] = {0};
     if (gethostname(hostname, sizeof(hostname)) < 0) {
@@ -529,10 +540,16 @@ static void module_init() {
     char *l_millisecond = get_millisecond();
     long millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
     efree(l_millisecond);
-    application_instance = registerInstance(SKYWALKING_G(grpc), application_id, millisecond, uuid, SKY_OS_NAME, hostname, getpid(),
-                                            ipv4s);
 
-    if (application_id == -100000) {
+    i = 0;
+    do {
+        application_instance = registerInstance(SKYWALKING_G(grpc), application_id, millisecond, uuid, SKY_OS_NAME,
+                                                hostname, getpid(),
+                                                ipv4s);
+        i++;
+    } while (application_instance == -100000 && i <= 3);
+
+    if (application_instance == -100000) {
         sky_close = 1;
         return;
     }
