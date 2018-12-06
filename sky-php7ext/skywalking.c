@@ -455,7 +455,7 @@ static void request_init() {
     efree(l_millisecond);
     add_assoc_long(&temp, "startTime", millisecond);
     add_assoc_string(&temp, "operationName", get_page_request_uri());
-//    add_assoc_string(&sky_entry_span, "peer", "127.0.0.1");
+    add_assoc_string(&temp, "peer", "");
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
     add_assoc_long(&temp, "componentId", COMPONENT_HTTPCLIENT);
@@ -517,6 +517,10 @@ static void module_init() {
     do {
         application_id = applicationCodeRegister(SKYWALKING_G(grpc), SKYWALKING_G(app_code));
 
+        if(application_id == -100000) {
+            sleep(1);
+        }
+
         i++;
     } while (application_id == -100000 && i <= 3);
 
@@ -546,6 +550,9 @@ static void module_init() {
         application_instance = registerInstance(SKYWALKING_G(grpc), application_id, millisecond, uuid, SKY_OS_NAME,
                                                 hostname, getpid(),
                                                 ipv4s);
+        if(application_instance == -100000) {
+            sleep(1);
+        }
         i++;
     } while (application_instance == -100000 && i <= 3);
 

@@ -185,11 +185,15 @@ int main(int argc, char **argv) {
                                     for (int i = 0; i < spans.size(); i++) {
 
                                         SpanObject *spanObject = traceSegmentObject.add_spans();
-                                        spanObject->set_spanid(spans[i]["spanId"]);
-                                        spanObject->set_parentspanid(spans[i]["parentSpanId"]);
+                                        spanObject->set_spanid(spans[i]["spanId"].get<int>());
+                                        spanObject->set_parentspanid(spans[i]["parentSpanId"].get<int>());
                                         spanObject->set_starttime(spans[i]["startTime"]);
                                         spanObject->set_endtime(spans[i]["endTime"]);
                                         spanObject->set_operationname(spans[i]["operationName"]);
+                                        std::string peer(spans[i]["peer"].get<std::string>());
+                                        if(!peer.empty()) {
+                                            spanObject->set_peer(peer);
+                                        }
 
                                         int spanType = spans[i]["spanType"].get<int>();
                                         if (spanType == 0) {
@@ -205,7 +209,7 @@ int main(int argc, char **argv) {
                                             spanObject->set_spanlayer(SpanLayer::Http);
                                         }
 
-                                        spanObject->set_componentid(spans[i]["componentId"]);
+                                        spanObject->set_componentid(spans[i]["componentId"].get<int>());
                                         spanObject->set_iserror(spans[i]["isError"].get<int>());
                                     }
 
