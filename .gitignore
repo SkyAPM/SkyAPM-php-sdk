@@ -1,4 +1,10 @@
 .deps
+.idea
+cmake-build-debug
+CMakeLists.txt
+sky-php7ext/grpc/*
+sky-php7ext/configure.ac
+sky-php7ext/skywalking.loT
 sky-php7ext\.idea
 sky-php7ext\*.lo
 sky-php7ext\*.la

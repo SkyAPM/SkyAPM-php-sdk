@@ -17,12 +17,13 @@ SkyWalking APM : https://github.com/apache/incubator-skywalking
 
 
 # 使用安装
-*  php扩展包(https://github.com/SkywalkingContrib/skywalking-php-sdk/blob/songzhian/sky-php7ext/README_ZH.md)
-*  php代码类包(https://github.com/SkywalkingContrib/skywalking-php-sdk/blob/songzhian/sdk-php/README_ZH.md)
+*  php扩展包(https://github.com/SkywalkingContrib/skywalking-php-sdk/blob/master/sky-php7ext/README_ZH.md)
+*  php代码类包(https://github.com/SkywalkingContrib/skywalking-php-sdk/blob/master/sdk-php/README_ZH.md)
 
 # 对应版本支持
 *  1.0对应版本:Skywalking 3.1
 *  2.0对应版本:Skywalking 3.x
+*  5.0对应版本:Skywalking 5.x
 # 将要完成
   * 其它php版本扩展支持
   * 更多系统支持
