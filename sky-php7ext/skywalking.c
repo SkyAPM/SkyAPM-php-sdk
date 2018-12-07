@@ -75,7 +75,7 @@ static int sky_increment_id = 0;
  */
 /* Remove comments and fill if you need to have entries in php.ini*/
 PHP_INI_BEGIN()
-	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"1", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
@@ -485,9 +485,9 @@ static void sky_flush_all() {
 
 	add_assoc_long(span, "endTime", millisecond);
 	if ((SG(sapi_headers).http_response_code >= 500)) {
-		add_assoc_long(span, "isError", true);
+		add_assoc_long(span, "isError", 1);
 	} else {
-		add_assoc_long(span, "isError", false);
+		add_assoc_long(span, "isError", 0);
 	}
 
 	write_log(sky_json_encode(&SKYWALKING_G(UpstreamSegment)));
