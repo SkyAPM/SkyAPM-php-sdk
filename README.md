@@ -13,6 +13,8 @@ SkyWalking APM : https://github.com/apache/incubator-skywalking
   * You need to add  business codes to monnitor.
 
 # Dep
+* libuuid
+* gcc 4.9+
 * pkg-config
 * grpc
 * protoc

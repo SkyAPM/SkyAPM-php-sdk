@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (argc == 0) {
+    if (argc == 1) {
         std::cout << "report_client grpc log_path" << std::endl;
         std::cout << "e.g. report_client 120.0.0.1:11800 /tmp" << std::endl;
         return 0;
