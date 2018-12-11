@@ -132,6 +132,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 	l_millisecond = get_millisecond();
 	long millisecond;
 	millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
+	efree(l_millisecond);
 	add_assoc_long(&temp, "startTime", millisecond);
 	add_assoc_long(&temp, "spanType", 1);
 	add_assoc_long(&temp, "spanLayer", 3);
@@ -183,6 +184,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         zval_ptr_dtor(&p[0]);
         zval_ptr_dtor(&p[2]);
     }
+    efree(sw3);
 
 	orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
@@ -232,7 +234,6 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 
 static char *sky_json_encode(zval *parameter){
 
-	int return_code;
 	smart_str buf = {0};
 	zend_long options = 64;
 #if PHP_VERSION_ID >= 71000
@@ -305,6 +306,7 @@ static void generate_context() {
     sprintf(makeTraceId, "%d.%d.%ld", application_instance, sys_pid, second);
 
     add_assoc_string(&SKYWALKING_G(context), "currentTraceId", makeTraceId);
+    efree(makeTraceId);
     add_assoc_long(&SKYWALKING_G(context), "isChild", 0);
 
     // parent
@@ -361,9 +363,6 @@ static void generate_context() {
 static long get_second() {
     struct timeval tv;
     gettimeofday(&tv,NULL);
-    char *buffer;
-    buffer = (char *)emalloc(sizeof(char)*20);
-    bzero(buffer, 20);
     return tv.tv_sec;
 }
 
@@ -600,6 +599,8 @@ static void module_init() {
         i++;
     } while (application_instance == -100000 && i <= 3);
 
+    efree(ipv4s);
+
     if (application_instance == -100000) {
         sky_close = 1;
         return;
@@ -638,9 +639,14 @@ PHP_MINIT_FUNCTION (skywalking) {
 PHP_MSHUTDOWN_FUNCTION(skywalking)
 {
 	UNREGISTER_INI_ENTRIES();
-	/* uncomment this line if you have INI entries
+    if (SKYWALKING_G(enable)) {
+        if (sky_close == 1) {
+            return SUCCESS;
+        }
+        zval_dtor(&SKYWALKING_G(context));
+        zval_dtor(&SKYWALKING_G(UpstreamSegment));
+    }
 
-	*/
 	return SUCCESS;
 }
 /* }}} */
@@ -655,6 +661,9 @@ PHP_RINIT_FUNCTION(skywalking)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 	if (SKYWALKING_G(enable)) {
+        if (sky_close == 1) {
+            return SUCCESS;
+        }
 		sky_increment_id++;
 		if (sky_increment_id >= 9999) {
 			sky_increment_id = 0;
