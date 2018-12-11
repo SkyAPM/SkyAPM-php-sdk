@@ -306,7 +306,7 @@ static void generate_context() {
     sprintf(makeTraceId, "%d.%d.%ld", application_instance, sys_pid, second);
 
     add_assoc_string(&SKYWALKING_G(context), "currentTraceId", makeTraceId);
-    efree(makeTraceId);
+//    efree(makeTraceId);
     add_assoc_long(&SKYWALKING_G(context), "isChild", 0);
 
     // parent
@@ -599,7 +599,7 @@ static void module_init() {
         i++;
     } while (application_instance == -100000 && i <= 3);
 
-    efree(ipv4s);
+//    efree(ipv4s);
 
     if (application_instance == -100000) {
         sky_close = 1;
@@ -643,8 +643,8 @@ PHP_MSHUTDOWN_FUNCTION(skywalking)
         if (sky_close == 1) {
             return SUCCESS;
         }
-        zval_dtor(&SKYWALKING_G(context));
-        zval_dtor(&SKYWALKING_G(UpstreamSegment));
+//        zval_dtor(&SKYWALKING_G(context));
+//        zval_dtor(&SKYWALKING_G(UpstreamSegment));
     }
 
 	return SUCCESS;
