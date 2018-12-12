@@ -180,7 +180,6 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     char *sw3 = generate_sw3(Z_LVAL_P(span_id) + 1, _peer_host, _op_name);
     zend_string_release(_peer_host);
     zend_string_release(_op_name);
-
     if (sw3 != NULL) {
         zval z_sw3;
         array_init(&z_sw3);
@@ -207,18 +206,21 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 	orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
 
-
-	call_user_function(CG(function_table), NULL, &function_name, &curlInfo, 1, params);
-	zval_dtor(&params[0]);
-	zval_dtor(&function_name);
+    zval function_name_1,curlInfo_1;
+    zval params_1[1];
+    ZVAL_COPY(&params_1[0], zid);
+    ZVAL_STRING(&function_name_1,  "curl_getinfo");
+	call_user_function(CG(function_table), NULL, &function_name_1, &curlInfo_1, 1, params_1);
+	zval_dtor(&params_1[0]);
+	zval_dtor(&function_name_1);
 
 	zval *z_http_code;
 	l_millisecond = get_millisecond();
 	millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
 	efree(l_millisecond);
 
-	z_http_code = zend_hash_str_find(Z_ARRVAL(curlInfo),  ZEND_STRL("http_code"));
-    zval_dtor(&curlInfo);
+	z_http_code = zend_hash_str_find(Z_ARRVAL(curlInfo_1),  ZEND_STRL("http_code"));
+    zval_dtor(&curlInfo_1);
 
 	add_assoc_long(&temp, "endTime", millisecond);
 
@@ -278,17 +280,13 @@ static void write_log(char *text) {
         char message[strlen(text) + 1];
         log_path = SKY_G(log_path);
 
-        zend_string *date_fmt, *_log_path, *_log_path_lower;
-        time_t t;
-        t = time(NULL);
-        date_fmt = php_format_date("YmdHi", sizeof("YmdHi") - 1, t, 1);
+        zend_string *_log_path, *_log_path_lower;
         _log_path = zend_string_init(log_path, strlen(log_path), 0);
         _log_path_lower = php_string_tolower(_log_path);
 
         bzero(logFilename, 100);
-        sprintf(logFilename, "%s/skywalking.%s.log", ZSTR_VAL(_log_path_lower), ZSTR_VAL(date_fmt));
+        sprintf(logFilename, "%s/skywalking.%d.log", ZSTR_VAL(_log_path_lower), get_second());
 
-        zend_string_release(date_fmt);
         zend_string_release(_log_path);
         zend_string_release(_log_path_lower);
         bzero(message, strlen(text));

@@ -22,6 +22,7 @@
 #include <string>
 #include <sys/types.h>
 #include <dirent.h>
+#include <sys/time.h>
 #include <regex>
 #include <chrono>
 #include <cstdio>
@@ -118,12 +119,11 @@ int main(int argc, char **argv) {
 
                 if (valid) {
 
-                    time_t t = time(NULL);
-                    t = t - 65;
-                    char ch[64] = {0};
-                    strftime(ch, sizeof(ch) - 1, "%Y%m%d%H%M", localtime(&t));
-                    unsigned long fileTime = std::stoul(result[1]);
-                    unsigned long localTime = std::stoul(ch);
+                    struct timeval tv;
+                    gettimeofday(&tv,NULL);
+
+                    long fileTime = std::stol(result[1]);
+                    long localTime = tv.tv_sec - 3;
 
                     if (fileTime < localTime) {
                         std::ifstream file;
