@@ -22,6 +22,7 @@
 #include <string>
 #include <sys/types.h>
 #include <dirent.h>
+#include <sys/time.h>
 #include <regex>
 #include <chrono>
 #include <cstdio>
@@ -85,7 +86,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (argc == 0) {
+    if (argc == 1) {
         std::cout << "report_client grpc log_path" << std::endl;
         std::cout << "e.g. report_client 120.0.0.1:11800 /tmp" << std::endl;
         return 0;
@@ -118,12 +119,11 @@ int main(int argc, char **argv) {
 
                 if (valid) {
 
-                    time_t t = time(NULL);
-                    t = t - 65;
-                    char ch[64] = {0};
-                    strftime(ch, sizeof(ch) - 1, "%Y%m%d%H%M", localtime(&t));
-                    unsigned long fileTime = std::stoul(result[1]);
-                    unsigned long localTime = std::stoul(ch);
+                    struct timeval tv;
+                    gettimeofday(&tv,NULL);
+
+                    long fileTime = std::stol(result[1]);
+                    long localTime = tv.tv_sec - 3;
 
                     if (fileTime < localTime) {
                         std::ifstream file;
@@ -211,6 +211,33 @@ int main(int argc, char **argv) {
 
                                         spanObject->set_componentid(spans[i]["componentId"].get<int>());
                                         spanObject->set_iserror(spans[i]["isError"].get<int>());
+
+                                        // refs
+                                        auto refs = spans[i]["refs"];
+                                        for (int k = 0; k < refs.size(); k++) {
+
+                                            std::smatch traceResult;
+                                            std::string tmp(refs[k]["parentTraceSegmentId"].get<std::string>());
+                                            bool valid = std::regex_match(tmp,
+                                                                          traceResult, std::regex("([\\-0-9]+)\\.(\\d+)\\.(\\d+)"));
+
+                                            UniqueId *uniqueIdTmp = new UniqueId;
+                                            long long idp1 = std::stoll(traceResult[1]);
+                                            long long idp2 = std::stoll(traceResult[2]);
+                                            long long idp3 = std::stoll(traceResult[3]);
+                                            uniqueIdTmp->add_idparts(idp1);
+                                            uniqueIdTmp->add_idparts(idp2);
+                                            uniqueIdTmp->add_idparts(idp3);
+
+                                            TraceSegmentReference *r = spanObject->add_refs();
+                                            r->set_allocated_parenttracesegmentid(uniqueIdTmp);
+                                            r->set_parentspanid(refs[k]["parentSpanId"].get<int>());
+                                            r->set_parentapplicationinstanceid(refs[k]["parentApplicationInstanceId"].get<int>());
+                                            r->set_networkaddress(refs[k]["networkAddress"].get<std::string>());
+                                            r->set_entryapplicationinstanceid(refs[k]["entryApplicationInstanceId"].get<int>());
+                                            r->set_entryservicename(refs[k]["entryServiceName"].get<std::string>());
+                                            r->set_parentservicename(refs[k]["parentServiceName"].get<std::string>());
+                                        }
                                     }
 
                                     std::string test;

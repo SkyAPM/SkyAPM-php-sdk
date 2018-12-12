@@ -126,7 +126,6 @@ static void generate_context();
 static char *get_page_request_uri();
 static void write_log( char *text);
 static void request_init();
-static int is_auto_open();
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS);
 
@@ -146,6 +145,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     char *grpc;
     zval UpstreamSegment;
     zval context;
+    int  version;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
