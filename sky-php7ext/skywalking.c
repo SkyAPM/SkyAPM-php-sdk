@@ -157,10 +157,14 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     if(url_info->port){
         peer_port = url_info->port;
     }
-    if(peer_port > 0){
+    if (peer_port > 0) {
         sprintf(peer, "%s:%d", url_info->host, peer_port);
-    }else{
-        sprintf(peer, "%s", url_info->host);
+    } else {
+        if (strcasecmp("http", url_info->scheme) == 0) {
+            sprintf(peer, "%s:%d", url_info->host, 80);
+        } else {
+            sprintf(peer, "%s:%d", url_info->host, 443);
+        }
     }
 
     if (url_info->query) {
