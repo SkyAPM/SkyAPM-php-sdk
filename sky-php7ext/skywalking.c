@@ -149,7 +149,30 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     zval *z_url = zend_hash_str_find(Z_ARRVAL(curlInfo),  ZEND_STRL("url"));
     zval_dtor(&curlInfo);
 
-    php_url *url_info = php_url_parse( Z_STRVAL_P(z_url) );
+    char *url_str = Z_STRVAL_P(z_url);
+    php_url *url_info = NULL;
+    url_info = php_url_parse(url_str);
+
+    if (url_info->scheme == NULL) {
+        char *new_url_info = (char *) emalloc(sizeof(url_str) + 7);
+        char *pre = NULL;
+        if (url_info->host == NULL) {
+            if (strncasecmp("://", url_str, 3) == 0) {
+                pre = "http";
+            } else {
+                pre = "http://";
+            }
+        } else {
+            pre = "http:";
+        }
+
+        strcpy(new_url_info, pre);
+        strcat(new_url_info, url_str);
+        php_url_free(url_info);
+        url_info = php_url_parse(new_url_info);
+        efree(new_url_info);
+    }
+
     char peer[200];
     char operation_name[500];
 
@@ -168,9 +191,17 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     }
 
     if (url_info->query) {
-        sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
+        if(url_info->path == NULL) {
+            sprintf(operation_name, "%s?%s", "/", url_info->query);
+        } else {
+            sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
+        }
     } else {
-        sprintf(operation_name, "%s", url_info->path);
+        if(url_info->path == NULL) {
+            sprintf(operation_name, "%s", "/");
+        } else {
+            sprintf(operation_name, "%s", url_info->path);
+        }
     }
 
     zend_string *_peer_host,*_op_name;
@@ -225,7 +256,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 	add_assoc_long(&temp, "endTime", millisecond);
 
 
-	add_assoc_string(&temp, "operationName", url_info->path);
+	add_assoc_string(&temp, "operationName", operation_name);
 	add_assoc_string(&temp, "peer",  peer);
 
 	php_url_free(url_info);
@@ -236,6 +267,9 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 	}else{
         add_assoc_long(&temp, "isError", 0);
 	}
+	zval _refs;
+	array_init(&_refs);
+	add_assoc_zval(&temp, "refs", &_refs);
 	zend_hash_next_index_insert(Z_ARRVAL_P(spans), &temp);
 
 }
