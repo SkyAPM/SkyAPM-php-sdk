@@ -134,6 +134,7 @@ static zval *get_first_span();
 static zval *get_spans();
 static char* _get_current_machine_ip();
 static void (*orig_curl_exec)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+static void (*orig_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
 /*
   	Declare any global variables you may need between the BEGIN
 	and END macros here:
@@ -145,6 +146,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     char *grpc;
     zval UpstreamSegment;
     zval context;
+    zval curl_header;
     int  version;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
