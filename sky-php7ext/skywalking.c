@@ -218,7 +218,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         sprintf(headers_string, "sw3: %s", sw3);
 //		//send setopt header
 
-        zend_ulong key = Z_RES_VAL_P(zid);
+        zend_ulong key = (zend_ulong) Z_RES_VAL_P(zid);
         zval *current_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key);
 
         if(current_header == NULL) {
@@ -302,7 +302,7 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
             return ;
         }
 
-        zend_ulong key = Z_RES_VAL_P(zid);
+        zend_ulong key = (zend_ulong) Z_RES_VAL_P(zid);
         zval *current_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key);
         if (current_header == NULL) {
             zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, zvalue);
