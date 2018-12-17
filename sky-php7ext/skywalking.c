@@ -324,7 +324,6 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
         } else {
             zval *exec_call = zend_hash_str_find(Z_ARRVAL_P(current_header), "exec_call", sizeof("exec_call") - 1);
             if (Z_LVAL_P(exec_call) == 1) {
-                php_var_dump(zvalue, 0);
                 orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
             } else {
                 zend_string *header = zend_string_init("header", sizeof("header") - 1, 0);
