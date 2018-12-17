@@ -217,20 +217,31 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         char headers_string[500];
         sprintf(headers_string, "sw3: %s", sw3);
 //		//send setopt header
-
         zend_ulong key = (zend_ulong) Z_RES_VAL_P(zid);
         zval *current_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key);
 
-        if(current_header == NULL) {
-            zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, &opt);
+        if (current_header == NULL) {
+            zval _temp;
+            array_init(&_temp);
+            add_assoc_long(&_temp, "exec_call", 1);
+            add_assoc_zval(&_temp, "header", &opt);
+            zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, &_temp);
             add_next_index_string(&opt, headers_string);
-        }else{
+        } else {
             zend_long _key;
             zval *_value;
             add_next_index_string(&opt, headers_string);
-            ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(current_header), _key, _value) {
+
+            zval exec_send;
+            ZVAL_LONG(&exec_send, 1);
+            zend_hash_str_update(Z_ARRVAL_P(current_header), "exec_call", sizeof("exec_call") - 1, &exec_send);
+            zval_dtor(&exec_send);
+
+            zval *header_entry = zend_hash_str_find(Z_ARRVAL_P(current_header), "header", sizeof("header") - 1);
+            ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(header_entry), _key, _value)
+                    {
                         add_next_index_string(&opt, Z_STRVAL_P(_value));
-            } ZEND_HASH_FOREACH_END();
+                    }ZEND_HASH_FOREACH_END();
         }
 
         zval f_name, p[3];
@@ -298,21 +309,73 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
     }
 
     if (CURLOPT_HTTPHEADER == options) {
-        if( Z_TYPE_P(zvalue) != IS_ARRAY){
-            return ;
+        if (Z_TYPE_P(zvalue) != IS_ARRAY) {
+            return;
         }
 
         zend_ulong key = (zend_ulong) Z_RES_VAL_P(zid);
         zval *current_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key);
         if (current_header == NULL) {
-            zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, zvalue);
+            zval temp;
+            array_init(&temp);
+            add_assoc_long(&temp, "exec_call", 0);
+            add_assoc_zval(&temp, "header", zvalue);
+            zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, &temp);
         } else {
-            orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+            zval *exec_call = zend_hash_str_find(Z_ARRVAL_P(current_header), "exec_call", sizeof("exec_call") - 1);
+            if (Z_LVAL_P(exec_call) == 1) {
+                orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+            } else {
+                zend_string *header = zend_string_init("header", sizeof("header") - 1, 0);
+                zend_hash_update(Z_ARRVAL_P(current_header), header, zvalue);
+                zend_string_release(header);
+            }
         }
     } else {
         orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
     }
 }
+
+void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    zval		*zid, *arr, *entry;
+    zend_ulong	option;
+    zend_string	*string_key;
+
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+            Z_PARAM_RESOURCE(zid)
+            Z_PARAM_ARRAY(arr)
+    ZEND_PARSE_PARAMETERS_END();
+
+    zend_ulong key = (zend_ulong) Z_RES_VAL_P(zid);
+    zval *current_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key);
+
+        ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(arr), option, string_key, entry)
+                {
+                    if (string_key) {
+                        php_error_docref(NULL, E_WARNING,
+                                         "Array keys must be CURLOPT constants or equivalent integer values");
+                        RETURN_FALSE;
+                    }
+
+                    if (CURLOPT_HTTPHEADER == option) {
+                        if (current_header == NULL) {
+                            zval temp;
+                            array_init(&temp);
+                            add_assoc_long(&temp, "exec_call", 0);
+                            add_assoc_zval(&temp, "header", entry);
+                            zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, &temp);
+                        } else {
+                            zend_string *header = zend_string_init("header", sizeof("header") - 1, 0);
+                            zend_hash_update(Z_ARRVAL_P(current_header), header, entry);
+                            zend_string_release(header);
+                        }
+                    }
+
+                }ZEND_HASH_FOREACH_END();
+
+    orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
 /* {{{ php_skywalking_init_globals
  */
 /* Uncomment this function if you have INI entries*/
@@ -729,6 +792,10 @@ PHP_MINIT_FUNCTION (skywalking) {
         if ((old_function = zend_hash_str_find_ptr(CG(function_table), "curl_setopt", sizeof("curl_setopt")-1)) != NULL) {
             orig_curl_setopt = old_function->internal_function.handler;
             old_function->internal_function.handler = sky_curl_setopt_handler;
+        }
+        if ((old_function = zend_hash_str_find_ptr(CG(function_table), "curl_setopt_array", sizeof("curl_setopt_array")-1)) != NULL) {
+            orig_curl_setopt_array = old_function->internal_function.handler;
+            old_function->internal_function.handler = sky_curl_setopt_array_handler;
         }
 	}
 

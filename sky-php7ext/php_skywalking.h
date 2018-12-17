@@ -128,6 +128,8 @@ static void write_log( char *text);
 static void request_init();
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS);
+void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS);
+void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS);
 
 static void sky_flush_all();
 static zval *get_first_span();
@@ -135,6 +137,7 @@ static zval *get_spans();
 static char* _get_current_machine_ip();
 static void (*orig_curl_exec)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
 static void (*orig_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+static void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
 /*
   	Declare any global variables you may need between the BEGIN
 	and END macros here:
