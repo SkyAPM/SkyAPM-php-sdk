@@ -337,9 +337,9 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 }
 
 void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
-    zval		*zid, *arr, *entry;
-    zend_ulong	option;
-    zend_string	*string_key;
+    zval *zid, *arr, *entry;
+    zend_ulong option;
+    zend_string *string_key;
 
     ZEND_PARSE_PARAMETERS_START(2, 2)
             Z_PARAM_RESOURCE(zid)
@@ -349,29 +349,29 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
     zend_ulong key = (zend_ulong) Z_RES_VAL_P(zid);
     zval *current_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key);
 
-        ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(arr), option, string_key, entry)
+    zval *header_opt = zend_hash_index_find(Z_ARRVAL_P(arr), CURLOPT_HTTPHEADER);
+
+    if (header_opt != NULL) {
+        zend_long _key;
+        zval *_value;
+        zval header;
+        array_init(&header);
+        ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(header_opt), _key, _value)
                 {
-                    if (string_key) {
-                        php_error_docref(NULL, E_WARNING,
-                                         "Array keys must be CURLOPT constants or equivalent integer values");
-                        RETURN_FALSE;
-                    }
-
-                    if (CURLOPT_HTTPHEADER == option) {
-                        if (current_header == NULL) {
-                            zval temp;
-                            array_init(&temp);
-                            add_assoc_long(&temp, "exec_call", 0);
-                            add_assoc_zval(&temp, "header", entry);
-                            zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, &temp);
-                        } else {
-                            zend_string *header = zend_string_init("header", sizeof("header") - 1, 0);
-                            zend_hash_update(Z_ARRVAL_P(current_header), header, entry);
-                            zend_string_release(header);
-                        }
-                    }
-
+                    add_next_index_string(&header, Z_STRVAL_P(_value));
                 }ZEND_HASH_FOREACH_END();
+        if (current_header == NULL) {
+            zval temp;
+            array_init(&temp);
+            add_assoc_long(&temp, "exec_call", 0);
+            add_assoc_zval(&temp, "header", &header);
+            zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, &temp);
+        } else {
+            zend_string *_header = zend_string_init("header", sizeof("header") - 1, 0);
+            zend_hash_update(Z_ARRVAL_P(current_header), _header, &header);
+            zend_string_release(_header);
+        }
+    }
 
     orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
