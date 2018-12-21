@@ -313,22 +313,33 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
             return;
         }
 
+        zend_long _key;
+        zval *_value;
+        zval header;
+        array_init(&header);
+        ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(zvalue), _key, _value)
+                {
+                    add_next_index_string(&header, Z_STRVAL_P(_value));
+                }ZEND_HASH_FOREACH_END();
+
         zend_ulong key = (zend_ulong) Z_RES_VAL_P(zid);
         zval *current_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key);
+
         if (current_header == NULL) {
             zval temp;
             array_init(&temp);
             add_assoc_long(&temp, "exec_call", 0);
-            add_assoc_zval(&temp, "header", zvalue);
+            add_assoc_zval(&temp, "header", &header);
             zend_hash_index_add(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), key, &temp);
         } else {
             zval *exec_call = zend_hash_str_find(Z_ARRVAL_P(current_header), "exec_call", sizeof("exec_call") - 1);
             if (Z_LVAL_P(exec_call) == 1) {
+                zval_dtor(&header);
                 orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
             } else {
-                zend_string *header = zend_string_init("header", sizeof("header") - 1, 0);
-                zend_hash_update(Z_ARRVAL_P(current_header), header, zvalue);
-                zend_string_release(header);
+                zend_string *_header = zend_string_init("header", sizeof("header") - 1, 0);
+                zend_hash_update(Z_ARRVAL_P(current_header), _header, &header);
+                zend_string_release(_header);
             }
         }
     } else {
