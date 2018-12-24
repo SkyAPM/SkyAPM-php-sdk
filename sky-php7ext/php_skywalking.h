@@ -121,7 +121,7 @@ void *SKY_ADD_ASSOC_ZVAL(zval *z, const char *k) {
 static char *sky_json_encode(zval *parameter);
 static long get_second();
 static char *get_millisecond();
-static char *generate_sw3(zend_long span_id, zend_string *peer_host, zend_string *operation_name);
+static char *generate_sw3(zend_long span_id, char *peer_host, char *operation_name);
 static void generate_context();
 static char *get_page_request_uri();
 static void write_log( char *text);
