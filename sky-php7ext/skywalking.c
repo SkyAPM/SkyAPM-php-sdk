@@ -619,6 +619,7 @@ static void request_init() {
     generate_context();
 
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_instance", application_instance);
+    add_assoc_long(&SKYWALKING_G(UpstreamSegment), "pid", getppid());
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_id", application_id);
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "version", SKYWALKING_G(version));
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "segment");
