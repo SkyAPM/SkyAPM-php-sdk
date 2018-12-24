@@ -147,12 +147,9 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     zval_dtor(&params[0]);
 
     zval *z_url = zend_hash_str_find(Z_ARRVAL(curlInfo),  ZEND_STRL("url"));
-    zval_dtor(&curlInfo);
-
     char *url_str = Z_STRVAL_P(z_url);
     php_url *url_info = NULL;
     url_info = php_url_parse(url_str);
-
     if (url_info->scheme == NULL) {
         char *new_url_info = (char *) emalloc(sizeof(url_str) + 7);
         char *pre = NULL;
@@ -270,7 +267,6 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 	efree(l_millisecond);
 
 	z_http_code = zend_hash_str_find(Z_ARRVAL(curlInfo_1),  ZEND_STRL("http_code"));
-    zval_dtor(&curlInfo_1);
 
 	add_assoc_long(&temp, "endTime", millisecond);
 
@@ -291,6 +287,8 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 	array_init(&_refs);
 	add_assoc_zval(&temp, "refs", &_refs);
 	zend_hash_next_index_insert(Z_ARRVAL_P(spans), &temp);
+    zval_dtor(&curlInfo_1);
+    zval_dtor(&curlInfo);
 }
 
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
