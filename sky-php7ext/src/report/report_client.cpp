@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <thread>
 #include "json.hpp"
+#include <signal.h>
 
 #include <grpcpp/grpcpp.h>
 #include <google/protobuf/util/json_util.h>
@@ -46,7 +47,7 @@ using json = nlohmann::json;
 class GreeterClient {
 public:
     GreeterClient(std::shared_ptr<Channel> channel)
-            : stub_(TraceSegmentService::NewStub(channel)) {}
+            : stub_(TraceSegmentService::NewStub(channel)), discoveryStub_(InstanceDiscoveryService::NewStub(channel)) {}
 
     int collect(UpstreamSegment request) {
 
@@ -70,8 +71,24 @@ public:
         return 1;
     }
 
+    int heartbeat(ApplicationInstanceHeartbeat request) {
+        Downstream reply;
+
+        ClientContext context;
+
+        Status status = discoveryStub_->heartbeat(&context, request, &reply);
+        if (status.ok()) {
+            std::cout << "send heartbeat ok!" << std::endl;
+        } else {
+            std::cout << "send heartbeat error!" << status.error_message() << std::endl;
+        }
+
+        return 1;
+    }
+
 private:
     std::unique_ptr<TraceSegmentService::Stub> stub_;
+    std::unique_ptr<InstanceDiscoveryService::Stub> discoveryStub_;
 };
 
 int main(int argc, char **argv) {
@@ -94,6 +111,8 @@ int main(int argc, char **argv) {
 
 
     GreeterClient greeter(grpc::CreateChannel(argv[1], grpc::InsecureChannelCredentials()));
+    std::map<int, int> appInstances;
+    std::map<int, long> sendTime;
 
     while (1) {
 
@@ -102,6 +121,24 @@ int main(int argc, char **argv) {
         if ((dp = opendir(argv[2])) == NULL) {
             std::cerr << "open directory error";
             return 0;
+        }
+
+        // heartbeat
+        for (auto &i: appInstances) {
+
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+
+            if(tv.tv_sec - sendTime[i.first] > 40) {
+                if (0 == kill(appInstances[i.first], 0)) {
+                    sendTime[i.first] = tv.tv_sec;
+                    std::cout << "send heartbeat ..." << std::endl;
+                    ApplicationInstanceHeartbeat request;
+                    request.set_applicationinstanceid(i.first);
+                    request.set_heartbeattime(tv.tv_sec*1000 + tv.tv_usec/1000);
+                    greeter.heartbeat(request);
+                }
+            }
         }
 
         while ((dir = readdir(dp)) != NULL) {
@@ -148,6 +185,12 @@ int main(int argc, char **argv) {
                                                               traceResult, std::regex("([\\-0-9]+)\\.(\\d+)\\.(\\d+)"));
 
                                 if (valid) {
+                                    // add to map
+                                    if(!appInstances[j["application_instance"]]) {
+                                        appInstances[j["application_instance"]] = j["pid"];
+                                        sendTime[j["application_instance"]] = 0;
+                                    }
+
 
                                     for (int i = 0; i < j["globalTraceIds"].size(); i++) {
 
