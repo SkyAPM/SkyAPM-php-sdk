@@ -152,6 +152,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     zval UpstreamSegment;
     zval context;
     zval curl_header;
+    zval curl_header_send;
     int  version;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
