@@ -148,10 +148,9 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     zval *spans = NULL;
     zval *last_span = NULL;
     zval *span_id = NULL;
-    ssize_t operation_name_l = 0;
     char *peer = NULL;
-    char *operation_name = (char *) emalloc(sizeof(char));
-    bzero(operation_name, sizeof(char));
+    ssize_t operation_name_l = 0;
+    char *operation_name = NULL;
     if (is_send == 1) {
         int peer_port = 0;
         if (url_info->port) {
@@ -171,26 +170,26 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         if (url_info->query) {
             if (url_info->path == NULL) {
                 operation_name_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
-                erealloc(operation_name, operation_name_l + 1);
+                operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                snprintf(operation_name, operation_name_l + 1, "%s?%s", "/", url_info->query);
+                sprintf(operation_name, "%s?%s", "/", url_info->query);
             } else {
                 operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
-                erealloc(operation_name, operation_name_l + 1);
+                operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                snprintf(operation_name, operation_name_l + 1, "%s?%s", url_info->path, url_info->query);
+                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
             }
         } else {
             if (url_info->path == NULL) {
                 operation_name_l = snprintf(NULL, 0, "%s", "/");
-                erealloc(operation_name, operation_name_l + 1);
+                operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                snprintf(operation_name, operation_name_l + 1, "%s", "/");
+                sprintf(operation_name, "%s", "/");
             } else {
                 operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
-                erealloc(operation_name, operation_name_l + 1);
+                operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                snprintf(operation_name, operation_name_l + 1, "%s", url_info->path);
+                sprintf(operation_name, "%s", url_info->path);
             }
         }
 
