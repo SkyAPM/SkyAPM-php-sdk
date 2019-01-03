@@ -148,43 +148,55 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     zval *spans = NULL;
     zval *last_span = NULL;
     zval *span_id = NULL;
-    smart_str peer = {0};
-    smart_str operation_name = {0};
+    char *peer = NULL;
+    ssize_t operation_name_l = 0;
+    char *operation_name = NULL;
     if (is_send == 1) {
         int peer_port = 0;
         if (url_info->port) {
             peer_port = url_info->port;
-        }
-        if (peer_port > 0) {
-            smart_str_append_printf(&peer, "%s:%d", url_info->host, peer_port);
         } else {
             if (strcasecmp("http", url_info->scheme) == 0) {
-                smart_str_append_printf(&peer, "%s:%d", url_info->host, 80);
+                peer_port = 80;
             } else {
-                smart_str_append_printf(&peer, "%s:%d", url_info->host, 443);
+                peer_port = 443;
             }
         }
-        smart_str_0(&peer);
+
+        peer = (char *) emalloc(strlen(url_info->host) + 7);
+        bzero(peer, strlen(url_info->host) + 7);
+        sprintf(peer, "%s:%d", url_info->host, peer_port);
 
         if (url_info->query) {
             if (url_info->path == NULL) {
-                smart_str_append_printf(&operation_name, "%s?%s", "/", url_info->query);
+                operation_name_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+                operation_name = (char *) emalloc(operation_name_l + 1);
+                bzero(operation_name, operation_name_l + 1);
+                sprintf(operation_name, "%s?%s", "/", url_info->query);
             } else {
-                smart_str_append_printf(&operation_name, "%s?%s", url_info->path, url_info->query);
+                operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+                operation_name = (char *) emalloc(operation_name_l + 1);
+                bzero(operation_name, operation_name_l + 1);
+                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
             }
         } else {
             if (url_info->path == NULL) {
-                smart_str_append_printf(&operation_name, "%s", "/");
+                operation_name_l = snprintf(NULL, 0, "%s", "/");
+                operation_name = (char *) emalloc(operation_name_l + 1);
+                bzero(operation_name, operation_name_l + 1);
+                sprintf(operation_name, "%s", "/");
             } else {
-                smart_str_append_printf(&operation_name, "%s", url_info->path);
+                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
+                operation_name = (char *) emalloc(operation_name_l + 1);
+                bzero(operation_name, operation_name_l + 1);
+                sprintf(operation_name, "%s", url_info->path);
             }
         }
-        smart_str_0(&operation_name);
 
         spans = get_spans();
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
-        sw3 = generate_sw3(Z_LVAL_P(span_id) + 1, ZSTR_VAL(peer.s), ZSTR_VAL(operation_name.s));
+        sw3 = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
     }
 
 
@@ -221,6 +233,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         zval_dtor(&argv[0]);
         zval_dtor(&argv[1]);
         zval_dtor(&argv[2]);
+        efree(sw3);
     }
 
     zval temp;
@@ -263,10 +276,10 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         add_assoc_long(&temp, "endTime", millisecond);
 
 
-        add_assoc_string(&temp, "operationName", ZSTR_VAL(operation_name.s));
-        add_assoc_string(&temp, "peer", ZSTR_VAL(peer.s));
-        smart_str_free(&peer);
-        smart_str_free(&operation_name);
+        add_assoc_string(&temp, "operationName", operation_name);
+        add_assoc_string(&temp, "peer", peer);
+        efree(peer);
+        efree(operation_name);
 
         php_url_free(url_info);
 
@@ -410,16 +423,16 @@ static char *generate_sw3(zend_long span_id, char *peer_host, char *operation_na
                                                   sizeof("entryOperationName") - 1);
     zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId",
                                                   sizeof("distributedTraceId") - 1);
-
-    smart_str sw3 = {0};
-
-    smart_str_append_printf(&sw3, "sw3: %s|%d|%d|%d|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
-                            application_instance, Z_LVAL_P(entryApplicationInstance), peer_host,
-                            Z_STRVAL_P(entryOperationName), operation_name, Z_STRVAL_P(distributedTraceId));
-    smart_str_0(&sw3);
-    char *header = ZSTR_VAL(sw3.s);
-    smart_str_free(&sw3);
-    return header;
+    ssize_t sw3_l = 0;
+    sw3_l = snprintf(NULL, 0, "sw3: %s|%d|%d|%d|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
+                     application_instance, Z_LVAL_P(entryApplicationInstance), peer_host,
+                     Z_STRVAL_P(entryOperationName), operation_name, Z_STRVAL_P(distributedTraceId));
+    char *sw3 = (char*)emalloc(sw3_l + 1);
+    bzero(sw3, sw3_l + 1);
+    snprintf(sw3, sw3_l + 1, "sw3: %s|%d|%d|%d|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
+             application_instance, Z_LVAL_P(entryApplicationInstance), peer_host,
+             Z_STRVAL_P(entryOperationName), operation_name, Z_STRVAL_P(distributedTraceId));
+    return sw3;
 }
 
 static zend_string *trim_sharp(zval *tmp) {
