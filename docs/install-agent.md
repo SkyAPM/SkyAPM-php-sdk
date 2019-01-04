@@ -1,4 +1,4 @@
-# Dep
+When building directly from Git sources or after custom modifications you might also need:
 * libuuid
 * gcc 4.9+
 * pkg-config
@@ -7,21 +7,22 @@
 * php 7+
 
 
-# Install
+# Build
+
 1. build php extension
 ```shell
 git clone --recurse-submodules https://github.com/SkywalkingContrib/skywalking-php-sdk.git
 phpize && ./configure && make && make install
 ```
 
-2. make report_client
+2. build report_client
 ```shell
 cd src/report
 make
 ```
 
 # Config
-* php.ini example
+php.ini example
 ```shell
 extension=skywalking.so
 skywalking.version = 5
@@ -30,8 +31,7 @@ skywalking.grpc = 127.0.0.1:11800
 ```
 
 # Run
-example
+restart and run report_client
 ```shell
-php-fpm
 ./report_client 120.0.0.1:11800 /tmp
 ```
