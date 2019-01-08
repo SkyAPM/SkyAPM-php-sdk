@@ -632,6 +632,11 @@ static void request_init() {
     // refs
     zval refs;
     array_init(&refs);
+
+    zval globalTraceIds;
+    array_init(&globalTraceIds);
+    zval tmpGlobalTraceIds;
+
     if(Z_LVAL_P(isChild) == 1) {
         zval ref;
         array_init(&ref);
@@ -642,6 +647,7 @@ static void request_init() {
         zval *entryOperationName = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "entryOperationName", sizeof("entryOperationName") - 1);
         zval *networkAddress = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "networkAddress", sizeof("networkAddress") - 1);
         zval *parentOperationName = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "parentOperationName", sizeof("parentOperationName") - 1);
+        zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId", sizeof("distributedTraceId") - 1);
         add_assoc_long(&ref, "type", 0);
         add_assoc_string(&ref, "parentTraceSegmentId", Z_STRVAL_P(parentTraceSegmentId));
         add_assoc_long(&ref, "parentSpanId", Z_LVAL_P(parentSpanId));
@@ -651,6 +657,9 @@ static void request_init() {
         add_assoc_string(&ref, "entryServiceName", Z_STRVAL_P(entryOperationName));
         add_assoc_string(&ref, "parentServiceName", Z_STRVAL_P(parentOperationName));
         zend_hash_next_index_insert(Z_ARRVAL(refs), &ref);
+        ZVAL_STRING(&tmpGlobalTraceIds, Z_STRVAL_P(distributedTraceId));
+    } else {
+        ZVAL_STRING(&tmpGlobalTraceIds, Z_STRVAL_P(traceId));
 
     }
 
@@ -659,10 +668,6 @@ static void request_init() {
 
     add_assoc_zval(&traceSegmentObject, "spans", &spans);
 
-    zval globalTraceIds;
-    array_init(&globalTraceIds);
-    zval tmpGlobalTraceIds;
-    ZVAL_STRING(&tmpGlobalTraceIds, Z_STRVAL_P(traceId));
     zend_hash_next_index_insert(Z_ARRVAL(globalTraceIds), &tmpGlobalTraceIds);
 
     zend_hash_str_update(Z_ARRVAL(SKYWALKING_G(UpstreamSegment)), "segment", sizeof("segment") - 1, &traceSegmentObject);
