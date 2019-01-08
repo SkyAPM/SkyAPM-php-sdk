@@ -163,9 +163,9 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
             }
         }
 
-        peer = (char *) emalloc(strlen(url_info->host) + 7);
-        bzero(peer, strlen(url_info->host) + 7);
-        sprintf(peer, "%s:%d", url_info->host, peer_port);
+        peer = (char *) emalloc(strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
+        bzero(peer, strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
+        sprintf(peer, "%s://%s:%d", url_info->scheme, url_info->host, peer_port);
 
         if (url_info->query) {
             if (url_info->path == NULL) {
@@ -481,6 +481,7 @@ static void generate_context() {
         zval *sw3_3 = zend_hash_index_find(Z_ARRVAL(temp), 3);
         zval *sw3_4 = zend_hash_index_find(Z_ARRVAL(temp), 4);
         zval *sw3_5 = zend_hash_index_find(Z_ARRVAL(temp), 5);
+        zval *sw3_6 = zend_hash_index_find(Z_ARRVAL(temp), 6);
         zval *sw3_7 = zend_hash_index_find(Z_ARRVAL(temp), 7);
 
         zval child;
@@ -494,6 +495,7 @@ static void generate_context() {
         add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", zend_atol(Z_STRVAL_P(sw3_3), sizeof(Z_STRVAL_P(sw3_3)) - 1));
         add_assoc_str(&SKYWALKING_G(context), "networkAddress", trim_sharp(sw3_4));
         add_assoc_str(&SKYWALKING_G(context), "entryOperationName", trim_sharp(sw3_5));
+        add_assoc_str(&SKYWALKING_G(context), "parentOperationName", trim_sharp(sw3_6));
         add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", Z_STRVAL_P(sw3_7));
     } else {
         add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
@@ -639,6 +641,7 @@ static void request_init() {
         zval *entryApplicationInstance = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "entryApplicationInstance", sizeof("entryApplicationInstance") - 1);
         zval *entryOperationName = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "entryOperationName", sizeof("entryOperationName") - 1);
         zval *networkAddress = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "networkAddress", sizeof("networkAddress") - 1);
+        zval *parentOperationName = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "parentOperationName", sizeof("parentOperationName") - 1);
         add_assoc_long(&ref, "type", 0);
         add_assoc_string(&ref, "parentTraceSegmentId", Z_STRVAL_P(parentTraceSegmentId));
         add_assoc_long(&ref, "parentSpanId", Z_LVAL_P(parentSpanId));
@@ -646,8 +649,7 @@ static void request_init() {
         add_assoc_string(&ref, "networkAddress", Z_STRVAL_P(networkAddress));
         add_assoc_long(&ref, "entryApplicationInstanceId", Z_LVAL_P(entryApplicationInstance));
         add_assoc_string(&ref, "entryServiceName", Z_STRVAL_P(entryOperationName));
-        add_assoc_string(&ref, "parentServiceName", get_page_request_uri());
-
+        add_assoc_string(&ref, "parentServiceName", Z_STRVAL_P(parentOperationName));
         zend_hash_next_index_insert(Z_ARRVAL(refs), &ref);
 
     }
