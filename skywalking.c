@@ -402,7 +402,7 @@ static void write_log(char *text) {
         _log_path_lower = php_string_tolower(_log_path);
 
         bzero(logFilename, 100);
-        sprintf(logFilename, "%s/skywalking.%d.log", ZSTR_VAL(_log_path_lower), get_second());
+        sprintf(logFilename, "%s/skywalking.%d-%d.log", ZSTR_VAL(_log_path_lower), get_second(), getpid());
 
         zend_string_release(_log_path);
         zend_string_release(_log_path_lower);

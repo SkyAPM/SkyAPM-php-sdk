@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
 
             std::string fileName = std::string(argv[2]) + "/" + dir->d_name;
 
-            const std::regex pattern(std::string(argv[2]) + "/skywalking\\.(\\d+)\\.log");
+            const std::regex pattern(std::string(argv[2]) + "/skywalking\\.(\\d+)-\\d+\\.log");
             if (std::regex_match(fileName, pattern)) {
                 std::match_results<std::string::const_iterator> result;
 
