@@ -14,4 +14,4 @@ SkyWalking PHP is the PHP instrumentation agent, which is compatible with [Apach
 * Submit an issue
 * Mail list: dev@skywalking.apache.org
 * [Gitter](https://gitter.im/openskywalking/Lobby)
-* QQ Group: 155841680, 392443393
+* QQ Group: 392443393
