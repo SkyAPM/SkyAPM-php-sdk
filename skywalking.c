@@ -768,7 +768,7 @@ static void module_init() {
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION (skywalking) {
-//	ZEND_INIT_MODULE_GLOBALS(skywalking, php_skywalking_init_globals, NULL);
+	ZEND_INIT_MODULE_GLOBALS(skywalking, php_skywalking_init_globals, NULL);
 	//data_register_hashtable();
 	REGISTER_INI_ENTRIES();
 	/* If you have INI entries, uncomment these lines
@@ -860,12 +860,14 @@ PHP_MINFO_FUNCTION(skywalking)
 {
 
 	php_info_print_table_start();
-	php_info_print_table_header(2, "skywalking support", "enabled");
+    if (sky_close) {
+        php_info_print_table_header(2, "skywalking Support", "disabled (register fail)");
+    } else {
+        php_info_print_table_header(2, "skywalking Support", "enabled");
+    }
 	php_info_print_table_end();
 
-	/* Remove comments if you have entries in php.ini
 	DISPLAY_INI_ENTRIES();
-	*/
 }
 /* }}} */
 
