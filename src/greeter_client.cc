@@ -25,6 +25,7 @@
 #include "grpc/ApplicationRegisterService.grpc.pb.h"
 #include "grpc/DiscoveryService.grpc.pb.h"
 #include "grpc/TraceSegmentService.grpc.pb.h"
+#include "grpc/register/Register.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
