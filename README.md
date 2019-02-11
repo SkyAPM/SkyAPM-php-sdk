@@ -1,6 +1,6 @@
-# SkyWalking PHP
+# SkyAPM PHP sdk
 
-SkyWalking PHP is the PHP instrumentation agent, which is compatible with [Apache SkyWalking(Incubating) APM](https://github.com/apache/incubator-skywalking) backend and others compatible agents/SDKs
+SkyAPM PHP sdk is the PHP instrumentation agent, which is compatible with [Apache SkyWalking(Incubating) APM](https://github.com/apache/incubator-skywalking) backend and others compatible agents/SDKs
 
 ## Documents
 * [Document in English](docs/README.md)
@@ -13,9 +13,9 @@ SkyWalking PHP is the PHP instrumentation agent, which is compatible with [Apach
 * [Gitter](https://gitter.im/openskywalking/Lobby)
 * QQ Group: 392443393
 
-# Who Uses SkyWalking-PHP ?
+# Who Uses SkyAPM-PHP ?
 
 
-A wide variety of companies and organizations use SkyWalking-PHP for research, production and commercial product. Here is the **User Wall** of SkyWalking-PHP.
+A wide variety of companies and organizations use SkyAPM-PHP for research, production and commercial product. Here is the **User Wall** of SkyAPM-PHP.
 
-![Who Uses SkyWalking-PHP](./who-uses.jpg)
+![Who Uses SkyAPM-PHP](./who-uses.jpg)
