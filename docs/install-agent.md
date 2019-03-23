@@ -1,5 +1,4 @@
 When building directly from Git sources or after custom modifications you might also need:
-* libuuid
 * pkg-config
 * grpc latest version
 * protoc latest version
@@ -13,8 +12,8 @@ You can run the following command to install the SkyWalking PHP Agent in your co
 
 ```shell
 // install php extension
-git clone --recurse-submodules https://github.com/SkywalkingContrib/skywalking-php-sdk.git
-cd skywalking-php-sdk
+git clone https://github.com/SkyAPM/SkyAPM-php-sdk.git
+cd SkyAPM-php-sdk
 phpize && ./configure && make && make install
 
 // install report_client
