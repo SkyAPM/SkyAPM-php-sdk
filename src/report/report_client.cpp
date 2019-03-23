@@ -15,7 +15,6 @@
  * limitations under the License.
  *
  */
-
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -23,7 +22,19 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/time.h>
+#if !_MSC_VER && !__clang__ && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ <= 8)))
+#include <boost/regex.hpp>
+using boost::regex;
+using boost::regex_match;
+using boost::match_results;
+using boost::smatch;
+#else
 #include <regex>
+using std::regex;
+using std::regex_match;
+using std::match_results;
+using std::smatch;
+#endif
 #include <chrono>
 #include <cstdio>
 #include <thread>
@@ -148,11 +159,11 @@ int main(int argc, char **argv) {
 
             std::string fileName = std::string(argv[2]) + "/" + dir->d_name;
 
-            const std::regex pattern(std::string(argv[2]) + "/skywalking\\.(\\d+)-\\d+\\.log");
-            if (std::regex_match(fileName, pattern)) {
-                std::match_results<std::string::const_iterator> result;
+            const regex pattern(std::string(argv[2]) + "/skywalking\\.(\\d+)-\\d+\\.log");
+            if (regex_match(fileName, pattern)) {
+                match_results<std::string::const_iterator> result;
 
-                bool valid = std::regex_match(fileName, result, pattern);
+                bool valid = regex_match(fileName, result, pattern);
 
                 if (valid) {
 
@@ -179,10 +190,10 @@ int main(int argc, char **argv) {
 
                                 UpstreamSegment request;
 
-                                std::smatch traceResult;
+                                smatch traceResult;
                                 std::string tmp(j["segment"]["traceSegmentId"].get<std::string>());
-                                bool valid = std::regex_match(tmp,
-                                                              traceResult, std::regex("([\\-0-9]+)\\.(\\d+)\\.(\\d+)"));
+                                bool valid = regex_match(tmp,
+                                                              traceResult, regex("([\\-0-9]+)\\.(\\d+)\\.(\\d+)"));
 
                                 if (valid) {
                                     // add to map
@@ -196,10 +207,10 @@ int main(int argc, char **argv) {
 
                                         std::cout << "send " << j["globalTraceIds"][i].get<std::string>() << " to skywalking service"
                                                   << std::endl;
-                                        std::smatch globalTraceResult;
+                                        smatch globalTraceResult;
                                         std::string tmp(j["globalTraceIds"][i].get<std::string>());
 
-                                        bool valid = std::regex_match(tmp, globalTraceResult, std::regex("(\\-?\\d+)\\.(\\d+)\\.(\\d+)"));
+                                        bool valid = regex_match(tmp, globalTraceResult, regex("(\\-?\\d+)\\.(\\d+)\\.(\\d+)"));
                                         UniqueId *globalTrace = request.add_globaltraceids();
 
                                         long long idp1 = std::stoll(globalTraceResult[1]);
@@ -259,10 +270,10 @@ int main(int argc, char **argv) {
                                         auto refs = spans[i]["refs"];
                                         for (int k = 0; k < refs.size(); k++) {
 
-                                            std::smatch traceResult;
+                                            smatch traceResult;
                                             std::string tmp(refs[k]["parentTraceSegmentId"].get<std::string>());
-                                            bool valid = std::regex_match(tmp,
-                                                                          traceResult, std::regex("([\\-0-9]+)\\.(\\d+)\\.(\\d+)"));
+                                            bool valid = regex_match(tmp,
+                                                                          traceResult, regex("([\\-0-9]+)\\.(\\d+)\\.(\\d+)"));
 
                                             UniqueId *uniqueIdTmp = new UniqueId;
                                             long long idp1 = std::stoll(traceResult[1]);

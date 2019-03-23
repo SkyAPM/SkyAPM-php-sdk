@@ -20,26 +20,34 @@ CXX = g++
 CPPFLAGS += `pkg-config --cflags protobuf grpc`
 CXXFLAGS += -std=c++11
 ifeq ($(SYSTEM),Darwin)
-LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
+LDFLAGS += -Ldeps/boost/stage/lib -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
            -lgrpc++_reflection\
-           -ldl
+           -ldl\
+           -lboost_regex
 else
-LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
+LDFLAGS += -Ldeps/boost/stage/lib -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-           -ldl
+           -ldl\
+           -lboost_regex
 endif
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
 
 
-all: system-check report_client
+all: system-check boost report_client
+
+boost:
+	cd deps/boost && ./bootstrap.sh && \
+	./b2 stage --with-regex link=static runtime-link=shared threading=multi
 
 report_client: ../grpc/.libs/ApplicationRegisterService-grpc.o ../grpc/.libs/ApplicationRegisterService.o ../grpc/.libs/Common-grpc.o ../grpc/.libs/Common.o ../grpc/.libs/DiscoveryService-grpc.o ../grpc/.libs/DiscoveryService.o ../grpc/.libs/Downstream-grpc.o ../grpc/.libs/Downstream.o ../grpc/.libs/JVMMetricsService-grpc.o ../grpc/.libs/JVMMetricsService.o ../grpc/.libs/KeyWithIntegerValue-grpc.o ../grpc/.libs/KeyWithIntegerValue.o ../grpc/.libs/KeyWithStringValue-grpc.o ../grpc/.libs/KeyWithStringValue.o ../grpc/.libs/NetworkAddressRegisterService-grpc.o ../grpc/.libs/NetworkAddressRegisterService.o ../grpc/.libs/TraceSegmentService-grpc.o ../grpc/.libs/TraceSegmentService.o
-	$(CXX) report_client.cpp $^ $(LDFLAGS) $(CXXFLAGS) -o $@
+	$(CXX) report_client.cpp $^ $(LDFLAGS) -Ideps/boost $(CXXFLAGS) -o $@
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h report_client
+	rm -rf *.o *.pb.cc *.pb.h report_client \
+	deps/boost/bin.v2 deps/boost/stage deps/boost/b2 deps/boost/bjam \
+	deps/boost/project-config.* deps/boost/bootstrap.log
 
 
 # The following is to test your system and ensure a smoother experience.
