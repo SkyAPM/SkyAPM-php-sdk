@@ -2,7 +2,7 @@
 .idea
 cmake-build-debug
 CMakeLists.txt
-grpc/*
+src/grpc/*
 configure.ac
 skywalking.loT
 .idea

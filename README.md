@@ -15,7 +15,6 @@ SkyAPM PHP sdk is the PHP instrumentation agent, which is compatible with [Apach
 
 # Who Uses SkyAPM-PHP ?
 
-
 A wide variety of companies and organizations use SkyAPM-PHP for research, production and commercial product. Here is the **User Wall** of SkyAPM-PHP.
 
 ![Who Uses SkyAPM-PHP](./who-uses.jpg)
