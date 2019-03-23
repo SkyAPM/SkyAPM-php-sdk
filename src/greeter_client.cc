@@ -26,6 +26,9 @@
 #include "grpc/DiscoveryService.grpc.pb.h"
 #include "grpc/TraceSegmentService.grpc.pb.h"
 #include "grpc/register/Register.grpc.pb.h"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -38,7 +41,7 @@ using grpc::ClientWriter;
 extern "C" int applicationCodeRegister(char *grpc_server, char *code);
 
 extern "C" int
-registerInstance(char *grpc_server, int appId, long registertime, char *uuid, char *osname, char *hostname,
+registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
                  int processno, char *ipv4s);
 
 class GreeterClient {
@@ -72,7 +75,7 @@ public:
         return -100000;
     }
 
-    int registerInstance(int applicationid, long registertime, char *uuid, char *osname, char *hostname, int processno,
+    int registerInstance(int applicationid, long registertime, char *osname, char *hostname, int processno,
                          char *ipv4s) {
 
         std::unique_ptr <InstanceDiscoveryService::Stub> stub_;
@@ -80,7 +83,9 @@ public:
 
         ApplicationInstance request;
 
-        request.set_agentuuid(uuid);
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+
+        request.set_agentuuid(boost::uuids::to_string(uuid));
         request.set_applicationid(applicationid);
         request.set_registertime(registertime);
 
@@ -124,8 +129,8 @@ int applicationCodeRegister(char *grpc_server, char *code) {
 }
 
 int
-registerInstance(char *grpc_server, int appId, long registertime, char *uuid, char *osname, char *hostname,
+registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
                  int processno, char *ipv4s) {
     GreeterClient greeter(grpc::CreateChannel(grpc_server, grpc::InsecureChannelCredentials()));
-    return greeter.registerInstance(appId, registertime, uuid, osname, hostname, processno, ipv4s);
+    return greeter.registerInstance(appId, registertime, osname, hostname, processno, ipv4s);
 }
