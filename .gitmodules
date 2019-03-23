@@ -1,6 +1,0 @@
-[submodule "src/protocol-5"]
-	path = src/protocol-5
-	url = https://github.com/apache/incubator-skywalking-data-collect-protocol.git
-[submodule "src/protocol-6"]
-	path = src/protocol-6
-	url = https://github.com/apache/incubator-skywalking-data-collect-protocol.git
