@@ -1,6 +1,5 @@
 When building directly from Git sources or after custom modifications you might also need:
 * libuuid
-* gcc 4.9+
 * pkg-config
 * grpc latest version
 * protoc latest version
