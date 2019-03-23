@@ -42,9 +42,6 @@
 #include "ext/date/php_date.h"
 #include <curl/curl.h>
 #include <curl/easy.h>
-
-#include <uuid/uuid.h>
-
 #include <unistd.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -57,7 +54,7 @@
 
 extern int applicationCodeRegister(char *grpc_server, char *code);
 
-extern int registerInstance(char *grpc_server, int appId, long registertime, char *uuid, char *osname, char *hostname,
+extern int registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
                             int processno, char *ipv4s);
 
 /* If you declare any globals in php_skywalking.h uncomment this:
@@ -731,11 +728,6 @@ static void module_init() {
     }
 
     char *ipv4s = _get_current_machine_ip();
-    char uuid[37];
-    uuid_t uuid1;
-    uuid_generate_random(uuid1);
-
-    uuid_unparse_lower(uuid1, uuid);
 
     char hostname[100] = {0};
     if (gethostname(hostname, sizeof(hostname)) < 0) {
@@ -748,7 +740,7 @@ static void module_init() {
 
     i = 0;
     do {
-        application_instance = registerInstance(SKYWALKING_G(grpc), application_id, millisecond, uuid, SKY_OS_NAME,
+        application_instance = registerInstance(SKYWALKING_G(grpc), application_id, millisecond, SKY_OS_NAME,
                                                 hostname, getpid(),
                                                 ipv4s);
         if(application_instance == -100000) {
