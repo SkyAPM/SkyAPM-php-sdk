@@ -41,14 +41,14 @@ if test "$PHP_SKYWALKING" != "no"; then
     protoc -I ./src/protocol-5 --grpc_out=./src/grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./src/protocol-5/*.proto
   )
 
-  AC_OUTPUT_COMMANDS(
-    protoc -I ./src/protocol-6 --cpp_out=./src/grpc ./src/protocol-6/common/*.proto
-    protoc -I ./src/protocol-6 --cpp_out=./src/grpc ./src/protocol-6/register/*.proto
-    protoc -I ./src/protocol-6 --cpp_out=./src/grpc ./src/protocol-6/language-agent-v2/*.proto
-    protoc -I ./src/protocol-6 --grpc_out=./src/grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./src/protocol-6/common/*.proto
-    protoc -I ./src/protocol-6 --grpc_out=./src/grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./src/protocol-6/register/*.proto
-    protoc -I ./src/protocol-6 --grpc_out=./src/grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./src/protocol-6/language-agent-v2/*.proto
-  )
+dnl  AC_OUTPUT_COMMANDS(
+dnl    protoc -I ./src/protocol-6 --cpp_out=./src/grpc ./src/protocol-6/common/*.proto
+dnl    protoc -I ./src/protocol-6 --cpp_out=./src/grpc ./src/protocol-6/register/*.proto
+dnl    protoc -I ./src/protocol-6 --cpp_out=./src/grpc ./src/protocol-6/language-agent-v2/*.proto
+dnl    protoc -I ./src/protocol-6 --grpc_out=./src/grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./src/protocol-6/common/*.proto
+dnl    protoc -I ./src/protocol-6 --grpc_out=./src/grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./src/protocol-6/register/*.proto
+dnl    protoc -I ./src/protocol-6 --grpc_out=./src/grpc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./src/protocol-6/language-agent-v2/*.proto
+dnl  )
 
   AC_OUTPUT_COMMANDS(
    mv src/grpc/ApplicationRegisterService.grpc.pb.cc src/grpc/ApplicationRegisterService-grpc.pb.cc
@@ -88,10 +88,6 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/grpc/NetworkAddressRegisterService.pb.cc \
       src/grpc/TraceSegmentService-grpc.pb.cc \
       src/grpc/TraceSegmentService.pb.cc \
-      src/grpc/common/common-grpc.pb.cc \
-      src/grpc/common/common.pb.cc \
-      src/grpc/register/Register-grpc.pb.cc \
-      src/grpc/register/Register.pb.cc \
   , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 
   PHP_ADD_BUILD_DIR($ext_builddir/src/grpc)

@@ -54,8 +54,9 @@
 
 extern int applicationCodeRegister(char *grpc_server, char *code);
 
-extern int registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
+extern int registerInstance(char *grpc_server, int appId, char *uuid, long registertime, char *osname, char *hostname,
                             int processno, char *ipv4s);
+extern char *uuid();
 
 /* If you declare any globals in php_skywalking.h uncomment this:
 */
@@ -738,9 +739,10 @@ static void module_init() {
     long millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
     efree(l_millisecond);
 
+    char *uid = uuid();
     i = 0;
     do {
-        application_instance = registerInstance(SKYWALKING_G(grpc), application_id, millisecond, SKY_OS_NAME,
+        application_instance = registerInstance(SKYWALKING_G(grpc), application_id, uid, millisecond, SKY_OS_NAME,
                                                 hostname, getpid(),
                                                 ipv4s);
         if(application_instance == -100000) {
