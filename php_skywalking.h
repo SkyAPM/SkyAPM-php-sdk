@@ -117,6 +117,17 @@ void *SKY_ADD_ASSOC_ZVAL(zval *z, const char *k) {
     return NULL;
 }
 
+typedef struct ContextCarrier {
+    zval *primaryDistributedTraceId;
+    zval *traceSegmentId;
+    zval *spanId;
+    zval *parentServiceInstanceId;
+    zval *entryServiceInstanceId;
+    zval *peerHost;
+    zval *entryEndpointName;
+    zval *parentEndpointName;
+}ContextCarrier;
+
 
 static char *sky_json_encode(zval *parameter);
 static long get_second();
@@ -154,6 +165,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     zval curl_header;
     zval curl_header_send;
     int  version;
+    int header_version;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
