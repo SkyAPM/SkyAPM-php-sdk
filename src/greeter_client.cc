@@ -41,8 +41,9 @@ using grpc::ClientWriter;
 extern "C" int applicationCodeRegister(char *grpc_server, char *code);
 
 extern "C" int
-registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
+registerInstance(char *grpc_server, int appId, char *uuid, long registertime, char *osname, char *hostname,
                  int processno, char *ipv4s);
+extern "C" char* uuid();
 
 class GreeterClient {
 public:
@@ -75,7 +76,7 @@ public:
         return -100000;
     }
 
-    int registerInstance(int applicationid, long registertime, char *osname, char *hostname, int processno,
+    int registerInstance(int applicationid, char *uuid, long registertime, char *osname, char *hostname, int processno,
                          char *ipv4s) {
 
         std::unique_ptr <InstanceDiscoveryService::Stub> stub_;
@@ -83,9 +84,8 @@ public:
 
         ApplicationInstance request;
 
-        boost::uuids::uuid uuid = boost::uuids::random_generator()();
 
-        request.set_agentuuid(boost::uuids::to_string(uuid));
+        request.set_agentuuid(uuid);
         request.set_applicationid(applicationid);
         request.set_registertime(registertime);
 
@@ -129,8 +129,16 @@ int applicationCodeRegister(char *grpc_server, char *code) {
 }
 
 int
-registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
+registerInstance(char *grpc_server, int appId, char *uuid, long registertime, char *osname, char *hostname,
                  int processno, char *ipv4s) {
     GreeterClient greeter(grpc::CreateChannel(grpc_server, grpc::InsecureChannelCredentials()));
-    return greeter.registerInstance(appId, registertime, osname, hostname, processno, ipv4s);
+    return greeter.registerInstance(appId, uuid, registertime, osname, hostname, processno, ipv4s);
+}
+
+char *uuid() {
+    boost::uuids::uuid uuid = boost::uuids::random_generator()();
+    std::string str = boost::uuids::to_string(uuid);
+    char *cstr = new char[str.length() + 1];
+    strcpy(cstr, str.c_str());
+    return cstr;
 }
