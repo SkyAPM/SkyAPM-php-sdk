@@ -25,7 +25,7 @@
 #include "grpc/ApplicationRegisterService.grpc.pb.h"
 #include "grpc/DiscoveryService.grpc.pb.h"
 #include "grpc/TraceSegmentService.grpc.pb.h"
-#include "grpc/register/Register.grpc.pb.h"
+//#include "grpc/register/Register.grpc.pb.h"
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
