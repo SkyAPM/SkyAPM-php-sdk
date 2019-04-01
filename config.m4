@@ -60,8 +60,6 @@ dnl  )
    mv src/grpc/KeyWithStringValue.grpc.pb.cc src/grpc/KeyWithStringValue-grpc.pb.cc
    mv src/grpc/NetworkAddressRegisterService.grpc.pb.cc src/grpc/NetworkAddressRegisterService-grpc.pb.cc
    mv src/grpc/TraceSegmentService.grpc.pb.cc src/grpc/TraceSegmentService-grpc.pb.cc
-   mv src/grpc/common/common.grpc.pb.cc src/grpc/common/common-grpc.pb.cc
-   mv src/grpc/register/Register.grpc.pb.cc src/grpc/register/Register-grpc.pb.cc
   )
 
   PHP_EVAL_LIBLINE($KYWALKING_LIBS, SKYWALKING_SHARED_LIBADD)
