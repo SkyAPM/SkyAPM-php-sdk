@@ -518,7 +518,7 @@ static void generate_context() {
     carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
     if (SKYWALKING_G(header_version) == 2) {
         zval *sw6;
-        sw6 = zend_hash_str_find(Z_ARRVAL_P(carrier), "Sw6", sizeof("Sw6") - 1);
+        sw6 = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
         if (sw6 != NULL && Z_TYPE_P(sw6) == IS_STRING && Z_STRLEN_P(sw6) > 10) {
             add_assoc_string(&SKYWALKING_G(context), "sw6", Z_STRVAL_P(sw6));
             contextCarrier = emalloc(sizeof(*contextCarrier));
