@@ -22,9 +22,6 @@
 
 #include <grpc++/grpc++.h>
 
-#include "grpc/ApplicationRegisterService.grpc.pb.h"
-#include "grpc/DiscoveryService.grpc.pb.h"
-#include "grpc/TraceSegmentService.grpc.pb.h"
 #include "grpc/register/Register.grpc.pb.h"
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -38,38 +35,40 @@ using grpc::ClientReaderWriter;
 using grpc::ClientWriter;
 
 
-extern "C" int applicationCodeRegister(char *grpc_server, char *code);
+extern "C" int applicationCodeRegister(char *grpc_server, char *service_name);
 
 extern "C" int
 registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
                  int processno, char *ipv4s);
 
+static boost::uuids::uuid uuid = boost::uuids::random_generator()();
+
 class GreeterClient {
 public:
-    GreeterClient(std::shared_ptr <Channel> channel) {
-        channel_ = channel;
-    }
+    GreeterClient(std::shared_ptr<Channel> channel)
+        : stub_(Register::NewStub(channel)) {}
 
-    int applicationCodeRegister(const std::string &code) {
+    int applicationCodeRegister(const std::string &service_name) {
+        Services request;
 
-        std::unique_ptr <ApplicationRegisterService::Stub> stub_;
-        stub_ = ApplicationRegisterService::NewStub(channel_);
+        Service *s = request.add_services();
+        s->set_servicename(service_name);
 
-        Application request;
-
-        request.set_applicationcode(code);
-
-        ApplicationMapping reply;
+        ServiceRegisterMapping reply;
 
         ClientContext context;
 
-        Status status = stub_->applicationCodeRegister(&context, request, &reply);
+        Status status = stub_->doServiceRegister(&context, request, &reply);
 
         if (status.ok()) {
-            if (reply.has_application()) {
-                return reply.application().value();
+            for (int i = 0; i < reply.services_size(); i++) {
+                const KeyIntValuePair &kv = reply.services(i);
+                std::cout << "Register Service:" << std::endl;
+                std::cout << kv.key() << ": " << kv.value() << std::endl;
+                if (kv.key() == service_name) {
+                    return kv.value();
+                }
             }
-            return -100000;
         }
 
         return -100000;
@@ -77,38 +76,50 @@ public:
 
     int registerInstance(int applicationid, long registertime, char *osname, char *hostname, int processno,
                          char *ipv4s) {
-
-        std::unique_ptr <InstanceDiscoveryService::Stub> stub_;
-        stub_ = InstanceDiscoveryService::NewStub(channel_);
-
-        ApplicationInstance request;
-
-        boost::uuids::uuid uuid = boost::uuids::random_generator()();
-
-        request.set_agentuuid(boost::uuids::to_string(uuid));
-        request.set_applicationid(applicationid);
-        request.set_registertime(registertime);
-
-        OSInfo *osInfo = new OSInfo;
-
-        request.set_allocated_osinfo(osInfo);
-        osInfo->set_osname(osname);
-        osInfo->set_hostname(hostname);
-        osInfo->set_processno(processno);
-        osInfo->add_ipv4s(ipv4s);
+        ServiceInstances request;
+        ServiceInstance *s = request.add_instances();
 
 
-        ApplicationInstanceMapping reply;
+        s->set_serviceid(applicationid);
+        s->set_instanceuuid(boost::uuids::to_string(uuid));
+        s->set_time(registertime);
+
+        KeyStringValuePair *os = s->add_properties();
+        KeyStringValuePair *host = s->add_properties();
+        KeyStringValuePair *process = s->add_properties();
+        KeyStringValuePair *ipv4 = s->add_properties();
+        KeyStringValuePair *language = s->add_properties();
+
+        os->set_key("os_name");
+        os->set_value(osname);
+        host->set_key("host_name");
+        host->set_value(hostname);
+        process->set_key("process_no");
+        process->set_value(std::to_string(processno));
+        ipv4->set_key("ipv4");
+        ipv4->set_value(ipv4s);
+        language->set_key("language");
+        language->set_value("php");
+
+        ServiceInstanceRegisterMapping reply;
 
         ClientContext context;
 
-        Status status = stub_->registerInstance(&context, request, &reply);
+        Status status = stub_->doServiceInstanceRegister(&context, request, &reply);
+
+        std::cout << "Register Instance: " << status.ok() << " applicationid: " << applicationid << " service size: " << reply.serviceinstances_size() << std::endl;
 
         if (status.ok()) {
-            if (reply.applicationinstanceid() != 0) {
-                return reply.applicationinstanceid();
+            for (int i = 0; i < reply.serviceinstances_size(); i++) {
+                const KeyIntValuePair &kv = reply.serviceinstances(i);
+                std::cout << "Register Instance:"<< std::endl;
+                std::cout << kv.key() << ": " << kv.value() << std::endl;
+
+                if (kv.key() == boost::uuids::to_string(uuid)) {
+                    std::cout << "uuid" << ": " << boost::uuids::to_string(uuid) << std::endl;
+                    return kv.value();
+                }
             }
-            return -100000;
         }
 
         return -100000;
@@ -116,15 +127,15 @@ public:
     }
 
 private:
-    std::shared_ptr <Channel> channel_;
+    std::unique_ptr<Register::Stub> stub_;
 };
 
 
-int applicationCodeRegister(char *grpc_server, char *code) {
+int applicationCodeRegister(char *grpc_server, char *service_name) {
     GreeterClient greeter(grpc::CreateChannel(grpc_server, grpc::InsecureChannelCredentials()));
 
-    std::string c(code);
-//
+    std::string c(service_name);
+
     return greeter.applicationCodeRegister(c);
 }
 
