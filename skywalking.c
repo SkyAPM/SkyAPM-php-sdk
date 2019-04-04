@@ -481,14 +481,14 @@ static zend_string *trim_sharp(zval *tmp) {
 
 static void zval_b64_encode(zval *out, char *in) {
     char *enc = b64_encode(in, strlen(in));
-    zend_string *str = zend_string_init(enc, strlen(enc)-1, 0);
+    zend_string *str = zend_string_init(enc, strlen(enc), 0);
     ZVAL_STR(out, str);
     free(enc);
 }
 
 static void zval_b64_decode(zval *out, char *in) {
     char *dec = b64_decode(in, strlen(in));
-    zend_string *str = zend_string_init(dec, strlen(dec)-1, 0);
+    zend_string *str = zend_string_init(dec, strlen(dec), 0);
     ZVAL_STR(out, str);
     free(dec);
 }
