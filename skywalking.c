@@ -53,7 +53,6 @@
 
 #include "b64.h"
 
-
 extern int applicationCodeRegister(char *grpc_server, char *code);
 
 extern int registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
@@ -945,9 +944,18 @@ PHP_MINFO_FUNCTION(skywalking)
     } else {
         php_info_print_table_header(2, "skywalking Support", "enabled");
     }
+
+    size_t instance_size = 0;
+    instance_size = snprintf(NULL, 0, "%d", application_instance);
+    char *instance_id = (char *)emalloc(instance_size + 1);
+    bzero(instance_id, instance_size + 1);
+    snprintf(instance_id, instance_size+1, "%d", application_instance);
+    php_info_print_table_header(2, "Instance ID", instance_id);
+
 	php_info_print_table_end();
 
 	DISPLAY_INI_ENTRIES();
+    efree(instance_id);
 }
 /* }}} */
 
