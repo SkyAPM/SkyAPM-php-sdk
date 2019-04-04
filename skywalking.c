@@ -454,17 +454,17 @@ static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_na
     zval_b64_encode(&contextCarrier->parentEndpointName, operation_name);
 
     ssize_t sw6_l = 0;
-    sw6_l = snprintf(NULL, 0, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(contextCarrier->primaryDistributedTraceId), span_id,
-                     application_instance, Z_LVAL_P(entryApplicationInstance), Z_STRVAL(contextCarrier->peerHost),
-                     Z_STRVAL(contextCarrier->entryEndpointName), Z_STRVAL(contextCarrier->parentEndpointName),
-                     Z_STRVAL(contextCarrier->primaryDistributedTraceId));
+    sw6_l = snprintf(NULL, 0, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(contextCarrier->primaryDistributedTraceId),
+                     Z_STRVAL(contextCarrier->traceSegmentId), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
+                     Z_STRVAL(contextCarrier->peerHost), Z_STRVAL(contextCarrier->entryEndpointName),
+                     Z_STRVAL(contextCarrier->parentEndpointName));
 
     char *sw6 = (char*)emalloc(sw6_l + 1);
     bzero(sw6, sw6_l + 1);
-    snprintf(sw6, sw6_l + 1, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(contextCarrier->primaryDistributedTraceId), span_id,
-             application_instance, Z_LVAL_P(entryApplicationInstance), Z_STRVAL(contextCarrier->peerHost),
-             Z_STRVAL(contextCarrier->entryEndpointName), Z_STRVAL(contextCarrier->parentEndpointName),
-             Z_STRVAL(contextCarrier->primaryDistributedTraceId));
+    snprintf(sw6, sw6_l + 1, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(contextCarrier->primaryDistributedTraceId),
+             Z_STRVAL(contextCarrier->traceSegmentId), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
+             Z_STRVAL(contextCarrier->peerHost), Z_STRVAL(contextCarrier->entryEndpointName),
+             Z_STRVAL(contextCarrier->parentEndpointName));
 
     efree(contextCarrier);
 
