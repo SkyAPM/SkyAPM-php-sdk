@@ -143,7 +143,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         }
     }
 
-    char *sw3 = NULL;
+    char *sw = NULL;
     zval *spans = NULL;
     zval *last_span = NULL;
     zval *span_id = NULL;
@@ -195,11 +195,15 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         spans = get_spans();
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
-        sw3 = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
+        if (SKYWALKING_G(header_version) == 1) {
+            sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
+        } else if (SKYWALKING_G(header_version) == 2) {
+            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
+        }
     }
 
 
-    if (sw3 != NULL) {
+    if (sw != NULL) {
         zval *option = NULL;
         int is_init = 0;
         option = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), Z_RES_HANDLE_P(zid));
@@ -211,7 +215,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
             is_init = 1;
         }
 
-        add_next_index_string(option, sw3);
+        add_next_index_string(option, sw);
         add_index_bool(&SKYWALKING_G(curl_header_send), (zend_ulong)Z_RES_HANDLE_P(zid), IS_TRUE);
 
         zval func;
@@ -232,7 +236,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         zval_dtor(&argv[0]);
         zval_dtor(&argv[1]);
         zval_dtor(&argv[2]);
-        efree(sw3);
+        efree(sw);
     }
 
     zval temp;
