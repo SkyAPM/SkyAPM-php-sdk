@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/time.h>
+#include <sstream>
+#include <boost/format.hpp>
 #if !_MSC_VER && !__clang__ && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ <= 8)))
 #include <boost/regex.hpp>
 using boost::regex;
@@ -45,9 +47,11 @@ using std::smatch;
 #include <google/protobuf/util/json_util.h>
 
 
-#include "../grpc/ApplicationRegisterService.grpc.pb.h"
-#include "../grpc/DiscoveryService.grpc.pb.h"
-#include "../grpc/TraceSegmentService.grpc.pb.h"
+#include <grpc/language-agent-v2/trace.grpc.pb.h>
+#include <grpc/language-agent-v2/trace.pb.h>
+#include <grpc/common/trace-common.pb.h>
+#include <grpc/register/InstancePing.grpc.pb.h>
+#include <grpc/register/InstancePing.pb.h>
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -58,12 +62,12 @@ using json = nlohmann::json;
 class GreeterClient {
 public:
     GreeterClient(std::shared_ptr<Channel> channel)
-            : stub_(TraceSegmentService::NewStub(channel)), discoveryStub_(InstanceDiscoveryService::NewStub(channel)) {}
+            : stub_(TraceSegmentReportService::NewStub(channel)), pingStub_(ServiceInstancePing::NewStub(channel)) {}
 
     int collect(UpstreamSegment request) {
 
 
-        Downstream reply;
+        Commands reply;
 
         ClientContext context;
         std::unique_ptr<ClientWriter<UpstreamSegment>> writer(stub_->collect(&context, &reply));
@@ -82,12 +86,12 @@ public:
         return 1;
     }
 
-    int heartbeat(ApplicationInstanceHeartbeat request) {
-        Downstream reply;
+    int heartbeat(ServiceInstancePingPkg request) {
+        Commands reply;
 
         ClientContext context;
 
-        Status status = discoveryStub_->heartbeat(&context, request, &reply);
+        Status status = pingStub_->doPing(&context, request, &reply);
         if (status.ok()) {
             std::cout << "send heartbeat ok!" << std::endl;
         } else {
@@ -98,8 +102,8 @@ public:
     }
 
 private:
-    std::unique_ptr<TraceSegmentService::Stub> stub_;
-    std::unique_ptr<InstanceDiscoveryService::Stub> discoveryStub_;
+    std::unique_ptr<TraceSegmentReportService::Stub> stub_;
+    std::unique_ptr<ServiceInstancePing::Stub> pingStub_;
 };
 
 int main(int argc, char **argv) {
@@ -122,7 +126,8 @@ int main(int argc, char **argv) {
 
 
     GreeterClient greeter(grpc::CreateChannel(argv[1], grpc::InsecureChannelCredentials()));
-    std::map<int, int> appInstances;
+    std::map<int, int> instancePid;
+    std::map<int, std::string> instanceUUID;
     std::map<int, long> sendTime;
 
     while (1) {
@@ -135,21 +140,22 @@ int main(int argc, char **argv) {
         }
 
         // heartbeat
-        for (auto &i: appInstances) {
+        for (auto &i: instancePid) {
 
             struct timeval tv;
             gettimeofday(&tv, NULL);
 
             if(tv.tv_sec - sendTime[i.first] > 40) {
-                if (0 == kill(appInstances[i.first], 0)) {
-                    sendTime[i.first] = tv.tv_sec;
-                    std::cout << "send heartbeat ..." << std::endl;
-                    ApplicationInstanceHeartbeat request;
-                    request.set_applicationinstanceid(i.first);
-                    request.set_heartbeattime(tv.tv_sec*1000 + tv.tv_usec/1000);
-                    greeter.heartbeat(request);
-                }
+                kill(instancePid[i.first], 0);
             }
+
+            sendTime[i.first] = tv.tv_sec;
+            std::cout << "send heartbeat ..." << std::endl;
+            ServiceInstancePingPkg request;
+            request.set_serviceinstanceid(i.first);
+            request.set_time(tv.tv_sec*1000 + tv.tv_usec/1000);
+            request.set_serviceinstanceuuid(instanceUUID[i.first]);
+            greeter.heartbeat(request);
         }
 
         while ((dir = readdir(dp)) != NULL) {
@@ -197,8 +203,9 @@ int main(int argc, char **argv) {
 
                                 if (valid) {
                                     // add to map
-                                    if(!appInstances[j["application_instance"]]) {
-                                        appInstances[j["application_instance"]] = j["pid"];
+                                    if(!instancePid[j["application_instance"]]) {
+                                        instancePid[j["application_instance"]] = j["pid"];
+                                        instanceUUID[j["application_instance"]] = j["uuid"];
                                         sendTime[j["application_instance"]] = 0;
                                     }
 
@@ -229,16 +236,16 @@ int main(int argc, char **argv) {
                                     uniqueId->add_idparts(idp2);
                                     uniqueId->add_idparts(idp3);
 
-                                    TraceSegmentObject traceSegmentObject;
+                                    SegmentObject traceSegmentObject;
                                     traceSegmentObject.set_allocated_tracesegmentid(uniqueId);
-                                    traceSegmentObject.set_applicationid(j["application_id"].get<int>());
-                                    traceSegmentObject.set_applicationinstanceid(j["application_instance"].get<int>());
+                                    traceSegmentObject.set_serviceid(j["application_id"].get<int>());
+                                    traceSegmentObject.set_serviceinstanceid(j["application_instance"].get<int>());
                                     traceSegmentObject.set_issizelimited(j["segment"]["isSizeLimited"].get<int>());
 
                                     auto spans = j["segment"]["spans"];
                                     for (int i = 0; i < spans.size(); i++) {
 
-                                        SpanObject *spanObject = traceSegmentObject.add_spans();
+                                        SpanObjectV2 *spanObject = traceSegmentObject.add_spans();
                                         spanObject->set_spanid(spans[i]["spanId"].get<int>());
                                         spanObject->set_parentspanid(spans[i]["parentSpanId"].get<int>());
                                         spanObject->set_starttime(spans[i]["startTime"]);
@@ -283,14 +290,20 @@ int main(int argc, char **argv) {
                                             uniqueIdTmp->add_idparts(idp2);
                                             uniqueIdTmp->add_idparts(idp3);
 
-                                            TraceSegmentReference *r = spanObject->add_refs();
+                                            SegmentReference *r = spanObject->add_refs();
                                             r->set_allocated_parenttracesegmentid(uniqueIdTmp);
                                             r->set_parentspanid(refs[k]["parentSpanId"].get<int>());
-                                            r->set_parentapplicationinstanceid(refs[k]["parentApplicationInstanceId"].get<int>());
+                                            r->set_parentserviceinstanceid(refs[k]["parentApplicationInstanceId"].get<int>());
                                             r->set_networkaddress(refs[k]["networkAddress"].get<std::string>());
-                                            r->set_entryapplicationinstanceid(refs[k]["entryApplicationInstanceId"].get<int>());
-                                            r->set_entryservicename(refs[k]["entryServiceName"].get<std::string>());
-                                            r->set_parentservicename(refs[k]["parentServiceName"].get<std::string>());
+                                            r->set_entryserviceinstanceid(refs[k]["entryApplicationInstanceId"].get<int>());
+                                            r->set_entryendpoint(refs[k]["entryServiceName"].get<std::string>());
+                                            r->set_parentendpoint(refs[k]["parentServiceName"].get<std::string>());
+                                        }
+
+                                        if(!peer.empty()) {
+                                            KeyStringValuePair *url = spanObject->add_tags();
+                                            url->set_key("url");
+                                            url->set_value(boost::str(boost::format("http://%s%s") % peer % spans[i]["operationName"].get<std::string>()));
                                         }
                                     }
 

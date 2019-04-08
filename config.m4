@@ -48,6 +48,9 @@ if test "$PHP_SKYWALKING" != "no"; then
   AC_OUTPUT_COMMANDS(
    mv src/grpc/common/common.grpc.pb.cc src/grpc/common/common-grpc.pb.cc
    mv src/grpc/register/Register.grpc.pb.cc src/grpc/register/Register-grpc.pb.cc
+   mv src/grpc/language-agent-v2/trace.grpc.pb.cc src/grpc/language-agent-v2/trace-grpc.pb.cc
+   mv src/grpc/register/InstancePing.grpc.pb.cc src/grpc/register/InstancePing-grpc.pb.cc
+   mv src/grpc/common/trace-common.grpc.pb.cc src/grpc/common/trace-common-grpc.pb.cc
   )
 
   PHP_EVAL_LIBLINE($KYWALKING_LIBS, SKYWALKING_SHARED_LIBADD)
@@ -62,6 +65,12 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/grpc/common/common.pb.cc \
       src/grpc/register/Register-grpc.pb.cc \
       src/grpc/register/Register.pb.cc \
+      src/grpc/language-agent-v2/trace-grpc.pb.cc \
+      src/grpc/language-agent-v2/trace.pb.cc \
+      src/grpc/register/InstancePing-grpc.pb.cc \
+      src/grpc/register/InstancePing.pb.cc \
+      src/grpc/common/trace-common-grpc.pb.cc \
+      src/grpc/common/trace-common.pb.cc \
   , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 
   PHP_ADD_BUILD_DIR($ext_builddir/src/grpc)
