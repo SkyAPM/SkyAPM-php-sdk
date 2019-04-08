@@ -53,10 +53,10 @@
 
 #include "b64.h"
 
-extern int applicationCodeRegister(char *grpc_server, char *code);
+extern int serviceRegister(char *grpc_server, char *code);
 
-extern int registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
-                            int processno, char *ipv4s);
+extern int serviceInstanceRegister(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
+                                   int processno, char *ipv4s);
 
 /* If you declare any globals in php_skywalking.h uncomment this:
 */
@@ -819,7 +819,7 @@ static void module_init() {
     int i = 0;
 
     do {
-        application_id = applicationCodeRegister(SKYWALKING_G(grpc), SKYWALKING_G(app_code));
+        application_id = serviceRegister(SKYWALKING_G(grpc), SKYWALKING_G(app_code));
 
         if(application_id == -100000) {
             sleep(1);
@@ -846,9 +846,9 @@ static void module_init() {
 
     i = 0;
     do {
-        application_instance = registerInstance(SKYWALKING_G(grpc), application_id, millisecond, SKY_OS_NAME,
-                                                hostname, getpid(),
-                                                ipv4s);
+        application_instance = serviceInstanceRegister(SKYWALKING_G(grpc), application_id, millisecond, SKY_OS_NAME,
+                                                       hostname, getpid(),
+                                                       ipv4s);
         if(application_instance == -100000) {
             sleep(1);
         }

@@ -35,11 +35,16 @@ using grpc::ClientReaderWriter;
 using grpc::ClientWriter;
 
 
-extern "C" int applicationCodeRegister(char *grpc_server, char *service_name);
+extern "C" int serviceRegister(char *grpc_server, char *service_name);
 
 extern "C" int
-registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
-                 int processno, char *ipv4s);
+serviceInstanceRegister(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
+                        int processno, char *ipv4s);
+
+extern "C" void networkAddressRegister();
+
+extern "C" void endpointRegister();
+
 
 static boost::uuids::uuid uuid = boost::uuids::random_generator()();
 
@@ -48,7 +53,7 @@ public:
     GreeterClient(std::shared_ptr<Channel> channel)
         : stub_(Register::NewStub(channel)) {}
 
-    int applicationCodeRegister(const std::string &service_name) {
+    int serviceRegister(const std::string &service_name) {
         Services request;
 
         Service *s = request.add_services();
@@ -74,8 +79,8 @@ public:
         return -100000;
     }
 
-    int registerInstance(int applicationid, long registertime, char *osname, char *hostname, int processno,
-                         char *ipv4s) {
+    int serviceInstanceRegister(int applicationid, long registertime, char *osname, char *hostname, int processno,
+                                char *ipv4s) {
         ServiceInstances request;
         ServiceInstance *s = request.add_instances();
 
@@ -131,17 +136,17 @@ private:
 };
 
 
-int applicationCodeRegister(char *grpc_server, char *service_name) {
+int serviceRegister(char *grpc_server, char *service_name) {
     GreeterClient greeter(grpc::CreateChannel(grpc_server, grpc::InsecureChannelCredentials()));
 
     std::string c(service_name);
 
-    return greeter.applicationCodeRegister(c);
+    return greeter.serviceRegister(c);
 }
 
 int
-registerInstance(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
-                 int processno, char *ipv4s) {
+serviceInstanceRegister(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
+                        int processno, char *ipv4s) {
     GreeterClient greeter(grpc::CreateChannel(grpc_server, grpc::InsecureChannelCredentials()));
-    return greeter.registerInstance(appId, registertime, osname, hostname, processno, ipv4s);
+    return greeter.serviceInstanceRegister(appId, registertime, osname, hostname, processno, ipv4s);
 }
