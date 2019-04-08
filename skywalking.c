@@ -68,6 +68,7 @@ static int application_instance = 0;
 static int application_id = 0;
 static int sky_close = 0;
 static int sky_increment_id = 0;
+char *uuid = NULL;
 
 /* {{{ PHP_INI
  */
@@ -706,6 +707,7 @@ static void request_init() {
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "pid", getppid());
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_id", application_id);
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "version", SKYWALKING_G(version));
+    add_assoc_string(&SKYWALKING_G(UpstreamSegment), "uuid", uuid);
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "segment");
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "globalTraceIds");
 

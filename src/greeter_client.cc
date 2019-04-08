@@ -45,8 +45,8 @@ extern "C" void networkAddressRegister();
 
 extern "C" void endpointRegister();
 
-
-static boost::uuids::uuid uuid = boost::uuids::random_generator()();
+extern char *uuid;
+static boost::uuids::uuid boost_uuid = boost::uuids::random_generator()();
 
 class GreeterClient {
 public:
@@ -84,9 +84,15 @@ public:
         ServiceInstances request;
         ServiceInstance *s = request.add_instances();
 
+        if (uuid == NULL) {
+            std::string uuid_str = boost::uuids::to_string(boost_uuid);
+            uuid = (char *) malloc(uuid_str.size() + 1);
+            bzero(uuid, uuid_str.size() + 1);
+            strncpy(uuid, uuid_str.c_str(), uuid_str.size() + 1);
+        }
 
         s->set_serviceid(applicationid);
-        s->set_instanceuuid(boost::uuids::to_string(uuid));
+        s->set_instanceuuid(std::string(uuid));
         s->set_time(registertime);
 
         KeyStringValuePair *os = s->add_properties();
@@ -120,8 +126,8 @@ public:
                 std::cout << "Register Instance:"<< std::endl;
                 std::cout << kv.key() << ": " << kv.value() << std::endl;
 
-                if (kv.key() == boost::uuids::to_string(uuid)) {
-                    std::cout << "uuid" << ": " << boost::uuids::to_string(uuid) << std::endl;
+                if (kv.key() == uuid) {
+                    std::cout << "uuid" << ": " << uuid << std::endl;
                     return kv.value();
                 }
             }
