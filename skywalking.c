@@ -176,10 +176,10 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s?%s", "/", url_info->query);
             } else {
-                operation_name_l = snprintf(NULL, 0, "/%s?%s", url_info->path, url_info->query);
+                operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "/%s?%s", url_info->path, url_info->query);
+                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
             }
         } else {
             if (url_info->path == NULL) {
@@ -188,10 +188,10 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s", "/");
             } else {
-                operation_name_l = snprintf(NULL, 0, "/%s", url_info->path);
+                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "/%s", url_info->path);
+                sprintf(operation_name, "%s", url_info->path);
             }
         }
 
@@ -289,8 +289,8 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         add_assoc_long(&temp, "endTime", millisecond);
 
 
-        add_assoc_string(&temp, "operationName", operation_name + 1);
-        add_assoc_string(&temp, "peer", peer + 1);
+        add_assoc_string(&temp, "operationName", operation_name);
+        add_assoc_string(&temp, "peer", peer + 1); // remove '#' char
         efree(peer);
         efree(operation_name);
 
