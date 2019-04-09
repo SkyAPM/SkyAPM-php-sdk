@@ -897,6 +897,7 @@ static void module_init() {
     long millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
     efree(l_millisecond);
 
+    char *uid = uuid();
     i = 0;
     do {
         application_instance = serviceInstanceRegister(SKYWALKING_G(grpc), application_id, millisecond, SKY_OS_NAME,

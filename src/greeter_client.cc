@@ -22,6 +22,7 @@
 
 #include <grpc++/grpc++.h>
 
+
 #include "grpc/register/Register.grpc.pb.h"
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -76,6 +77,7 @@ public:
 
         return -100000;
     }
+
 
     int serviceInstanceRegister(int applicationid, long registertime, char *osname, char *hostname, int processno,
                                 char *ipv4s) {
@@ -150,4 +152,5 @@ serviceInstanceRegister(char *grpc_server, int appId, long registertime, char *o
                         int processno, char *ipv4s) {
     GreeterClient greeter(grpc::CreateChannel(grpc_server, grpc::InsecureChannelCredentials()));
     return greeter.serviceInstanceRegister(appId, registertime, osname, hostname, processno, ipv4s);
+
 }
