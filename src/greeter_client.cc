@@ -68,8 +68,6 @@ public:
         if (status.ok()) {
             for (int i = 0; i < reply.services_size(); i++) {
                 const KeyIntValuePair &kv = reply.services(i);
-                std::cout << "Register Service:" << std::endl;
-                std::cout << kv.key() << ": " << kv.value() << std::endl;
                 if (kv.key() == service_name) {
                     return kv.value();
                 }
@@ -118,16 +116,13 @@ public:
 
         Status status = stub_->doServiceInstanceRegister(&context, request, &reply);
 
-        std::cout << "Register Instance: " << status.ok() << " applicationid: " << applicationid << " service size: " << reply.serviceinstances_size() << std::endl;
-
         if (status.ok()) {
             for (int i = 0; i < reply.serviceinstances_size(); i++) {
                 const KeyIntValuePair &kv = reply.serviceinstances(i);
-                std::cout << "Register Instance:"<< std::endl;
-                std::cout << kv.key() << ": " << kv.value() << std::endl;
+//                std::cout << "Register Instance:"<< std::endl;
+//                std::cout << kv.key() << ": " << kv.value() << std::endl;
 
                 if (kv.key() == uuid) {
-                    std::cout << "uuid" << ": " << uuid << std::endl;
                     return kv.value();
                 }
             }
