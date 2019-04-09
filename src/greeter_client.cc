@@ -22,7 +22,6 @@
 
 #include <grpc++/grpc++.h>
 
-
 #include "grpc/register/Register.grpc.pb.h"
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -52,7 +51,7 @@ static boost::uuids::uuid boost_uuid = boost::uuids::random_generator()();
 class GreeterClient {
 public:
     GreeterClient(std::shared_ptr<Channel> channel)
-        : stub_(Register::NewStub(channel)) {}
+            : stub_(Register::NewStub(channel)) {}
 
     int serviceRegister(const std::string &service_name) {
         Services request;
@@ -77,7 +76,6 @@ public:
 
         return -100000;
     }
-
 
     int serviceInstanceRegister(int applicationid, long registertime, char *osname, char *hostname, int processno,
                                 char *ipv4s) {
@@ -152,5 +150,4 @@ serviceInstanceRegister(char *grpc_server, int appId, long registertime, char *o
                         int processno, char *ipv4s) {
     GreeterClient greeter(grpc::CreateChannel(grpc_server, grpc::InsecureChannelCredentials()));
     return greeter.serviceInstanceRegister(appId, registertime, osname, hostname, processno, ipv4s);
-
 }
