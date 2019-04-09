@@ -32,13 +32,15 @@ extension=skywalking.so
 ; enable skywalking
 skywalking.enable = 1
 ; Set skyWalking collector version
-skywalking.version = 5
+skywalking.version = 6
 ; Set app code e.g. MyProjectName
 skywalking.app_code = MyProjectName
 ; Set skyWalking collector grpc address
 skywalking.grpc = 127.0.0.1:11800
 ; Set log path
 skywalking.log_path = /tmp
+; Set http header version
+header_version = 2
 ```
 
 Run `report_client` to send PHP generated log information to `SkyWalking collector`
