@@ -40,7 +40,7 @@ skywalking.grpc = 127.0.0.1:11800
 ; Set log path
 skywalking.log_path = /tmp
 ; Set http header version
-header_version = 2
+skywalking.header_version = 2
 ```
 
 Run `report_client` to send PHP generated log information to `SkyWalking collector`
