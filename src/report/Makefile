@@ -19,8 +19,9 @@ SYSTEM ?= $(HOST_SYSTEM)
 CXX = g++
 CPPFLAGS += `pkg-config --cflags protobuf grpc`
 CXXFLAGS += -std=c++11
+CXXFLAGS += -I.. -I../grpc
 ifeq ($(SYSTEM),Darwin)
-LDFLAGS += -Ldeps/boost/stage/lib -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
+LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
            -lgrpc++_reflection\
            -ldl\
            -lboost_regex
@@ -35,13 +36,17 @@ GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
 
 
-all: system-check boost report_client
+all: system-check report_client
 
-boost:
-	cd deps/boost && ./bootstrap.sh && \
-	./b2 stage --with-regex link=static runtime-link=shared threading=multi
+#boost:
+#	cd deps/boost && ./bootstrap.sh && \
+#	./b2 stage --with-regex link=static runtime-link=shared threading=multi
 
-report_client: ../grpc/.libs/ApplicationRegisterService-grpc.o ../grpc/.libs/ApplicationRegisterService.o ../grpc/.libs/Common-grpc.o ../grpc/.libs/Common.o ../grpc/.libs/DiscoveryService-grpc.o ../grpc/.libs/DiscoveryService.o ../grpc/.libs/Downstream-grpc.o ../grpc/.libs/Downstream.o ../grpc/.libs/JVMMetricsService-grpc.o ../grpc/.libs/JVMMetricsService.o ../grpc/.libs/KeyWithIntegerValue-grpc.o ../grpc/.libs/KeyWithIntegerValue.o ../grpc/.libs/KeyWithStringValue-grpc.o ../grpc/.libs/KeyWithStringValue.o ../grpc/.libs/NetworkAddressRegisterService-grpc.o ../grpc/.libs/NetworkAddressRegisterService.o ../grpc/.libs/TraceSegmentService-grpc.o ../grpc/.libs/TraceSegmentService.o
+OBJS = ../grpc/language-agent-v2/.libs/trace.o ../grpc/language-agent-v2/.libs/trace-grpc.o ../grpc/register/.libs/InstancePing.o \
+        ../grpc/register/.libs/InstancePing-grpc.o ../grpc/common/.libs/common.o ../grpc/common/.libs/common-grpc.o \
+        ../grpc/common/.libs/trace-common.o ../grpc/common/.libs/trace-common-grpc.o
+
+report_client: $(OBJS)
 	$(CXX) report_client.cpp $^ $(LDFLAGS) -Ideps/boost $(CXXFLAGS) -o $@
 
 clean:

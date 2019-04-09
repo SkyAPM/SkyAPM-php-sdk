@@ -51,12 +51,12 @@
 #include <fcntl.h>
 #include <dirent.h>
 
+#include "b64.h"
 
-extern int applicationCodeRegister(char *grpc_server, char *code);
+extern int serviceRegister(char *grpc_server, char *code);
 
-extern int registerInstance(char *grpc_server, int appId, char *uuid, long registertime, char *osname, char *hostname,
-                            int processno, char *ipv4s);
-extern char *uuid();
+extern int serviceInstanceRegister(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
+                                   int processno, char *ipv4s);
 
 /* If you declare any globals in php_skywalking.h uncomment this:
 */
@@ -68,6 +68,7 @@ static int application_instance = 0;
 static int application_id = 0;
 static int sky_close = 0;
 static int sky_increment_id = 0;
+char *uuid = NULL;
 
 /* {{{ PHP_INI
  */
@@ -78,6 +79,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("skywalking.app_code", "", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.header_version", "2", PHP_INI_ALL, OnUpdateLong, header_version, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -142,7 +144,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         }
     }
 
-    char *sw3 = NULL;
+    char *sw = NULL;
     zval *spans = NULL;
     zval *last_span = NULL;
     zval *span_id = NULL;
@@ -161,44 +163,54 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
             }
         }
 
-        peer = (char *) emalloc(strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
-        bzero(peer, strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
-        sprintf(peer, "%s://%s:%d", url_info->scheme, url_info->host, peer_port);
+        peer = (char *) emalloc(1 + strlen(url_info->host) + 7);
+        bzero(peer, strlen(1 + url_info->host) + 7);
+        sprintf(peer, "#%s:%d", url_info->host, peer_port);
 
-        if (url_info->query) {
-            if (url_info->path == NULL) {
-                operation_name_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
-                operation_name = (char *) emalloc(operation_name_l + 1);
-                bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s?%s", "/", url_info->query);
-            } else {
-                operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
-                operation_name = (char *) emalloc(operation_name_l + 1);
-                bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
-            }
-        } else {
-            if (url_info->path == NULL) {
-                operation_name_l = snprintf(NULL, 0, "%s", "/");
-                operation_name = (char *) emalloc(operation_name_l + 1);
-                bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s", "/");
-            } else {
-                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
-                operation_name = (char *) emalloc(operation_name_l + 1);
-                bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s", url_info->path);
-            }
-        }
+//        if (url_info->query) {
+//            if (url_info->path == NULL) {
+//                operation_name_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+//                operation_name = (char *) emalloc(operation_name_l + 1);
+//                bzero(operation_name, operation_name_l + 1);
+//                sprintf(operation_name, "%s?%s", "/", url_info->query);
+//            } else {
+//                operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+//                operation_name = (char *) emalloc(operation_name_l + 1);
+//                bzero(operation_name, operation_name_l + 1);
+//                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
+//            }
+//        } else {
+//            if (url_info->path == NULL) {
+//                operation_name_l = snprintf(NULL, 0, "%s", "/");
+//                operation_name = (char *) emalloc(operation_name_l + 1);
+//                bzero(operation_name, operation_name_l + 1);
+//                sprintf(operation_name, "%s", "/");
+//            } else {
+//                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
+//                operation_name = (char *) emalloc(operation_name_l + 1);
+//                bzero(operation_name, operation_name_l + 1);
+//                sprintf(operation_name, "%s", url_info->path);
+//            }
+//        }
+
+        char *uri = get_page_request_uri();
+        operation_name_l = snprintf(NULL, 0, "#%s", uri);
+        operation_name = emalloc(operation_name_l + 1);
+        bzero(operation_name, operation_name_l + 1);
+        sprintf(operation_name, "#%s", uri);
 
         spans = get_spans();
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
-        sw3 = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
+        if (SKYWALKING_G(header_version) == 1) {
+            sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
+        } else if (SKYWALKING_G(header_version) == 2) {
+            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
+        }
     }
 
 
-    if (sw3 != NULL) {
+    if (sw != NULL) {
         zval *option = NULL;
         int is_init = 0;
         option = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), Z_RES_HANDLE_P(zid));
@@ -210,7 +222,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
             is_init = 1;
         }
 
-        add_next_index_string(option, sw3);
+        add_next_index_string(option, sw);
         add_index_bool(&SKYWALKING_G(curl_header_send), (zend_ulong)Z_RES_HANDLE_P(zid), IS_TRUE);
 
         zval func;
@@ -231,7 +243,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         zval_dtor(&argv[0]);
         zval_dtor(&argv[1]);
         zval_dtor(&argv[2]);
-        efree(sw3);
+        efree(sw);
     }
 
     zval temp;
@@ -274,8 +286,8 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         add_assoc_long(&temp, "endTime", millisecond);
 
 
-        add_assoc_string(&temp, "operationName", operation_name);
-        add_assoc_string(&temp, "peer", peer);
+        add_assoc_string(&temp, "operationName", operation_name + 1);
+        add_assoc_string(&temp, "peer", peer + 1);
         efree(peer);
         efree(operation_name);
 
@@ -364,6 +376,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 	skywalking_globals->enable = 0;
 	skywalking_globals->version = 5;
 	skywalking_globals->grpc = NULL;
+	skywalking_globals->header_version = 2;
 }
 
 
@@ -433,8 +446,58 @@ static char *generate_sw3(zend_long span_id, char *peer_host, char *operation_na
     return sw3;
 }
 
+static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_name) {
+    zval *traceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentTraceId", sizeof("currentTraceId") - 1);
+    zval *entryApplicationInstance = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "entryApplicationInstance",
+                                                        sizeof("entryApplicationInstance") - 1);
+    zval *entryOperationName = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "entryOperationName",
+                                                  sizeof("entryOperationName") - 1);
+    zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId",
+                                                  sizeof("distributedTraceId") - 1);
+
+    ContextCarrier *contextCarrier;
+
+    contextCarrier = emalloc(sizeof(*contextCarrier));
+    zval_b64_encode(&contextCarrier->primaryDistributedTraceId, Z_STRVAL_P(distributedTraceId));
+    zval_b64_encode(&contextCarrier->traceSegmentId, Z_STRVAL_P(traceId));
+    zval_b64_encode(&contextCarrier->peerHost, peer_host);
+    zval_b64_encode(&contextCarrier->entryEndpointName, Z_STRVAL_P(entryOperationName));
+    zval_b64_encode(&contextCarrier->parentEndpointName, operation_name);
+
+    ssize_t sw6_l = 0;
+    sw6_l = snprintf(NULL, 0, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(contextCarrier->primaryDistributedTraceId),
+                     Z_STRVAL(contextCarrier->traceSegmentId), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
+                     Z_STRVAL(contextCarrier->peerHost), Z_STRVAL(contextCarrier->entryEndpointName),
+                     Z_STRVAL(contextCarrier->parentEndpointName));
+
+    char *sw6 = (char*)emalloc(sw6_l + 1);
+    bzero(sw6, sw6_l + 1);
+    snprintf(sw6, sw6_l + 1, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(contextCarrier->primaryDistributedTraceId),
+             Z_STRVAL(contextCarrier->traceSegmentId), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
+             Z_STRVAL(contextCarrier->peerHost), Z_STRVAL(contextCarrier->entryEndpointName),
+             Z_STRVAL(contextCarrier->parentEndpointName));
+
+    efree(contextCarrier);
+
+    return sw6;
+}
+
 static zend_string *trim_sharp(zval *tmp) {
     return php_trim(Z_STR_P(tmp), "#", sizeof("#") - 1, 1);
+}
+
+static void zval_b64_encode(zval *out, char *in) {
+    char *enc = b64_encode(in, strlen(in));
+    zend_string *str = zend_string_init(enc, strlen(enc), 0);
+    ZVAL_STR(out, str);
+    free(enc);
+}
+
+static void zval_b64_decode(zval *out, char *in) {
+    char *dec = b64_decode(in, strlen(in));
+    zend_string *str = zend_string_init(dec, strlen(dec), 0);
+    ZVAL_STR(out, str);
+    free(dec);
 }
 
 static void generate_context() {
@@ -453,7 +516,10 @@ static void generate_context() {
 
     // parent
     zval *carrier = NULL;
-    zval *sw3;
+    ContextCarrier *contextCarrier = NULL;
+
+    //http info
+//    zval *http_method = NULL;
 
     zend_bool jit_initialization = PG(auto_globals_jit);
 
@@ -463,46 +529,95 @@ static void generate_context() {
         zend_string_release(server_str);
     }
     carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
-    sw3 = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
 
-    if (sw3 != NULL && Z_TYPE_P(sw3) == IS_STRING && Z_STRLEN_P(sw3) > 10) {
-        add_assoc_string(&SKYWALKING_G(context), "sw3", Z_STRVAL_P(sw3));
+//    http_method = zend_hash_str_find(Z_ARRVAL_P(carrier), "REQUEST_METHOD", sizeof("REQUEST_METHOD") - 1);
+//    if (http_method != NULL) {
+//        add_assoc_string(&SKYWALKING_G(context), "method", Z_STRVAL_P(http_method));
+//    }
 
-        zval temp;
-        array_init(&temp);
+    if (SKYWALKING_G(header_version) == 2) {
+        zval *sw6;
+        sw6 = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
+        if (sw6 != NULL && Z_TYPE_P(sw6) == IS_STRING && Z_STRLEN_P(sw6) > 10) {
+            add_assoc_string(&SKYWALKING_G(context), "sw6", Z_STRVAL_P(sw6));
+            contextCarrier = emalloc(sizeof(*contextCarrier));
 
-        php_explode(zend_string_init(ZEND_STRL("|"), 0), Z_STR_P(sw3), &temp, 10);
+            zval temp;
+            array_init(&temp);
+            php_explode(zend_string_init(ZEND_STRL("-"), 0), Z_STR_P(sw6), &temp, 10);
 
-        if(zend_array_count(Z_ARRVAL_P(&temp)) >= 8) {
-            zval *sw3_0 = zend_hash_index_find(Z_ARRVAL(temp), 0);
-            zval *sw3_1 = zend_hash_index_find(Z_ARRVAL(temp), 1);
-            zval *sw3_2 = zend_hash_index_find(Z_ARRVAL(temp), 2);
-            zval *sw3_3 = zend_hash_index_find(Z_ARRVAL(temp), 3);
-            zval *sw3_4 = zend_hash_index_find(Z_ARRVAL(temp), 4);
-            zval *sw3_5 = zend_hash_index_find(Z_ARRVAL(temp), 5);
-            zval *sw3_6 = zend_hash_index_find(Z_ARRVAL(temp), 6);
-            zval *sw3_7 = zend_hash_index_find(Z_ARRVAL(temp), 7);
-
-            zval child;
-            array_init(&child);
-            ZVAL_LONG(&child, 1);
-            zend_hash_str_update(Z_ARRVAL_P(&SKYWALKING_G(context)), "isChild", sizeof("isChild") - 1, &child);
-
-            add_assoc_string(&SKYWALKING_G(context), "parentTraceSegmentId", Z_STRVAL_P(sw3_0));
-            add_assoc_long(&SKYWALKING_G(context), "parentSpanId", zend_atol(Z_STRVAL_P(sw3_1), sizeof(Z_STRVAL_P(sw3_1)) - 1));
-            add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", zend_atol(Z_STRVAL_P(sw3_2), sizeof(Z_STRVAL_P(sw3_2)) - 1));
-            add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", zend_atol(Z_STRVAL_P(sw3_3), sizeof(Z_STRVAL_P(sw3_3)) - 1));
-            add_assoc_str(&SKYWALKING_G(context), "networkAddress", trim_sharp(sw3_4));
-            add_assoc_str(&SKYWALKING_G(context), "entryOperationName", trim_sharp(sw3_5));
-            add_assoc_str(&SKYWALKING_G(context), "parentOperationName", trim_sharp(sw3_6));
-            add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", Z_STRVAL_P(sw3_7));
+            if (zend_array_count(Z_ARRVAL_P(&temp)) >= 7) {
+                zval_b64_decode(&contextCarrier->primaryDistributedTraceId, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 1)));
+                zval_b64_decode(&contextCarrier->traceSegmentId, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 2)));
+                ZVAL_COPY(&contextCarrier->spanId, zend_hash_index_find(Z_ARRVAL(temp), 3));
+                ZVAL_COPY(&contextCarrier->parentServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 4));
+                ZVAL_COPY(&contextCarrier->entryServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 5));
+                zval_b64_decode(&contextCarrier->peerHost, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 6)));
+                zval_b64_decode(&contextCarrier->entryEndpointName, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 7)));
+                zval_b64_decode(&contextCarrier->parentEndpointName, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 8)));
+            }
         }
+    } else if (SKYWALKING_G(header_version) == 1) {
+        zval *sw3;
+        sw3 = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
+
+        if (sw3 != NULL && Z_TYPE_P(sw3) == IS_STRING && Z_STRLEN_P(sw3) > 10) {
+            add_assoc_string(&SKYWALKING_G(context), "sw3", Z_STRVAL_P(sw3));
+            contextCarrier = emalloc(sizeof(*contextCarrier));
+
+            zval temp;
+            array_init(&temp);
+
+            php_explode(zend_string_init(ZEND_STRL("|"), 0), Z_STR_P(sw3), &temp, 10);
+
+            if (zend_array_count(Z_ARRVAL_P(&temp)) >= 8) {
+                ZVAL_COPY(&contextCarrier->traceSegmentId, zend_hash_index_find(Z_ARRVAL(temp), 0));
+                ZVAL_COPY(&contextCarrier->spanId, zend_hash_index_find(Z_ARRVAL(temp), 1));
+                ZVAL_COPY(&contextCarrier->parentServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 2));
+                ZVAL_COPY(&contextCarrier->entryServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 3));
+                ZVAL_COPY(&contextCarrier->peerHost, zend_hash_index_find(Z_ARRVAL(temp), 4));
+                ZVAL_COPY(&contextCarrier->entryEndpointName, zend_hash_index_find(Z_ARRVAL(temp), 5));
+                ZVAL_COPY(&contextCarrier->parentEndpointName, zend_hash_index_find(Z_ARRVAL(temp), 6));
+                ZVAL_COPY(&contextCarrier->primaryDistributedTraceId, zend_hash_index_find(Z_ARRVAL(temp), 7));
+            }
+        }
+    }
+
+    if (contextCarrier != NULL) {
+        zval child;
+        array_init(&child);
+        ZVAL_LONG(&child, 1);
+        zend_hash_str_update(Z_ARRVAL_P(&SKYWALKING_G(context)), "isChild", sizeof("isChild") - 1, &child);
+
+        add_assoc_string(&SKYWALKING_G(context), "parentTraceSegmentId", Z_STRVAL(contextCarrier->traceSegmentId));
+        add_assoc_long(&SKYWALKING_G(context), "parentSpanId",
+                       zend_atol(Z_STRVAL(contextCarrier->spanId), sizeof(Z_STRVAL(contextCarrier->spanId)) - 1));
+        add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance",
+                       zend_atol(Z_STRVAL(contextCarrier->parentServiceInstanceId), sizeof(Z_STRVAL(contextCarrier->parentServiceInstanceId)) - 1));
+        add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance",
+                       zend_atol(Z_STRVAL(contextCarrier->entryServiceInstanceId), sizeof(Z_STRVAL(contextCarrier->entryServiceInstanceId)) - 1));
+        add_assoc_str(&SKYWALKING_G(context), "networkAddress", trim_sharp(&contextCarrier->peerHost));
+        add_assoc_str(&SKYWALKING_G(context), "entryOperationName", trim_sharp(&contextCarrier->entryEndpointName));
+        add_assoc_str(&SKYWALKING_G(context), "parentOperationName", trim_sharp(&contextCarrier->parentEndpointName));
+        add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", Z_STRVAL(contextCarrier->primaryDistributedTraceId));
+
+        efree(contextCarrier);
     } else {
         add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
         add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", application_instance);
-        add_assoc_string(&SKYWALKING_G(context), "entryOperationName", get_page_request_uri());
+
+        char *uri = get_page_request_uri();
+        char *entry_operation_name = NULL;
+        size_t entry_operation_size = 0;
+        entry_operation_size = snprintf(NULL, 0, "#%s", uri);
+        entry_operation_name = emalloc(entry_operation_size + 1);
+        bzero(entry_operation_name, entry_operation_size + 1);
+        sprintf(entry_operation_name, "#%s", uri);
+        add_assoc_string(&SKYWALKING_G(context), "entryOperationName", entry_operation_name);
+
         add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", makeTraceId);
-    }
+    };
+
     efree(makeTraceId);
 }
 
@@ -555,6 +670,35 @@ static char *get_page_request_uri() {
     return uris;
 }
 
+static char *get_page_request_peer() {
+    zval *carrier = NULL;
+    zval *request_host = NULL;
+    zval *request_port = NULL;
+
+    char *peer = NULL;
+    size_t peer_l = 0;
+
+    zend_bool jit_initialization = PG(auto_globals_jit);
+
+    if (jit_initialization) {
+        zend_string *server_str = zend_string_init("_SERVER", sizeof("_SERVER") - 1, 0);
+        zend_is_auto_global(server_str);
+        zend_string_release(server_str);
+    }
+    carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
+
+    request_host = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_ADDR", sizeof("SERVER_ADDR") - 1);
+    request_port = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_PORT", sizeof("SERVER_PORT") - 1);
+
+    if (request_host != NULL && request_port != NULL) {
+        peer_l = snprintf(NULL, 0, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
+        peer = emalloc(peer_l + 1);
+        snprintf(peer, peer_l + 1, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
+    }
+
+    return peer;
+}
+
 
 /**
  * ip
@@ -601,6 +745,7 @@ static void request_init() {
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "pid", getppid());
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_id", application_id);
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "version", SKYWALKING_G(version));
+    add_assoc_string(&SKYWALKING_G(UpstreamSegment), "uuid", uuid);
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "segment");
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "globalTraceIds");
 
@@ -614,7 +759,10 @@ static void request_init() {
 	add_assoc_long(&traceSegmentObject, "isSizeLimited", 0);
 
 	zval temp;
+	char *peer = NULL;
+
 	array_init(&temp);
+	peer = get_page_request_peer();
 
     add_assoc_long(&temp, "spanId", 0);
     add_assoc_long(&temp, "parentSpanId", -1);
@@ -623,10 +771,20 @@ static void request_init() {
     efree(l_millisecond);
     add_assoc_long(&temp, "startTime", millisecond);
     add_assoc_string(&temp, "operationName", get_page_request_uri());
-    add_assoc_string(&temp, "peer", "");
+    add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
     add_assoc_long(&temp, "componentId", COMPONENT_HTTPCLIENT);
+
+    if (peer != NULL) {
+        efree(peer);
+    }
+
+//    zval *method = NULL;
+//    method = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "method", sizeof("method") - 1);
+//    if (method != NULL) {
+//        add_assoc_string(&temp, "method", Z_STRVAL_P(method));
+//    }
 
     zval *isChild = zend_hash_str_find(Z_ARRVAL_P(&SKYWALKING_G(context)), "isChild", sizeof("isChild") - 1);
     // refs
@@ -714,7 +872,7 @@ static void module_init() {
     int i = 0;
 
     do {
-        application_id = applicationCodeRegister(SKYWALKING_G(grpc), SKYWALKING_G(app_code));
+        application_id = serviceRegister(SKYWALKING_G(grpc), SKYWALKING_G(app_code));
 
         if(application_id == -100000) {
             sleep(1);
@@ -742,9 +900,9 @@ static void module_init() {
     char *uid = uuid();
     i = 0;
     do {
-        application_instance = registerInstance(SKYWALKING_G(grpc), application_id, uid, millisecond, SKY_OS_NAME,
-                                                hostname, getpid(),
-                                                ipv4s);
+        application_instance = serviceInstanceRegister(SKYWALKING_G(grpc), application_id, millisecond, SKY_OS_NAME,
+                                                       hostname, getpid(),
+                                                       ipv4s);
         if(application_instance == -100000) {
             sleep(1);
         }
@@ -859,9 +1017,18 @@ PHP_MINFO_FUNCTION(skywalking)
     } else {
         php_info_print_table_header(2, "skywalking Support", "enabled");
     }
+
+    size_t instance_size = 0;
+    instance_size = snprintf(NULL, 0, "%d", application_instance);
+    char *instance_id = (char *)emalloc(instance_size + 1);
+    bzero(instance_id, instance_size + 1);
+    snprintf(instance_id, instance_size+1, "%d", application_instance);
+    php_info_print_table_header(2, "Instance ID", instance_id);
+
 	php_info_print_table_end();
 
 	DISPLAY_INI_ENTRIES();
+    efree(instance_id);
 }
 /* }}} */
 
