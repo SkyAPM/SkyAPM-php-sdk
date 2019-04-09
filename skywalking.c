@@ -518,6 +518,9 @@ static void generate_context() {
     zval *carrier = NULL;
     ContextCarrier *contextCarrier = NULL;
 
+    //http info
+//    zval *http_method = NULL;
+
     zend_bool jit_initialization = PG(auto_globals_jit);
 
     if (jit_initialization) {
@@ -526,6 +529,12 @@ static void generate_context() {
         zend_string_release(server_str);
     }
     carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
+
+//    http_method = zend_hash_str_find(Z_ARRVAL_P(carrier), "REQUEST_METHOD", sizeof("REQUEST_METHOD") - 1);
+//    if (http_method != NULL) {
+//        add_assoc_string(&SKYWALKING_G(context), "method", Z_STRVAL_P(http_method));
+//    }
+
     if (SKYWALKING_G(header_version) == 2) {
         zval *sw6;
         sw6 = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
@@ -661,6 +670,35 @@ static char *get_page_request_uri() {
     return uris;
 }
 
+static char *get_page_request_peer() {
+    zval *carrier = NULL;
+    zval *request_host = NULL;
+    zval *request_port = NULL;
+
+    char *peer = NULL;
+    size_t peer_l = 0;
+
+    zend_bool jit_initialization = PG(auto_globals_jit);
+
+    if (jit_initialization) {
+        zend_string *server_str = zend_string_init("_SERVER", sizeof("_SERVER") - 1, 0);
+        zend_is_auto_global(server_str);
+        zend_string_release(server_str);
+    }
+    carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
+
+    request_host = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_ADDR", sizeof("SERVER_ADDR") - 1);
+    request_port = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_PORT", sizeof("SERVER_PORT") - 1);
+
+    if (request_host != NULL && request_port != NULL) {
+        peer_l = snprintf(NULL, 0, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
+        peer = emalloc(peer_l + 1);
+        snprintf(peer, peer_l + 1, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
+    }
+
+    return peer;
+}
+
 
 /**
  * ip
@@ -721,7 +759,10 @@ static void request_init() {
 	add_assoc_long(&traceSegmentObject, "isSizeLimited", 0);
 
 	zval temp;
+	char *peer = NULL;
+
 	array_init(&temp);
+	peer = get_page_request_peer();
 
     add_assoc_long(&temp, "spanId", 0);
     add_assoc_long(&temp, "parentSpanId", -1);
@@ -730,10 +771,20 @@ static void request_init() {
     efree(l_millisecond);
     add_assoc_long(&temp, "startTime", millisecond);
     add_assoc_string(&temp, "operationName", get_page_request_uri());
-    add_assoc_string(&temp, "peer", "");
+    add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
     add_assoc_long(&temp, "componentId", COMPONENT_HTTPCLIENT);
+
+    if (peer != NULL) {
+        efree(peer);
+    }
+
+//    zval *method = NULL;
+//    method = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "method", sizeof("method") - 1);
+//    if (method != NULL) {
+//        add_assoc_string(&temp, "method", Z_STRVAL_P(method));
+//    }
 
     zval *isChild = zend_hash_str_find(Z_ARRVAL_P(&SKYWALKING_G(context)), "isChild", sizeof("isChild") - 1);
     // refs

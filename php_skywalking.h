@@ -136,6 +136,7 @@ static char *generate_sw3(zend_long span_id, char *peer_host, char *operation_na
 static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_name);
 static void generate_context();
 static char *get_page_request_uri();
+static char *get_page_request_peer();
 static void write_log( char *text);
 static void request_init();
 static void zval_b64_encode(zval *out, char *in);

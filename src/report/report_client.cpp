@@ -252,9 +252,6 @@ int main(int argc, char **argv) {
                                         spanObject->set_endtime(spans[i]["endTime"]);
                                         spanObject->set_operationname(spans[i]["operationName"]);
                                         std::string peer(spans[i]["peer"].get<std::string>());
-                                        if(!peer.empty()) {
-                                            spanObject->set_peer(peer);
-                                        }
 
                                         int spanType = spans[i]["spanType"].get<int>();
                                         if (spanType == 0) {
@@ -263,6 +260,10 @@ int main(int argc, char **argv) {
                                             spanObject->set_spantype(SpanType::Local);
                                         } else if (spanType == 1) {
                                             spanObject->set_spantype(SpanType::Exit);
+                                        }
+
+                                        if(spanType == 1 && !peer.empty()) {
+                                            spanObject->set_peer(peer);
                                         }
 
                                         int spanLayer = spans[i]["spanLayer"].get<int>();
