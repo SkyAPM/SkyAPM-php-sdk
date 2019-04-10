@@ -149,6 +149,8 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     zval *last_span = NULL;
     zval *span_id = NULL;
     char *peer = NULL;
+    ssize_t local_operation_name_l = 0;
+    char *local_operation_name = NULL;
     ssize_t operation_name_l = 0;
     char *operation_name = NULL;
     if (is_send == 1) {
@@ -167,46 +169,47 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         bzero(peer, strlen(1 + url_info->host) + 7);
         sprintf(peer, "#%s:%d", url_info->host, peer_port);
 
-//        if (url_info->query) {
-//            if (url_info->path == NULL) {
-//                operation_name_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
-//                operation_name = (char *) emalloc(operation_name_l + 1);
-//                bzero(operation_name, operation_name_l + 1);
-//                sprintf(operation_name, "%s?%s", "/", url_info->query);
-//            } else {
-//                operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
-//                operation_name = (char *) emalloc(operation_name_l + 1);
-//                bzero(operation_name, operation_name_l + 1);
-//                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
-//            }
-//        } else {
-//            if (url_info->path == NULL) {
-//                operation_name_l = snprintf(NULL, 0, "%s", "/");
-//                operation_name = (char *) emalloc(operation_name_l + 1);
-//                bzero(operation_name, operation_name_l + 1);
-//                sprintf(operation_name, "%s", "/");
-//            } else {
-//                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
-//                operation_name = (char *) emalloc(operation_name_l + 1);
-//                bzero(operation_name, operation_name_l + 1);
-//                sprintf(operation_name, "%s", url_info->path);
-//            }
-//        }
+        if (url_info->query) {
+            if (url_info->path == NULL) {
+                operation_name_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+                operation_name = (char *) emalloc(operation_name_l + 1);
+                bzero(operation_name, operation_name_l + 1);
+                sprintf(operation_name, "%s?%s", "/", url_info->query);
+            } else {
+                operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+                operation_name = (char *) emalloc(operation_name_l + 1);
+                bzero(operation_name, operation_name_l + 1);
+                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
+            }
+        } else {
+            if (url_info->path == NULL) {
+                operation_name_l = snprintf(NULL, 0, "%s", "/");
+                operation_name = (char *) emalloc(operation_name_l + 1);
+                bzero(operation_name, operation_name_l + 1);
+                sprintf(operation_name, "%s", "/");
+            } else {
+                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
+                operation_name = (char *) emalloc(operation_name_l + 1);
+                bzero(operation_name, operation_name_l + 1);
+                sprintf(operation_name, "%s", url_info->path);
+            }
+        }
 
         char *uri = get_page_request_uri();
-        operation_name_l = snprintf(NULL, 0, "#%s", uri);
-        operation_name = emalloc(operation_name_l + 1);
-        bzero(operation_name, operation_name_l + 1);
-        sprintf(operation_name, "#%s", uri);
+        local_operation_name_l = snprintf(NULL, 0, "#%s", uri);
+        local_operation_name = emalloc(local_operation_name_l + 1);
+        bzero(local_operation_name, local_operation_name_l + 1);
+        sprintf(local_operation_name, "#%s", uri);
 
         spans = get_spans();
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
         if (SKYWALKING_G(header_version) == 1) {
-            sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
+            sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, local_operation_name);
         } else if (SKYWALKING_G(header_version) == 2) {
-            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
+            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, local_operation_name);
         }
+        efree(local_operation_name);
     }
 
 
@@ -286,8 +289,8 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         add_assoc_long(&temp, "endTime", millisecond);
 
 
-        add_assoc_string(&temp, "operationName", operation_name + 1);
-        add_assoc_string(&temp, "peer", peer + 1);
+        add_assoc_string(&temp, "operationName", operation_name);
+        add_assoc_string(&temp, "peer", peer + 1); // remove '#' char
         efree(peer);
         efree(operation_name);
 
