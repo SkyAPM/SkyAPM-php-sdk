@@ -192,7 +192,14 @@ int main(int argc, char **argv) {
                                 if (strLine.empty()) {
                                     continue;
                                 }
-                                json j = json::parse(strLine);
+
+                                json j;
+                                try {
+                                    j = json::parse(strLine);
+                                }catch (...) {
+                                    remove(fileName.c_str());
+                                    continue;
+                                }
 
                                 UpstreamSegment request;
 
