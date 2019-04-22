@@ -84,14 +84,18 @@ PHP_INI_END()
 
 /* }}} */
 
+PHP_FUNCTION(get_traceId) {
+    zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId", sizeof("distributedTraceId") - 1);
 
+    RETURN_STRING(Z_STRVAL_P(distributedTraceId));
+}
 
 /* {{{ skywalking_functions[]
  *
  * Every user visible function must have an entry in skywalking_functions[].
  */
 const zend_function_entry skywalking_functions[] = {
-		/* For testing, remove later. */
+    PHP_FE(get_traceId, NULL)
 	PHP_FE_END	/* Must be the last line in skywalking_functions[] */
 };
 /* }}} */
