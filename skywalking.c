@@ -715,26 +715,23 @@ static char *get_page_request_peer() {
  * @return return_type
 //  */
 static char* _get_current_machine_ip(){
+    char *ip;
+    ip = (char *) emalloc(sizeof(char) * 100);
+    bzero(ip, 100);
 
-
-	char *ip;
-	zval *carrier = NULL;
-	ip  = (char *)emalloc(sizeof(char)*100);
-
-	bzero(ip, 100);
-
-	carrier = &PG(http_globals)[TRACK_VARS_SERVER];
-
-	if (strcasecmp("cli", sapi_module.name) == 0){
-		strcpy(ip, "127.0.0.1");
-	}else{
-		char hname[128];
-    	struct hostent *hent;
-     	gethostname(hname, sizeof(hname));
-		hent = gethostbyname(hname);
-		ip = inet_ntoa(*(struct in_addr*)(hent->h_addr_list[0]));
-	}
-
+    if (strcasecmp("cli", sapi_module.name) == 0) {
+        strcpy(ip, "127.0.0.1");
+    } else {
+        char hname[128];
+        struct hostent *hent;
+        gethostname(hname, sizeof(hname));
+        hent = gethostbyname(hname);
+        if (hent == NULL) {
+            strcpy(ip, "127.0.0.1");
+        } else {
+            ip = inet_ntoa(*(struct in_addr *) (hent->h_addr_list[0]));
+        }
+    }
 
     return ip;
 }
