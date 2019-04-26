@@ -62,7 +62,9 @@ public:
         ServiceRegisterMapping reply;
 
         ClientContext context;
-
+#ifdef DEBUG
+        std::cout << "Register service: "<< boost_uuid << std::endl;
+#endif
         Status status = stub_->doServiceRegister(&context, request, &reply);
 
         if (status.ok()) {
@@ -116,11 +118,20 @@ public:
 
         Status status = stub_->doServiceInstanceRegister(&context, request, &reply);
 
+#ifdef DEBUG
+        if (!status.ok()) {
+            std::cout << "status code: " << status.error_code() << std::endl;
+            std::cout << "err message: " << status.error_message() << std::endl;
+            std::cout << "err detail: " << status.error_details() << std::endl;
+        }
+#endif
+
         if (status.ok()) {
             for (int i = 0; i < reply.serviceinstances_size(); i++) {
                 const KeyIntValuePair &kv = reply.serviceinstances(i);
-//                std::cout << "Register Instance:"<< std::endl;
-//                std::cout << kv.key() << ": " << kv.value() << std::endl;
+#ifdef DEBUG
+                std::cout << "Register Instance: "<< kv.key() << ": " << kv.value() << std::endl;
+#endif
 
                 if (kv.key() == uuid) {
                     return kv.value();
