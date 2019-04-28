@@ -80,6 +80,7 @@ PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.header_version", "2", PHP_INI_ALL, OnUpdateLong, header_version, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.register_retry", "10", PHP_INI_ALL, OnUpdateLong, register_retry, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -883,7 +884,7 @@ static void module_init() {
         }
 
         i++;
-    } while (application_id == -100000 && i <= 3);
+    } while (application_id == -100000 && i <= SKYWALKING_G(register_retry));
 
     if (application_id == -100000) {
         sky_close = 1;
@@ -910,7 +911,7 @@ static void module_init() {
             sleep(1);
         }
         i++;
-    } while (application_instance == -100000 && i <= 3);
+    } while (application_instance == -100000 && i <= SKYWALKING_G(register_retry));
 
 
     if (application_instance == -100000) {
