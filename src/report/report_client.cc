@@ -113,14 +113,14 @@ int main(int argc, char **argv) {
         if (std::strncmp("-h", argv[i], sizeof(argv[i]) - 1) == 0 ||
             std::strncmp("--help", argv[i], sizeof(argv[i]) - 1) == 0) {
             std::cout << "report_client grpc log_path" << std::endl;
-            std::cout << "e.g. report_client 120.0.0.1:11800 /tmp" << std::endl;
+            std::cout << "e.g. report_client 127.0.0.1:11800 /tmp" << std::endl;
             return 0;
         }
     }
 
     if (argc == 1) {
         std::cout << "report_client grpc log_path" << std::endl;
-        std::cout << "e.g. report_client 120.0.0.1:11800 /tmp" << std::endl;
+        std::cout << "e.g. report_client 127.0.0.1:11800 /tmp" << std::endl;
         return 0;
     }
 
@@ -130,6 +130,8 @@ int main(int argc, char **argv) {
     std::map<int, std::string> instanceUUID;
     std::map<int, long> sendTime;
 
+    uint64_t index = 0;
+
     while (1) {
 
         struct dirent *dir;
@@ -138,24 +140,27 @@ int main(int argc, char **argv) {
             std::cerr << "open directory error";
             return 0;
         }
+        index += 1;
 
         // heartbeat
         for (auto &i: instancePid) {
 
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
+            if (index % 3 == 0) {
+                struct timeval tv;
+                gettimeofday(&tv, NULL);
 
-            if(tv.tv_sec - sendTime[i.first] > 40) {
-                kill(instancePid[i.first], 0);
+//                if (tv.tv_sec - sendTime[i.first] > 40) {
+//                    kill(instancePid[i.first], 0);
+//                }
+
+                sendTime[i.first] = tv.tv_sec;
+                std::cout << "send heartbeat ..." << std::endl;
+                ServiceInstancePingPkg request;
+                request.set_serviceinstanceid(i.first);
+                request.set_time(tv.tv_sec * 1000 + tv.tv_usec / 1000);
+                request.set_serviceinstanceuuid(instanceUUID[i.first]);
+                greeter.heartbeat(request);
             }
-
-            sendTime[i.first] = tv.tv_sec;
-            std::cout << "send heartbeat ..." << std::endl;
-            ServiceInstancePingPkg request;
-            request.set_serviceinstanceid(i.first);
-            request.set_time(tv.tv_sec*1000 + tv.tv_usec/1000);
-            request.set_serviceinstanceuuid(instanceUUID[i.first]);
-            greeter.heartbeat(request);
         }
 
         while ((dir = readdir(dp)) != NULL) {
@@ -331,7 +336,7 @@ int main(int argc, char **argv) {
         }
         closedir(dp);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
 
