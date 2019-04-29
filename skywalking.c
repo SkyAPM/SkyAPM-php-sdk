@@ -930,7 +930,12 @@ PHP_MINIT_FUNCTION (skywalking) {
 	/* If you have INI entries, uncomment these lines
 	*/
 	if (SKYWALKING_G(enable)) {
-		module_init();
+        if (strcasecmp("cli", sapi_module.name) == 0) {
+            sky_close = 1;
+        } else {
+            module_init();
+        }
+
 		if (sky_close == 1) {
 			return SUCCESS;
 		}
