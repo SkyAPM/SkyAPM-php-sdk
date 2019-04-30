@@ -59,6 +59,8 @@ using grpc::Status;
 using grpc::ClientWriter;
 using json = nlohmann::json;
 
+using namespace std::chrono;
+
 class GreeterClient {
 public:
     GreeterClient(std::shared_ptr<Channel> channel)
@@ -130,7 +132,11 @@ int main(int argc, char **argv) {
     std::map<int, std::string> instanceUUID;
     std::map<int, long> sendTime;
 
-    uint64_t index = 0;
+    milliseconds guard;
+
+    guard = duration_cast< milliseconds >(
+            system_clock::now().time_since_epoch()
+    );
 
     while (1) {
 
@@ -140,12 +146,11 @@ int main(int argc, char **argv) {
             std::cerr << "open directory error";
             return 0;
         }
-        index += 1;
 
         // heartbeat
-        for (auto &i: instancePid) {
-
-            if (index % 3 == 0) {
+        if ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - guard) > seconds(60)) {
+            guard = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+            for (auto &i: instancePid) {
                 struct timeval tv;
                 gettimeofday(&tv, NULL);
 
@@ -154,7 +159,7 @@ int main(int argc, char **argv) {
 //                }
 
                 sendTime[i.first] = tv.tv_sec;
-                std::cout << "send heartbeat ..." << std::endl;
+                std::cout << "send heartbeat, instance id: " << i.first << std::endl;
                 ServiceInstancePingPkg request;
                 request.set_serviceinstanceid(i.first);
                 request.set_time(tv.tv_sec * 1000 + tv.tv_usec / 1000);
@@ -336,7 +341,7 @@ int main(int argc, char **argv) {
         }
         closedir(dp);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
 
