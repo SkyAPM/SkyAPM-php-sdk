@@ -46,8 +46,8 @@ OBJS = ../grpc/language-agent-v2/.libs/trace.o ../grpc/language-agent-v2/.libs/t
         ../grpc/register/.libs/InstancePing-grpc.o ../grpc/common/.libs/common.o ../grpc/common/.libs/common-grpc.o \
         ../grpc/common/.libs/trace-common.o ../grpc/common/.libs/trace-common-grpc.o
 
-report_client: $(OBJS)
-	$(CXX) report_client.cpp $^ $(LDFLAGS) -Ideps/boost $(CXXFLAGS) -o $@
+report_client: $(OBJS) report_client.cc
+	$(CXX) $^ $(LDFLAGS) -Ideps/boost $(CXXFLAGS) -o $@
 
 clean:
 	rm -rf *.o *.pb.cc *.pb.h report_client \

@@ -170,6 +170,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     zval curl_header_send;
     int  version;
     int header_version;
+    int register_retry;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

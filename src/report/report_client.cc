@@ -59,6 +59,8 @@ using grpc::Status;
 using grpc::ClientWriter;
 using json = nlohmann::json;
 
+using namespace std::chrono;
+
 class GreeterClient {
 public:
     GreeterClient(std::shared_ptr<Channel> channel)
@@ -113,14 +115,14 @@ int main(int argc, char **argv) {
         if (std::strncmp("-h", argv[i], sizeof(argv[i]) - 1) == 0 ||
             std::strncmp("--help", argv[i], sizeof(argv[i]) - 1) == 0) {
             std::cout << "report_client grpc log_path" << std::endl;
-            std::cout << "e.g. report_client 120.0.0.1:11800 /tmp" << std::endl;
+            std::cout << "e.g. report_client 127.0.0.1:11800 /tmp" << std::endl;
             return 0;
         }
     }
 
     if (argc == 1) {
         std::cout << "report_client grpc log_path" << std::endl;
-        std::cout << "e.g. report_client 120.0.0.1:11800 /tmp" << std::endl;
+        std::cout << "e.g. report_client 127.0.0.1:11800 /tmp" << std::endl;
         return 0;
     }
 
@@ -129,6 +131,12 @@ int main(int argc, char **argv) {
     std::map<int, int> instancePid;
     std::map<int, std::string> instanceUUID;
     std::map<int, long> sendTime;
+
+    milliseconds guard;
+
+    guard = duration_cast< milliseconds >(
+            system_clock::now().time_since_epoch()
+    );
 
     while (1) {
 
@@ -140,22 +148,24 @@ int main(int argc, char **argv) {
         }
 
         // heartbeat
-        for (auto &i: instancePid) {
+        if ((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - guard) > seconds(60)) {
+            guard = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+            for (auto &i: instancePid) {
+                struct timeval tv;
+                gettimeofday(&tv, NULL);
 
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
+//                if (tv.tv_sec - sendTime[i.first] > 40) {
+//                    kill(instancePid[i.first], 0);
+//                }
 
-            if(tv.tv_sec - sendTime[i.first] > 40) {
-                kill(instancePid[i.first], 0);
+                sendTime[i.first] = tv.tv_sec;
+                std::cout << "send heartbeat, instance id: " << i.first << std::endl;
+                ServiceInstancePingPkg request;
+                request.set_serviceinstanceid(i.first);
+                request.set_time(tv.tv_sec * 1000 + tv.tv_usec / 1000);
+                request.set_serviceinstanceuuid(instanceUUID[i.first]);
+                greeter.heartbeat(request);
             }
-
-            sendTime[i.first] = tv.tv_sec;
-            std::cout << "send heartbeat ..." << std::endl;
-            ServiceInstancePingPkg request;
-            request.set_serviceinstanceid(i.first);
-            request.set_time(tv.tv_sec*1000 + tv.tv_usec/1000);
-            request.set_serviceinstanceuuid(instanceUUID[i.first]);
-            greeter.heartbeat(request);
         }
 
         while ((dir = readdir(dp)) != NULL) {
@@ -331,7 +341,7 @@ int main(int argc, char **argv) {
         }
         closedir(dp);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
 

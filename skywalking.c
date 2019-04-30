@@ -80,6 +80,7 @@ PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.header_version", "2", PHP_INI_ALL, OnUpdateLong, header_version, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.register_retry", "10", PHP_INI_ALL, OnUpdateLong, register_retry, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -715,26 +716,23 @@ static char *get_page_request_peer() {
  * @return return_type
 //  */
 static char* _get_current_machine_ip(){
+    char *ip;
+    ip = (char *) emalloc(sizeof(char) * 100);
+    bzero(ip, 100);
 
-
-	char *ip;
-	zval *carrier = NULL;
-	ip  = (char *)emalloc(sizeof(char)*100);
-
-	bzero(ip, 100);
-
-	carrier = &PG(http_globals)[TRACK_VARS_SERVER];
-
-	if (strcasecmp("cli", sapi_module.name) == 0){
-		strcpy(ip, "127.0.0.1");
-	}else{
-		char hname[128];
-    	struct hostent *hent;
-     	gethostname(hname, sizeof(hname));
-		hent = gethostbyname(hname);
-		ip = inet_ntoa(*(struct in_addr*)(hent->h_addr_list[0]));
-	}
-
+    if (strcasecmp("cli", sapi_module.name) == 0) {
+        strcpy(ip, "127.0.0.1");
+    } else {
+        char hname[128];
+        struct hostent *hent;
+        gethostname(hname, sizeof(hname));
+        hent = gethostbyname(hname);
+        if (hent == NULL) {
+            strcpy(ip, "127.0.0.1");
+        } else {
+            ip = inet_ntoa(*(struct in_addr *) (hent->h_addr_list[0]));
+        }
+    }
 
     return ip;
 }
@@ -886,7 +884,7 @@ static void module_init() {
         }
 
         i++;
-    } while (application_id == -100000 && i <= 3);
+    } while (application_id == -100000 && i <= SKYWALKING_G(register_retry));
 
     if (application_id == -100000) {
         sky_close = 1;
@@ -913,7 +911,7 @@ static void module_init() {
             sleep(1);
         }
         i++;
-    } while (application_instance == -100000 && i <= 3);
+    } while (application_instance == -100000 && i <= SKYWALKING_G(register_retry));
 
 
     if (application_instance == -100000) {
@@ -932,7 +930,12 @@ PHP_MINIT_FUNCTION (skywalking) {
 	/* If you have INI entries, uncomment these lines
 	*/
 	if (SKYWALKING_G(enable)) {
-		module_init();
+        if (strcasecmp("cli", sapi_module.name) == 0) {
+            sky_close = 1;
+        } else {
+            module_init();
+        }
+
 		if (sky_close == 1) {
 			return SUCCESS;
 		}

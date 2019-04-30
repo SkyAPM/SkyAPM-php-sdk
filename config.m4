@@ -30,7 +30,7 @@ fi
 
 if test "$PHP_SKYWALKING" != "no"; then
 
-  CXXFLAGS+=" -std=c++11 -Isrc/report/deps/boost "
+  CXXFLAGS+=" -std=c++11 -Isrc/report/deps/boost -DDEBUG"
   PHP_REQUIRE_CXX()
 
   KYWALKING_LIBS=`pkg-config --cflags --libs protobuf grpc++ grpc`
