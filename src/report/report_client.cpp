@@ -109,14 +109,14 @@ int main(int argc, char **argv) {
         if (std::strncmp("-h", argv[i], sizeof(argv[i]) - 1) == 0 ||
             std::strncmp("--help", argv[i], sizeof(argv[i]) - 1) == 0) {
             std::cout << "report_client grpc log_path" << std::endl;
-            std::cout << "e.g. report_client 120.0.0.1:11800 /tmp" << std::endl;
+            std::cout << "e.g. report_client 127.0.0.1:11800 /tmp" << std::endl;
             return 0;
         }
     }
 
     if (argc == 1) {
         std::cout << "report_client grpc log_path" << std::endl;
-        std::cout << "e.g. report_client 120.0.0.1:11800 /tmp" << std::endl;
+        std::cout << "e.g. report_client 127.0.0.1:11800 /tmp" << std::endl;
         return 0;
     }
 
@@ -248,6 +248,9 @@ int main(int argc, char **argv) {
                                         if(!peer.empty()) {
                                             spanObject->set_peer(peer);
                                         }
+                                        KeyWithStringValue *kv = spanObject->add_tags();
+                                        kv->set_key("url");
+                                        kv->set_value(spans[i]["tags"]["url"]);
 
                                         int spanType = spans[i]["spanType"].get<int>();
                                         if (spanType == 0) {
