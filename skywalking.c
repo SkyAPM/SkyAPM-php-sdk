@@ -149,6 +149,8 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     char *peer = NULL;
     ssize_t operation_name_l = 0;
     char *operation_name = NULL;
+    ssize_t full_url_l = 0;
+    char *full_url = NULL;
     if (is_send == 1) {
         int peer_port = 0;
         if (url_info->port) {
@@ -167,15 +169,25 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 
         if (url_info->query) {
             if (url_info->path == NULL) {
-                operation_name_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+                operation_name_l = snprintf(NULL, 0, "%s", "/");
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s?%s", "/", url_info->query);
+                sprintf(operation_name, "%s", "/");
+
+                full_url_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+                full_url = (char *) emalloc(full_url_l + 1);
+                bzero(full_url, full_url_l + 1);
+                sprintf(full_url, "%s?%s", "/", url_info->query);
             } else {
-                operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
+                sprintf(operation_name, "%s", url_info->path);
+
+                full_url_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+                full_url = (char *) emalloc(full_url_l + 1);
+                bzero(full_url, full_url_l + 1);
+                sprintf(full_url, "%s?%s", url_info->path, url_info->query);
             }
         } else {
             if (url_info->path == NULL) {
@@ -183,11 +195,21 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s", "/");
+
+                full_url_l = snprintf(NULL, 0, "%s", "/");
+                full_url = (char *) emalloc(full_url_l + 1);
+                bzero(full_url, full_url_l + 1);
+                sprintf(full_url, "%s", "/");
             } else {
                 operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s", url_info->path);
+
+                full_url_l = snprintf(NULL, 0, "%s", url_info->path);
+                full_url = (char *) emalloc(full_url_l + 1);
+                bzero(full_url, full_url_l + 1);
+                sprintf(full_url, "%s", url_info->path);
             }
         }
 
@@ -276,8 +298,15 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 
         add_assoc_string(&temp, "operationName", operation_name);
         add_assoc_string(&temp, "peer", peer);
+        zval tags;
+        array_init(&tags);
+        add_assoc_string(&tags, "url", full_url);
+
+        add_assoc_zval(&temp, "tags", &tags);
+
         efree(peer);
         efree(operation_name);
+        efree(full_url);
 
         php_url_free(url_info);
 
@@ -526,6 +555,34 @@ static char *get_millisecond(){
 	return buffer;
 }
 
+static char *get_page_request_peer() {
+    zval *carrier = NULL;
+    zval *request_host = NULL;
+    zval *request_port = NULL;
+
+    char *peer = NULL;
+    size_t peer_l = 0;
+
+    zend_bool jit_initialization = PG(auto_globals_jit);
+
+    if (jit_initialization) {
+        zend_string *server_str = zend_string_init("_SERVER", sizeof("_SERVER") - 1, 0);
+        zend_is_auto_global(server_str);
+        zend_string_release(server_str);
+    }
+    carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
+
+    request_host = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_ADDR", sizeof("SERVER_ADDR") - 1);
+    request_port = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_PORT", sizeof("SERVER_PORT") - 1);
+
+    if (request_host != NULL && request_port != NULL) {
+        peer_l = snprintf(NULL, 0, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
+        peer = emalloc(peer_l + 1);
+        snprintf(peer, peer_l + 1, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
+    }
+
+    return peer;
+}
 
 static char *get_page_request_uri() {
     zval *carrier = NULL;
@@ -614,7 +671,28 @@ static void request_init() {
 	add_assoc_long(&traceSegmentObject, "isSizeLimited", 0);
 
 	zval temp;
+    char *peer = NULL;
+    char *uri = get_page_request_uri();
+    char *path = (char*)emalloc(sizeof(char) * strlen(uri) - 1);
+
+    int i;
+    for(i = 0; i < strlen(uri); i++) {
+        if (uri[i] == '?') {
+            break;
+        }
+        path[i] = uri[i];
+    }
+
+    path[i] = '\0';
+
 	array_init(&temp);
+	peer = get_page_request_peer();
+
+    zval tags;
+    array_init(&tags);
+    add_assoc_string(&tags, "url", (uri == NULL) ? "" : uri);
+
+    add_assoc_zval(&temp, "tags", &tags);
 
     add_assoc_long(&temp, "spanId", 0);
     add_assoc_long(&temp, "parentSpanId", -1);
@@ -622,8 +700,9 @@ static void request_init() {
     long millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
     efree(l_millisecond);
     add_assoc_long(&temp, "startTime", millisecond);
-    add_assoc_string(&temp, "operationName", get_page_request_uri());
-    add_assoc_string(&temp, "peer", "");
+    add_assoc_string(&temp, "operationName", path);
+    efree(path);
+    add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
     add_assoc_long(&temp, "componentId", COMPONENT_HTTPCLIENT);
@@ -768,7 +847,12 @@ PHP_MINIT_FUNCTION (skywalking) {
 	/* If you have INI entries, uncomment these lines
 	*/
 	if (SKYWALKING_G(enable)) {
-		module_init();
+        if (strcasecmp("cli", sapi_module.name) == 0) {
+            sky_close = 1;
+        } else {
+            module_init();
+        }
+
 		if (sky_close == 1) {
 			return SUCCESS;
 		}
