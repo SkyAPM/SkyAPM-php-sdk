@@ -673,7 +673,7 @@ static void request_init() {
 	zval temp;
     char *peer = NULL;
     char *uri = get_page_request_uri();
-    char *path = (char*)emalloc(sizeof(char) * strlen(uri));
+    char *path = (char*)emalloc(sizeof(char) * strlen(uri) + 5);
 
     int i;
     for(i = 0; i < strlen(uri); i++) {
@@ -682,7 +682,6 @@ static void request_init() {
         }
         path[i] = uri[i];
     }
-
     path[i] = '\0';
 
 	array_init(&temp);
