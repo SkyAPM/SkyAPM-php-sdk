@@ -51,12 +51,9 @@
 #include <fcntl.h>
 #include <dirent.h>
 
+#include <sys/un.h>
+
 #include "b64.h"
-
-extern int serviceRegister(char *grpc_server, char *code);
-
-extern int serviceInstanceRegister(char *grpc_server, int appId, long registertime, char *osname, char *hostname,
-                                   int processno, char *ipv4s);
 
 /* If you declare any globals in php_skywalking.h uncomment this:
 */
@@ -64,11 +61,12 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
 /* True global resources - no need for thread safety here */
 static int le_skywalking;
-static int application_instance = 0;
-static int application_id = 0;
+static int application_instance = -100000;
+static int application_id = -100000;
 static int sky_close = 0;
 static int sky_increment_id = 0;
 char *uuid = NULL;
+const char *sock_path = "/tmp/sky_agent.sock";
 
 /* {{{ PHP_INI
  */
@@ -920,6 +918,47 @@ static void module_init() {
     }
 }
 
+static int sky_register() {
+    if (application_id == -100000 || application_instance == -100000) {
+        struct sockaddr_un un;
+        un.sun_family = AF_UNIX;
+        strcpy(un.sun_path, sock_path);
+        int fd;
+        char message[4096];
+        char return_message[4096];
+
+        fd = socket(AF_UNIX, SOCK_STREAM, 0);
+        if (fd >= 0) {
+            int conn = connect(fd, (struct sockaddr *) &un, sizeof(un));
+
+            if (conn >= 0) {
+                bzero(message, sizeof(message));
+                sprintf(message, "0{\"app_code\":\"%s\",\"pid\":%d}\n", SKYWALKING_G(app_code), getppid());
+                write(fd, message, strlen(message));
+
+                bzero(return_message, sizeof(return_message));
+                read(fd, return_message, sizeof(return_message));
+
+                application_id = atoi(return_message);
+
+                if (application_id != -100000) {
+                    bzero(message, sizeof(message));
+                    sprintf(message, "1{\"application_id\":\"%d\",\"pid\":%d}\n", application_id, getppid());
+                    write(fd, message, strlen(message));
+
+                    bzero(return_message, sizeof(return_message));
+                    read(fd, return_message, sizeof(return_message));
+
+                    application_instance = atoi(return_message);
+                }
+            }
+
+            close(fd);
+        }
+    }
+    return 0;
+}
+
 
 /* {{{ PHP_MINIT_FUNCTION
  */
@@ -931,15 +970,10 @@ PHP_MINIT_FUNCTION (skywalking) {
 	*/
 	if (SKYWALKING_G(enable)) {
         if (strcasecmp("cli", sapi_module.name) == 0) {
-            sky_close = 1;
-        } else {
-            module_init();
+            return SUCCESS;
         }
 
-		if (sky_close == 1) {
-			return SUCCESS;
-		}
-//		set_sampling_rate(SKY_G(global_sampling_rate));
+		// bind curl
 		zend_function *old_function;
 		if ((old_function = zend_hash_str_find_ptr(CG(function_table), "curl_exec", sizeof("curl_exec") - 1)) != NULL) {
 			orig_curl_exec = old_function->internal_function.handler;
@@ -982,7 +1016,9 @@ PHP_RINIT_FUNCTION(skywalking)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 	if (SKYWALKING_G(enable)) {
-        if (sky_close == 1) {
+	    sky_register();
+        if(application_id == -100000 || application_instance == -100000) {
+            sky_close = 1;
             return SUCCESS;
         }
 		sky_increment_id++;
