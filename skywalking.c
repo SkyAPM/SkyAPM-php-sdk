@@ -960,23 +960,17 @@ PHP_MINFO_FUNCTION(skywalking)
 {
 
 	php_info_print_table_start();
-    if (sky_close) {
-        php_info_print_table_header(2, "skywalking Support", "disabled (register fail)");
+    if (SKYWALKING_G(enable)) {
+        php_info_print_table_header(2, "SkyWalking Support", "enabled");
     } else {
-        php_info_print_table_header(2, "skywalking Support", "enabled");
+        php_info_print_table_header(2, "SkyWalking Support", "disabled");
     }
 
-    size_t instance_size = 0;
-    instance_size = snprintf(NULL, 0, "%d", application_instance);
-    char *instance_id = (char *)emalloc(instance_size + 1);
-    bzero(instance_id, instance_size + 1);
-    snprintf(instance_id, instance_size+1, "%d", application_instance);
-    php_info_print_table_header(2, "Instance ID", instance_id);
+    php_info_print_table_header(2, "SkyWalking Agent", "/tmp/agent_report.sock");
 
 	php_info_print_table_end();
 
 	DISPLAY_INI_ENTRIES();
-    efree(instance_id);
 }
 /* }}} */
 
