@@ -30,7 +30,7 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_string.h"
-#include "src/components.h"
+#include "components.h"
 #include "php_skywalking.h"
 #include "ext/standard/url.h" /* for php_url */
 #include "ext/standard/php_var.h"
