@@ -157,7 +157,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         }
 
         peer = (char *) emalloc(strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
-        bzero(peer, strlen(strlen(url_info->scheme) + 3 + url_info->host) + 7);
+        bzero(peer, strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
         sprintf(peer, "%s://%s:%d", url_info->scheme, url_info->host, peer_port);
 
         if (url_info->query) {
