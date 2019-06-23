@@ -144,6 +144,9 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     char *peer = NULL;
     ssize_t operation_name_l = 0;
     char *operation_name = NULL;
+    ssize_t full_url_l = 0;
+    char *full_url = NULL;
+
     if (is_send == 1) {
         int peer_port = 0;
         if (url_info->port) {
@@ -162,15 +165,25 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 
         if (url_info->query) {
             if (url_info->path == NULL) {
-                operation_name_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+                operation_name_l = snprintf(NULL, 0, "%s", "/");
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s?%s", "/", url_info->query);
+                sprintf(operation_name, "%s", "/");
+
+                full_url_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+                full_url = (char *) emalloc(full_url_l + 1);
+                bzero(full_url, full_url_l + 1);
+                sprintf(full_url, "%s?%s", "/", url_info->query);
             } else {
-                operation_name_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s?%s", url_info->path, url_info->query);
+                sprintf(operation_name, "%s", url_info->path);
+
+                full_url_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+                full_url = (char *) emalloc(full_url_l + 1);
+                bzero(full_url, full_url_l + 1);
+                sprintf(full_url, "%s?%s", url_info->path, url_info->query);
             }
         } else {
             if (url_info->path == NULL) {
@@ -178,11 +191,21 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s", "/");
+
+                full_url_l = snprintf(NULL, 0, "%s", "/");
+                full_url = (char *) emalloc(full_url_l + 1);
+                bzero(full_url, full_url_l + 1);
+                sprintf(full_url, "%s", "/");
             } else {
                 operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s", url_info->path);
+
+                full_url_l = snprintf(NULL, 0, "%s", url_info->path);
+                full_url = (char *) emalloc(full_url_l + 1);
+                bzero(full_url, full_url_l + 1);
+                sprintf(full_url, "%s", url_info->path);
             }
         }
 
@@ -276,8 +299,14 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 
         add_assoc_string(&temp, "operationName", operation_name);
         add_assoc_string(&temp, "peer", peer);
+        zval tags;
+        array_init(&tags);
+        add_assoc_string(&tags, "url", full_url);
+
+        add_assoc_zval(&temp, "tags", &tags);
         efree(peer);
         efree(operation_name);
+        efree(full_url);
 
         php_url_free(url_info);
 
@@ -716,10 +745,27 @@ static void request_init() {
 	add_assoc_long(&traceSegmentObject, "isSizeLimited", 0);
 
 	zval temp;
-	char *peer = NULL;
+    char *peer = NULL;
+    char *uri = get_page_request_uri();
+    char *path = (char*)emalloc(sizeof(char) * strlen(uri) + 5);
+
+    int i;
+    for(i = 0; i < strlen(uri); i++) {
+        if (uri[i] == '?') {
+            break;
+        }
+        path[i] = uri[i];
+    }
+    path[i] = '\0';
 
 	array_init(&temp);
-	peer = get_page_request_peer();
+    peer = get_page_request_peer();
+
+    zval tags;
+    array_init(&tags);
+    add_assoc_string(&tags, "url", (uri == NULL) ? "" : uri);
+
+    add_assoc_zval(&temp, "tags", &tags);
 
     add_assoc_long(&temp, "spanId", 0);
     add_assoc_long(&temp, "parentSpanId", -1);
@@ -727,7 +773,8 @@ static void request_init() {
     long millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
     efree(l_millisecond);
     add_assoc_long(&temp, "startTime", millisecond);
-    add_assoc_string(&temp, "operationName", get_page_request_uri());
+    add_assoc_string(&temp, "operationName", path);
+    efree(path);
     add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
