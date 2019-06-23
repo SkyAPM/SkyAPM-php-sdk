@@ -65,7 +65,6 @@ static int application_instance = -100000;
 static int application_id = -100000;
 static int sky_close = 0;
 static int sky_increment_id = 0;
-char *uuid = NULL;
 const char *sock_path = "/tmp/sky_agent.sock";
 
 /* {{{ PHP_INI
@@ -77,24 +76,15 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("skywalking.app_code", "", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.header_version", "2", PHP_INI_ALL, OnUpdateLong, header_version, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.register_retry", "10", PHP_INI_ALL, OnUpdateLong, register_retry, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
-
-PHP_FUNCTION(get_traceId) {
-    zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId", sizeof("distributedTraceId") - 1);
-
-    RETURN_STRING(Z_STRVAL_P(distributedTraceId));
-}
 
 /* {{{ skywalking_functions[]
  *
  * Every user visible function must have an entry in skywalking_functions[].
  */
 const zend_function_entry skywalking_functions[] = {
-    PHP_FE(get_traceId, NULL)
 	PHP_FE_END	/* Must be the last line in skywalking_functions[] */
 };
 /* }}} */
@@ -152,8 +142,6 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     zval *last_span = NULL;
     zval *span_id = NULL;
     char *peer = NULL;
-    ssize_t local_operation_name_l = 0;
-    char *local_operation_name = NULL;
     ssize_t operation_name_l = 0;
     char *operation_name = NULL;
     if (is_send == 1) {
@@ -168,9 +156,9 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
             }
         }
 
-        peer = (char *) emalloc(1 + strlen(url_info->host) + 7);
-        bzero(peer, strlen(1 + url_info->host) + 7);
-        sprintf(peer, "#%s:%d", url_info->host, peer_port);
+        peer = (char *) emalloc(strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
+        bzero(peer, strlen(strlen(url_info->scheme) + 3 + url_info->host) + 7);
+        sprintf(peer, "%s://%s:%d", url_info->scheme, url_info->host, peer_port);
 
         if (url_info->query) {
             if (url_info->path == NULL) {
@@ -198,21 +186,15 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
             }
         }
 
-        char *uri = get_page_request_uri();
-        local_operation_name_l = snprintf(NULL, 0, "#%s", uri);
-        local_operation_name = emalloc(local_operation_name_l + 1);
-        bzero(local_operation_name, local_operation_name_l + 1);
-        sprintf(local_operation_name, "#%s", uri);
-
         spans = get_spans();
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
-        if (SKYWALKING_G(header_version) == 1) {
-            sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, local_operation_name);
-        } else if (SKYWALKING_G(header_version) == 2) {
-            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, local_operation_name);
+        if (SKYWALKING_G(version) == 5) { // skywalking 5.x
+            sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
+        } else if (SKYWALKING_G(version) == 6) { // skywalking 6.x
+            // todo
+            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, NULL);
         }
-        efree(local_operation_name);
     }
 
 
@@ -293,7 +275,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 
 
         add_assoc_string(&temp, "operationName", operation_name);
-        add_assoc_string(&temp, "peer", peer + 1); // remove '#' char
+        add_assoc_string(&temp, "peer", peer);
         efree(peer);
         efree(operation_name);
 
@@ -748,7 +730,6 @@ static void request_init() {
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "pid", getppid());
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_id", application_id);
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "version", SKYWALKING_G(version));
-    add_assoc_string(&SKYWALKING_G(UpstreamSegment), "uuid", uuid);
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "segment");
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "globalTraceIds");
 
@@ -866,57 +847,6 @@ static zval *get_spans() {
 	return spans;
 }
 
-
-static void module_init() {
-
-    application_instance = -100000;
-    application_id = -100000;
-
-    int i = 0;
-
-    do {
-        application_id = serviceRegister(SKYWALKING_G(grpc), SKYWALKING_G(app_code));
-
-        if(application_id == -100000) {
-            sleep(1);
-        }
-
-        i++;
-    } while (application_id == -100000 && i <= SKYWALKING_G(register_retry));
-
-    if (application_id == -100000) {
-        sky_close = 1;
-        return;
-    }
-
-    char *ipv4s = _get_current_machine_ip();
-
-    char hostname[100] = {0};
-    if (gethostname(hostname, sizeof(hostname)) < 0) {
-        strcpy(hostname, "");
-    }
-
-    char *l_millisecond = get_millisecond();
-    long millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
-    efree(l_millisecond);
-
-    i = 0;
-    do {
-        application_instance = serviceInstanceRegister(SKYWALKING_G(grpc), application_id, millisecond, SKY_OS_NAME,
-                                                       hostname, getpid(),
-                                                       ipv4s);
-        if(application_instance == -100000) {
-            sleep(1);
-        }
-        i++;
-    } while (application_instance == -100000 && i <= SKYWALKING_G(register_retry));
-
-
-    if (application_instance == -100000) {
-        sky_close = 1;
-        return;
-    }
-}
 
 static int sky_register() {
     if (application_id == -100000 || application_instance == -100000) {
