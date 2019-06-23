@@ -364,7 +364,6 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 	skywalking_globals->enable = 0;
 	skywalking_globals->version = 5;
 	skywalking_globals->grpc = NULL;
-	skywalking_globals->header_version = 2;
 }
 
 
@@ -504,10 +503,7 @@ static void generate_context() {
 
     // parent
     zval *carrier = NULL;
-    ContextCarrier *contextCarrier = NULL;
-
-    //http info
-//    zval *http_method = NULL;
+    zval *sw;
 
     zend_bool jit_initialization = PG(auto_globals_jit);
 
@@ -518,93 +514,70 @@ static void generate_context() {
     }
     carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
 
-//    http_method = zend_hash_str_find(Z_ARRVAL_P(carrier), "REQUEST_METHOD", sizeof("REQUEST_METHOD") - 1);
-//    if (http_method != NULL) {
-//        add_assoc_string(&SKYWALKING_G(context), "method", Z_STRVAL_P(http_method));
-//    }
+    if(SKYWALKING_G(version) == 5) {
+        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
 
-    if (SKYWALKING_G(header_version) == 2) {
-        zval *sw6;
-        sw6 = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
-        if (sw6 != NULL && Z_TYPE_P(sw6) == IS_STRING && Z_STRLEN_P(sw6) > 10) {
-            add_assoc_string(&SKYWALKING_G(context), "sw6", Z_STRVAL_P(sw6));
-            contextCarrier = emalloc(sizeof(*contextCarrier));
+        if (sw != NULL && Z_TYPE_P(sw) == IS_STRING && Z_STRLEN_P(sw) > 10) {
+            add_assoc_string(&SKYWALKING_G(context), "sw3", Z_STRVAL_P(sw));
 
             zval temp;
             array_init(&temp);
-            php_explode(zend_string_init(ZEND_STRL("-"), 0), Z_STR_P(sw6), &temp, 10);
 
-            if (zend_array_count(Z_ARRVAL_P(&temp)) >= 7) {
-                zval_b64_decode(&contextCarrier->primaryDistributedTraceId, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 1)));
-                zval_b64_decode(&contextCarrier->traceSegmentId, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 2)));
-                ZVAL_COPY(&contextCarrier->spanId, zend_hash_index_find(Z_ARRVAL(temp), 3));
-                ZVAL_COPY(&contextCarrier->parentServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 4));
-                ZVAL_COPY(&contextCarrier->entryServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 5));
-                zval_b64_decode(&contextCarrier->peerHost, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 6)));
-                zval_b64_decode(&contextCarrier->entryEndpointName, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 7)));
-                zval_b64_decode(&contextCarrier->parentEndpointName, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 8)));
+            php_explode(zend_string_init(ZEND_STRL("|"), 0), Z_STR_P(sw), &temp, 10);
+
+            if(zend_array_count(Z_ARRVAL_P(&temp)) >= 8) {
+                zval *sw3_0 = zend_hash_index_find(Z_ARRVAL(temp), 0);
+                zval *sw3_1 = zend_hash_index_find(Z_ARRVAL(temp), 1);
+                zval *sw3_2 = zend_hash_index_find(Z_ARRVAL(temp), 2);
+                zval *sw3_3 = zend_hash_index_find(Z_ARRVAL(temp), 3);
+                zval *sw3_4 = zend_hash_index_find(Z_ARRVAL(temp), 4);
+                zval *sw3_5 = zend_hash_index_find(Z_ARRVAL(temp), 5);
+                zval *sw3_6 = zend_hash_index_find(Z_ARRVAL(temp), 6);
+                zval *sw3_7 = zend_hash_index_find(Z_ARRVAL(temp), 7);
+
+                zval child;
+                array_init(&child);
+                ZVAL_LONG(&child, 1);
+                zend_hash_str_update(Z_ARRVAL_P(&SKYWALKING_G(context)), "isChild", sizeof("isChild") - 1, &child);
+
+                add_assoc_string(&SKYWALKING_G(context), "parentTraceSegmentId", Z_STRVAL_P(sw3_0));
+                add_assoc_long(&SKYWALKING_G(context), "parentSpanId", zend_atol(Z_STRVAL_P(sw3_1), sizeof(Z_STRVAL_P(sw3_1)) - 1));
+                add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", zend_atol(Z_STRVAL_P(sw3_2), sizeof(Z_STRVAL_P(sw3_2)) - 1));
+                add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", zend_atol(Z_STRVAL_P(sw3_3), sizeof(Z_STRVAL_P(sw3_3)) - 1));
+                add_assoc_str(&SKYWALKING_G(context), "networkAddress", trim_sharp(sw3_4));
+                add_assoc_str(&SKYWALKING_G(context), "entryOperationName", trim_sharp(sw3_5));
+                add_assoc_str(&SKYWALKING_G(context), "parentOperationName", trim_sharp(sw3_6));
+                add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", Z_STRVAL_P(sw3_7));
             }
+        } else {
+            add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
+            add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", application_instance);
+            add_assoc_string(&SKYWALKING_G(context), "entryOperationName", get_page_request_uri());
+            add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", makeTraceId);
         }
-    } else if (SKYWALKING_G(header_version) == 1) {
-        zval *sw3;
-        sw3 = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
-
-        if (sw3 != NULL && Z_TYPE_P(sw3) == IS_STRING && Z_STRLEN_P(sw3) > 10) {
-            add_assoc_string(&SKYWALKING_G(context), "sw3", Z_STRVAL_P(sw3));
-            contextCarrier = emalloc(sizeof(*contextCarrier));
-
-            zval temp;
-            array_init(&temp);
-
-            php_explode(zend_string_init(ZEND_STRL("|"), 0), Z_STR_P(sw3), &temp, 10);
-
-            if (zend_array_count(Z_ARRVAL_P(&temp)) >= 8) {
-                ZVAL_COPY(&contextCarrier->traceSegmentId, zend_hash_index_find(Z_ARRVAL(temp), 0));
-                ZVAL_COPY(&contextCarrier->spanId, zend_hash_index_find(Z_ARRVAL(temp), 1));
-                ZVAL_COPY(&contextCarrier->parentServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 2));
-                ZVAL_COPY(&contextCarrier->entryServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 3));
-                ZVAL_COPY(&contextCarrier->peerHost, zend_hash_index_find(Z_ARRVAL(temp), 4));
-                ZVAL_COPY(&contextCarrier->entryEndpointName, zend_hash_index_find(Z_ARRVAL(temp), 5));
-                ZVAL_COPY(&contextCarrier->parentEndpointName, zend_hash_index_find(Z_ARRVAL(temp), 6));
-                ZVAL_COPY(&contextCarrier->primaryDistributedTraceId, zend_hash_index_find(Z_ARRVAL(temp), 7));
-            }
+    } else if (SKYWALKING_G(version) == 6) {
+        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
+        if (sw != NULL && Z_TYPE_P(sw) == IS_STRING && Z_STRLEN_P(sw) > 10) {
+            add_assoc_string(&SKYWALKING_G(context), "sw6", Z_STRVAL_P(sw));
+            // todo
+//            contextCarrier = emalloc(sizeof(*contextCarrier));
+//
+//            zval temp;
+//            array_init(&temp);
+//            php_explode(zend_string_init(ZEND_STRL("-"), 0), Z_STR_P(sw6), &temp, 10);
+//
+//            if (zend_array_count(Z_ARRVAL_P(&temp)) >= 7) {
+//                zval_b64_decode(&contextCarrier->primaryDistributedTraceId, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 1)));
+//                zval_b64_decode(&contextCarrier->traceSegmentId, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 2)));
+//                ZVAL_COPY(&contextCarrier->spanId, zend_hash_index_find(Z_ARRVAL(temp), 3));
+//                ZVAL_COPY(&contextCarrier->parentServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 4));
+//                ZVAL_COPY(&contextCarrier->entryServiceInstanceId, zend_hash_index_find(Z_ARRVAL(temp), 5));
+//                zval_b64_decode(&contextCarrier->peerHost, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 6)));
+//                zval_b64_decode(&contextCarrier->entryEndpointName, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 7)));
+//                zval_b64_decode(&contextCarrier->parentEndpointName, Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(temp), 8)));
+//            }
         }
     }
-
-    if (contextCarrier != NULL) {
-        zval child;
-        array_init(&child);
-        ZVAL_LONG(&child, 1);
-        zend_hash_str_update(Z_ARRVAL_P(&SKYWALKING_G(context)), "isChild", sizeof("isChild") - 1, &child);
-
-        add_assoc_string(&SKYWALKING_G(context), "parentTraceSegmentId", Z_STRVAL(contextCarrier->traceSegmentId));
-        add_assoc_long(&SKYWALKING_G(context), "parentSpanId",
-                       zend_atol(Z_STRVAL(contextCarrier->spanId), sizeof(Z_STRVAL(contextCarrier->spanId)) - 1));
-        add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance",
-                       zend_atol(Z_STRVAL(contextCarrier->parentServiceInstanceId), sizeof(Z_STRVAL(contextCarrier->parentServiceInstanceId)) - 1));
-        add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance",
-                       zend_atol(Z_STRVAL(contextCarrier->entryServiceInstanceId), sizeof(Z_STRVAL(contextCarrier->entryServiceInstanceId)) - 1));
-        add_assoc_str(&SKYWALKING_G(context), "networkAddress", trim_sharp(&contextCarrier->peerHost));
-        add_assoc_str(&SKYWALKING_G(context), "entryOperationName", trim_sharp(&contextCarrier->entryEndpointName));
-        add_assoc_str(&SKYWALKING_G(context), "parentOperationName", trim_sharp(&contextCarrier->parentEndpointName));
-        add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", Z_STRVAL(contextCarrier->primaryDistributedTraceId));
-
-        efree(contextCarrier);
-    } else {
-        add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
-        add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", application_instance);
-
-        char *uri = get_page_request_uri();
-        char *entry_operation_name = NULL;
-        size_t entry_operation_size = 0;
-        entry_operation_size = snprintf(NULL, 0, "#%s", uri);
-        entry_operation_name = emalloc(entry_operation_size + 1);
-        bzero(entry_operation_name, entry_operation_size + 1);
-        sprintf(entry_operation_name, "#%s", uri);
-        add_assoc_string(&SKYWALKING_G(context), "entryOperationName", entry_operation_name);
-
-        add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", makeTraceId);
-    };
 
     efree(makeTraceId);
 }
