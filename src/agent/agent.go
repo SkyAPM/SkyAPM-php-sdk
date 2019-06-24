@@ -117,7 +117,6 @@ func register(c net.Conn, j string) {
 			}
 			for {
 				instanceResp, instanceErr = instanceClient.RegisterInstance(instanceCtx, instanceReq)
-				fmt.Println("aaaa", instanceResp, instanceErr)
 				if instanceErr != nil {
 					break
 				}
