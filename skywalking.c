@@ -65,6 +65,7 @@ static int application_instance = -100000;
 static int application_id = -100000;
 static int sky_close = 0;
 static int sky_increment_id = 0;
+static int cli_debug = 1;
 const char *sock_path = "/tmp/sky_agent.sock";
 
 /* {{{ PHP_INI
@@ -419,23 +420,48 @@ static char *sky_json_encode(zval *parameter){
 
 static void write_log(char *text) {
     if (application_instance != -100000) {
-        char *log_path;
-        char logFilename[100];
-        char message[strlen(text) + 1];
-        log_path = SKY_G(log_path);
+        // to file
+//        char *log_path;
+//        char logFilename[100];
+//        char message[strlen(text) + 1];
+//        log_path = SKY_G(log_path);
+//
+//        zend_string *_log_path, *_log_path_lower;
+//        _log_path = zend_string_init(log_path, strlen(log_path), 0);
+//        _log_path_lower = php_string_tolower(_log_path);
+//
+//        bzero(logFilename, 100);
+//        sprintf(logFilename, "%s/skywalking.%d-%d.log", ZSTR_VAL(_log_path_lower), get_second(), getpid());
+//
+//        zend_string_release(_log_path);
+//        zend_string_release(_log_path_lower);
+//        bzero(message, strlen(text));
+//        sprintf(message, "%s\n", text);
+//        _php_error_log_ex(3, message, strlen(message), logFilename, NULL);
 
-        zend_string *_log_path, *_log_path_lower;
-        _log_path = zend_string_init(log_path, strlen(log_path), 0);
-        _log_path_lower = php_string_tolower(_log_path);
+        // to stream
 
-        bzero(logFilename, 100);
-        sprintf(logFilename, "%s/skywalking.%d-%d.log", ZSTR_VAL(_log_path_lower), get_second(), getpid());
+        struct sockaddr_un un;
+        un.sun_family = AF_UNIX;
+        strcpy(un.sun_path, sock_path);
+        int fd;
+        char message[strlen(text) + 2];
 
-        zend_string_release(_log_path);
-        zend_string_release(_log_path_lower);
-        bzero(message, strlen(text));
-        sprintf(message, "%s\n", text);
-        _php_error_log_ex(3, message, strlen(message), logFilename, NULL);
+        fd = socket(AF_UNIX, SOCK_STREAM, 0);
+        if (fd >= 0) {
+            struct timeval tv;
+            tv.tv_sec = 0;
+            tv.tv_usec = 100000;
+            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+            int conn = connect(fd, (struct sockaddr *) &un, sizeof(un));
+
+            if (conn >= 0) {
+                bzero(message, strlen(text) + 2);
+                sprintf(message, "1%s\n", text);
+                write(fd, message, strlen(message));
+            }
+            close(fd);
+        }
     }
 
 }
@@ -879,6 +905,10 @@ static int sky_register() {
 
         fd = socket(AF_UNIX, SOCK_STREAM, 0);
         if (fd >= 0) {
+            struct timeval tv;
+            tv.tv_sec = 0;
+            tv.tv_usec = 100000;
+            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
             int conn = connect(fd, (struct sockaddr *) &un, sizeof(un));
 
             if (conn >= 0) {
@@ -889,18 +919,16 @@ static int sky_register() {
                 bzero(return_message, sizeof(return_message));
                 read(fd, return_message, sizeof(return_message));
 
-                application_id = atoi(return_message);
-
-                if (application_id != -100000) {
-                    bzero(message, sizeof(message));
-                    sprintf(message, "1{\"application_id\":\"%d\",\"pid\":%d}\n", application_id, getppid());
-                    write(fd, message, strlen(message));
-
-                    bzero(return_message, sizeof(return_message));
-                    read(fd, return_message, sizeof(return_message));
-
-                    application_instance = atoi(return_message);
+                char *ids[10];
+                int i = 0;
+                char *p = strtok(return_message, ",");
+                while (p != NULL) {
+                    ids[i++] = p;
+                    p = strtok(NULL, "/");
                 }
+
+                application_id = atoi(ids[0]);
+                application_instance = atoi(ids[1]);
             }
 
             close(fd);
@@ -919,7 +947,7 @@ PHP_MINIT_FUNCTION (skywalking) {
 	/* If you have INI entries, uncomment these lines
 	*/
 	if (SKYWALKING_G(enable)) {
-        if (strcasecmp("cli", sapi_module.name) == 0) {
+        if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
             return SUCCESS;
         }
 
@@ -966,10 +994,15 @@ PHP_RINIT_FUNCTION(skywalking)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 	if (SKYWALKING_G(enable)) {
+        if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
+            return SUCCESS;
+        }
 	    sky_register();
-        if(application_id == -100000 || application_instance == -100000) {
+        if (application_id == -100000 || application_instance == -100000) {
             sky_close = 1;
             return SUCCESS;
+        } else {
+            sky_close = 0;
         }
 		sky_increment_id++;
 		if (sky_increment_id >= 9999) {
@@ -988,6 +1021,9 @@ PHP_RSHUTDOWN_FUNCTION(skywalking)
 {
 
 	if(SKYWALKING_G(enable)){
+        if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
+            return SUCCESS;
+        }
         if (sky_close == 1) {
             return SUCCESS;
         }
@@ -1013,7 +1049,7 @@ PHP_MINFO_FUNCTION(skywalking)
         php_info_print_table_header(2, "SkyWalking Support", "disabled");
     }
 
-    php_info_print_table_header(2, "SkyWalking Agent", "/tmp/agent_report.sock");
+    php_info_print_table_header(2, "SkyWalking Agent", "/tmp/sky_agent.sock");
 
 	php_info_print_table_end();
 
