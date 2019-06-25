@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"io"
 	"log"
@@ -18,9 +19,10 @@ import (
 )
 
 type PHPSkyBind struct {
-	version    int
-	appId      int32
-	instanceId int32
+	Version    int
+	AppId      int32
+	InstanceId int32
+	Uuid       string
 }
 
 type Register struct {
@@ -32,6 +34,21 @@ var registerMapLock = new(sync.Mutex)
 var registerMap sync.Map
 var grpcConn *grpc.ClientConn
 
+func ip4s() []string {
+	ipv4s, addErr := net.InterfaceAddrs()
+	var ips []string
+	if addErr == nil {
+		for _, i := range ipv4s {
+			if ipnet, ok := i.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+				if ipnet.IP.To4() != nil {
+					ips = append(ips, ipnet.IP.String())
+				}
+			}
+		}
+	}
+	return ips
+}
+
 func register(c net.Conn, j string) {
 	defer func() {
 		err := recover()
@@ -40,23 +57,22 @@ func register(c net.Conn, j string) {
 		}
 	}()
 
-	// todo php pid form json
 	info := Register{}
 	err := json.Unmarshal([]byte(j), &info)
 	if err != nil {
 		log.Println("register => ", err)
-		c.Write([]byte("-100000,-100000"))
+		c.Write([]byte(""))
 		return
 	}
 
 	pid := info.Pid
 	if value, ok := registerMap.Load(pid); ok {
 		bind := value.(PHPSkyBind)
-		log.Printf("register => pid %d appid %d insId %d\n", pid, bind.appId, bind.instanceId)
-		c.Write([]byte(strconv.FormatInt(int64(bind.appId), 10) + "," + strconv.FormatInt(int64(bind.instanceId), 10)))
+		log.Printf("register => pid %d appid %d insId %d\n", pid, bind.AppId, bind.InstanceId)
+		c.Write([]byte(strconv.FormatInt(int64(bind.AppId), 10) + "," + strconv.FormatInt(int64(bind.InstanceId), 10)))
 		return
 	} else {
-		c.Write([]byte("-100000,-100000"))
+		c.Write([]byte(""))
 	}
 
 	registerMapLock.Lock()
@@ -68,8 +84,12 @@ func register(c net.Conn, j string) {
 		c := pb5.NewApplicationRegisterServiceClient(grpcConn)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
+
 		var regErr error
 		var regResp *pb5.ApplicationMapping
+		var regAppStatus = false
+
+		// loop register
 		for {
 			regResp, regErr = c.ApplicationCodeRegister(ctx, &pb5.Application{
 				ApplicationCode: info.AppCode,
@@ -78,12 +98,13 @@ func register(c net.Conn, j string) {
 				break
 			}
 			if regResp.GetApplication() != nil {
+				regAppStatus = true
 				break
 			}
 			time.Sleep(time.Second)
 		}
 
-		if regErr == nil && regResp.GetApplication() != nil && regResp.GetApplication().GetKey() == info.AppCode {
+		if regAppStatus {
 			// start reg instance
 			instanceClient := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
 			instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -92,27 +113,19 @@ func register(c net.Conn, j string) {
 			var instanceErr error
 			var instanceResp *pb5.ApplicationInstanceMapping
 			hostName, _ := os.Hostname()
-			ipv4s, addErr := net.InterfaceAddrs()
-			var ips []string
-			if addErr == nil {
-				for _, i := range ipv4s {
-					if ipnet, ok := i.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-						if ipnet.IP.To4() != nil {
-							ips = append(ips, ipnet.IP.String())
-						}
-					}
-				}
-			}
+
+			agentUUID := uuid.New().String()
+			fmt.Println(agentUUID)
 
 			instanceReq := &pb5.ApplicationInstance{
-				ApplicationId: regResp.Application.GetValue(),
-				AgentUUID:     "",
+				ApplicationId: regResp.GetApplication().GetValue(),
+				AgentUUID:     agentUUID,
 				RegisterTime:  time.Now().UnixNano(),
 				Osinfo: &pb5.OSInfo{
 					OsName:    runtime.GOOS,
 					Hostname:  hostName,
 					ProcessNo: int32(pid),
-					Ipv4S:     ips,
+					Ipv4S:     ip4s(),
 				},
 			}
 			for {
@@ -120,18 +133,21 @@ func register(c net.Conn, j string) {
 				if instanceErr != nil {
 					break
 				}
-				if instanceResp.GetApplicationId() == regResp.GetApplication().GetValue() {
+				if instanceResp.GetApplicationInstanceId() != 0 {
 					break
 				}
 				time.Sleep(time.Second)
 			}
 
-			registerMap.Store(pid, PHPSkyBind{
-				5,
-				regResp.GetApplication().GetValue(),
-				instanceResp.GetApplicationInstanceId(),
-			})
-			log.Println("register => Start register end...")
+			if instanceResp != nil && instanceResp.GetApplicationInstanceId() != 0 {
+				registerMap.Store(pid, PHPSkyBind{
+					Version:    5,
+					AppId:      regResp.GetApplication().GetValue(),
+					InstanceId: instanceResp.GetApplicationInstanceId(),
+					Uuid:       agentUUID,
+				})
+				log.Println("register => Start register end...")
+			}
 		} else {
 			log.Println("register => ", err)
 			log.Println("register => Start register error...")
