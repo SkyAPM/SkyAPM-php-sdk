@@ -61,8 +61,8 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
 /* True global resources - no need for thread safety here */
 static int le_skywalking;
-static int application_instance = -100000;
-static int application_id = -100000;
+static int application_instance = 0;
+static int application_id = 0;
 static int sky_close = 0;
 static int sky_increment_id = 0;
 static int cli_debug = 1;
@@ -107,6 +107,11 @@ const zend_function_entry class_skywalking[] = {
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 {
+    if(sky_close == 1) {
+        orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+        return;
+    }
+
 	zval		*zid;
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zid) == FAILURE) {
 		return;
@@ -326,6 +331,11 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 }
 
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    if(sky_close == 1) {
+        orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+        return;
+    }
+
     zval *zid, *zvalue;
     zend_long options;
 
@@ -350,6 +360,12 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 }
 
 void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
+
+    if(sky_close == 1) {
+        orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+        return;
+    }
+
     zval *zid, *arr, *entry;
     zend_ulong option;
     zend_string *string_key;
@@ -371,6 +387,12 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 }
 
 void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
+
+    if(sky_close == 1) {
+        orig_curl_close(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+        return;
+    }
+
     zval *zid;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zid) == FAILURE) {
@@ -419,7 +441,7 @@ static char *sky_json_encode(zval *parameter){
 
 
 static void write_log(char *text) {
-    if (application_instance != -100000) {
+    if (application_instance != 0) {
         // to file
 //        char *log_path;
 //        char logFilename[100];
@@ -895,7 +917,7 @@ static zval *get_spans() {
 
 
 static int sky_register() {
-    if (application_id == -100000 || application_instance == -100000) {
+    if (application_instance == 0) {
         struct sockaddr_un un;
         un.sun_family = AF_UNIX;
         strcpy(un.sun_path, sock_path);
@@ -908,27 +930,30 @@ static int sky_register() {
             struct timeval tv;
             tv.tv_sec = 0;
             tv.tv_usec = 100000;
-            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char *) &tv, sizeof tv);
             int conn = connect(fd, (struct sockaddr *) &un, sizeof(un));
 
             if (conn >= 0) {
                 bzero(message, sizeof(message));
-                sprintf(message, "0{\"app_code\":\"%s\",\"pid\":%d}\n", SKYWALKING_G(app_code), getppid());
+                sprintf(message, "0{\"app_code\":\"%s\",\"pid\":%d,\"version\":%d}\n", SKYWALKING_G(app_code),
+                        getppid(), SKYWALKING_G(version));
                 write(fd, message, strlen(message));
 
                 bzero(return_message, sizeof(return_message));
                 read(fd, return_message, sizeof(return_message));
 
-                char *ids[10];
+                char *ids[10] = {0};
                 int i = 0;
                 char *p = strtok(return_message, ",");
                 while (p != NULL) {
                     ids[i++] = p;
-                    p = strtok(NULL, "/");
+                    p = strtok(NULL, ",");
                 }
 
-                application_id = atoi(ids[0]);
-                application_instance = atoi(ids[1]);
+                if (ids[0] != NULL && ids[1] != NULL) {
+                    application_id = atoi(ids[0]);
+                    application_instance = atoi(ids[1]);
+                }
             }
 
             close(fd);
@@ -993,24 +1018,24 @@ PHP_RINIT_FUNCTION(skywalking)
 #if defined(COMPILE_DL_SKYWALKING) && defined(ZTS)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
-	if (SKYWALKING_G(enable)) {
+    if (SKYWALKING_G(enable)) {
         if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
             return SUCCESS;
         }
-	    sky_register();
-        if (application_id == -100000 || application_instance == -100000) {
+        sky_register();
+        if (application_instance == 0) {
             sky_close = 1;
             return SUCCESS;
         } else {
             sky_close = 0;
         }
-		sky_increment_id++;
-		if (sky_increment_id >= 9999) {
-			sky_increment_id = 0;
-		}
+        sky_increment_id++;
+        if (sky_increment_id >= 9999) {
+            sky_increment_id = 0;
+        }
         request_init();
-	}
-	return SUCCESS;
+    }
+    return SUCCESS;
 }
 /* }}} */
 
