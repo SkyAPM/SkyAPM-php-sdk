@@ -115,7 +115,6 @@ func register(c net.Conn, j string) {
 			hostName, _ := os.Hostname()
 
 			agentUUID := uuid.New().String()
-			fmt.Println(agentUUID)
 
 			instanceReq := &pb5.ApplicationInstance{
 				ApplicationId: regResp.GetApplication().GetValue(),
