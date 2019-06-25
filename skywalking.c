@@ -65,7 +65,7 @@ static int application_instance = 0;
 static int application_id = 0;
 static int sky_close = 0;
 static int sky_increment_id = 0;
-static int cli_debug = 1;
+static int cli_debug = 0;
 const char *sock_path = "/tmp/sky_agent.sock";
 
 /* {{{ PHP_INI
