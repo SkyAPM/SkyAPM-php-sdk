@@ -34,6 +34,7 @@
 #include "php_skywalking.h"
 #include "ext/standard/url.h" /* for php_url */
 #include "ext/standard/php_var.h"
+#include "ext/pdo/php_pdo_driver.h"
 
 #include "ext/standard/basic_functions.h"
 #include "ext/standard/php_math.h"
@@ -68,6 +69,11 @@ static int sky_increment_id = 0;
 static int cli_debug = 0;
 const char *sock_path = "/tmp/sky_agent.sock";
 
+static void (*ori_execute_ex)(zend_execute_data *execute_data);
+static void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value);
+ZEND_API void sky_execute_ex(zend_execute_data *execute_data);
+ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value);
+
 /* {{{ PHP_INI
  */
 /* Remove comments and fill if you need to have entries in php.ini*/
@@ -97,6 +103,127 @@ const zend_function_entry class_skywalking[] = {
 };
 
 
+ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
+    ori_execute_ex(execute_data);
+}
+
+ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
+
+    if (sky_close == 1) {
+        if (ori_execute_internal) {
+            ori_execute_internal(execute_data, return_value);
+        } else {
+            execute_internal(execute_data, return_value);
+        }
+        return;
+    }
+
+    zend_function *zf = execute_data->func;
+    const char *class_name = (zf->common.scope != NULL && zf->common.scope->name != NULL) ? ZSTR_VAL(
+            zf->common.scope->name) : NULL;
+    const char *function_name = zf->common.function_name == NULL ? NULL : ZSTR_VAL(zf->common.function_name);
+
+    char *operationName = NULL;
+    char *component = NULL;
+    if (class_name != NULL) {
+        if (strcmp(class_name, "PDO") == 0) {
+            if (strcmp(function_name, "exec") == 0
+                || strcmp(function_name, "query") == 0
+                || strcmp(function_name, "prepare") == 0
+                || strcmp(function_name, "commit") == 0) {
+                component = (char *)emalloc(strlen("PDO") + 1);
+                strcpy(component, "PDO");
+                operationName = (char*)emalloc(strlen(class_name) + strlen(function_name) + 3);
+                strcpy(operationName, class_name);
+                strcat(operationName, "->");
+                strcat(operationName, function_name);
+            }
+        }
+    } else if (function_name != NULL) {
+
+    }
+
+    if (operationName != NULL) {
+
+        zval tags;
+        array_init(&tags);
+        // params
+        uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+        if(arg_count) {
+            zval *p = ZEND_CALL_ARG(execute_data, 1);
+            //db.statement
+            switch (Z_TYPE_P(p)) {
+                case IS_STRING:
+                    add_assoc_string(&tags, "db.statement", Z_STRVAL_P(p));
+
+            }
+        }
+
+        if(strcmp(class_name, "PDO") == 0) {
+            char db_type[64] = {0};
+            pdo_dbh_t *dbh = Z_PDO_DBH_P(&(execute_data->This));
+            if (dbh != NULL) {
+                if (dbh->driver != NULL && dbh->driver->driver_name != NULL) {
+                    memcpy(db_type, (char *)dbh->driver->driver_name, dbh->driver->driver_name_len);
+                    add_assoc_string(&tags, "db.type", db_type);
+                }
+
+                if (dbh->data_source != NULL && db_type[0] != '\0') {
+                    add_assoc_string(&tags, "db.data_source", dbh->data_source);
+                }
+            }
+        }
+
+        zval temp;
+        zval *spans = NULL;
+        zval *span_id = NULL;
+        zval *last_span = NULL;
+        char *l_millisecond;
+        long millisecond;
+        array_init(&temp);
+        spans = get_spans();
+        last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
+        span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
+
+        add_assoc_long(&temp, "spanId", Z_LVAL_P(span_id) + 1);
+        add_assoc_long(&temp, "parentSpanId", 0);
+        l_millisecond = get_millisecond();
+        millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
+        efree(l_millisecond);
+        add_assoc_long(&temp, "startTime", millisecond);
+        add_assoc_long(&temp, "spanType", 1);
+        add_assoc_long(&temp, "spanLayer", 1);
+//        add_assoc_string(&temp, "component", component);
+        add_assoc_long(&temp, "componentId", COMPONENT_MYSQL_JDBC_DRIVER);
+        add_assoc_string(&temp, "operationName", operationName);
+        add_assoc_string(&temp, "peer", "");
+        efree(component);
+        efree(operationName);
+
+        if (ori_execute_internal) {
+            ori_execute_internal(execute_data, return_value);
+        } else {
+            execute_internal(execute_data, return_value);
+        }
+
+        l_millisecond = get_millisecond();
+        millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
+        efree(l_millisecond);
+
+
+        add_assoc_zval(&temp, "tags", &tags);
+        add_assoc_long(&temp, "endTime", millisecond);
+        add_assoc_long(&temp, "isError", 0);
+
+        zend_hash_next_index_insert(Z_ARRVAL_P(spans), &temp);
+    } else {
+        if (ori_execute_internal) {
+            ori_execute_internal(execute_data, return_value);
+        } else {
+            execute_internal(execute_data, return_value);
+        }
+    }
+}
 
 
 /* The previous line is meant for vim and emacs, so it can correctly fold and
@@ -975,6 +1102,12 @@ PHP_MINIT_FUNCTION (skywalking) {
         if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
             return SUCCESS;
         }
+
+//        ori_execute_ex = zend_execute_ex;
+//        zend_execute_ex = sky_execute_ex;
+//
+        ori_execute_internal = zend_execute_internal;
+        zend_execute_internal = sky_execute_internal;
 
 		// bind curl
 		zend_function *old_function;
