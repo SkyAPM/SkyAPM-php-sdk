@@ -2,6 +2,7 @@ package main
 
 import (
 	"agent/agent/pb5"
+	"agent/agent/service"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -151,12 +152,7 @@ func register(c net.Conn, j string) {
 			log.Println("register => ", err)
 			log.Println("register => Start register error...")
 		}
-
 	}
-}
-
-func sendTrace(json string) {
-	fmt.Println(json)
 }
 
 func handleConn(c net.Conn) {
@@ -191,7 +187,7 @@ func handleConn(c net.Conn) {
 					go register(c, body[1:])
 				} else if body[:1] == "1" {
 					log.Println("Service send trace protocol")
-					go sendTrace(body[1:])
+					go service.SendTrace(grpcConn, body[1:])
 				}
 				json = json[endIndex+1:]
 			} else {
@@ -201,9 +197,41 @@ func handleConn(c net.Conn) {
 	}
 }
 
+func heartbeat() {
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Println("System error[register]:", err)
+			go heartbeat()
+		}
+	}()
+
+	for {
+		registerMap.Range(func(key, value interface{}) bool {
+			log.Println("heartbeat => ...")
+			bind := value.(PHPSkyBind)
+			c := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			defer cancel()
+
+			_, err := c.Heartbeat(ctx, &pb5.ApplicationInstanceHeartbeat{
+				ApplicationInstanceId: bind.InstanceId,
+				HeartbeatTime:         time.Now().UnixNano(),
+			})
+			if err != nil {
+				log.Println("heartbeat =>", err)
+			}
+
+			return true
+		})
+		time.Sleep(time.Second * 40)
+	}
+}
+
 func main() {
 
 	// connection to sky server
+	log.Println("hello")
 	var err error
 	grpcConn, err = grpc.Dial("172.16.68.37:11800", grpc.WithInsecure())
 
@@ -222,6 +250,8 @@ func main() {
 		return
 	}
 	defer l.Close()
+
+	go heartbeat()
 
 	for {
 		c, err := l.Accept()
