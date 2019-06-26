@@ -1,7 +1,4 @@
 When building directly from Git sources or after custom modifications you might also need:
-* pkg-config
-* grpc latest version
-* protoc latest version
 * php 7+
 * SkyWalking Collector
 
@@ -16,10 +13,8 @@ git clone https://github.com/SkyAPM/SkyAPM-php-sdk.git
 cd SkyAPM-php-sdk
 phpize && ./configure && make && make install
 
-// install report_client
-cd src/report
-make
-cp report_client /usr/bin
+// download report_client_linux
+wget https://github.com/..... && cp report_client_linux report_client /usr/bin
 ```
 
 # How to use
@@ -35,17 +30,11 @@ skywalking.enable = 1
 skywalking.version = 6
 ; Set app code e.g. MyProjectName
 skywalking.app_code = MyProjectName
-; Set skyWalking collector grpc address
-skywalking.grpc = 127.0.0.1:11800
-; Set log path
-skywalking.log_path = /tmp
-; Set http header version
-skywalking.header_version = 2
 ```
 
 Run `report_client` to send PHP generated log information to `SkyWalking collector`
 ```shell
-// report_client [collector grpc address] [log path]
+// report_client [collector grpc address]
 // e.g.
-report_client 120.0.0.1:11800 /tmp
+report_client 127.0.0.1:11800
 ```
