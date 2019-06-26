@@ -230,10 +230,12 @@ func heartbeat() {
 
 func main() {
 
+	args := os.Args
+
 	// connection to sky server
 	log.Println("hello")
 	var err error
-	grpcConn, err = grpc.Dial("172.16.68.37:11800", grpc.WithInsecure())
+	grpcConn, err = grpc.Dial(args[1], grpc.WithInsecure())
 
 	if err != nil {
 		log.Fatal(err)
