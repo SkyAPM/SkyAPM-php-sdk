@@ -131,45 +131,70 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 || strcmp(function_name, "query") == 0
                 || strcmp(function_name, "prepare") == 0
                 || strcmp(function_name, "commit") == 0) {
-                component = (char *)emalloc(strlen("PDO") + 1);
+                component = (char *) emalloc(strlen("PDO") + 1);
                 strcpy(component, "PDO");
-                operationName = (char*)emalloc(strlen(class_name) + strlen(function_name) + 3);
+                operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
+                strcpy(operationName, class_name);
+                strcat(operationName, "->");
+                strcat(operationName, function_name);
+            }
+        } else if (strcmp(class_name, "PDOStatement") == 0) {
+            if (strcmp(function_name, "execute") == 0) {
+                component = (char *) emalloc(strlen("PDOStatement") + 1);
+                strcpy(component, "PDOStatement");
+                operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
                 strcpy(operationName, class_name);
                 strcat(operationName, "->");
                 strcat(operationName, function_name);
             }
         }
     } else if (function_name != NULL) {
-
     }
 
     if (operationName != NULL) {
 
         zval tags;
         array_init(&tags);
-        // params
-        uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
-        if(arg_count) {
-            zval *p = ZEND_CALL_ARG(execute_data, 1);
-            //db.statement
-            switch (Z_TYPE_P(p)) {
-                case IS_STRING:
-                    add_assoc_string(&tags, "db.statement", Z_STRVAL_P(p));
 
+        if (strcmp(class_name, "PDO") == 0) {
+
+            // params
+            uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+            if (arg_count) {
+                zval *p = ZEND_CALL_ARG(execute_data, 1);
+                //db.statement
+                switch (Z_TYPE_P(p)) {
+                    case IS_STRING:
+                        add_assoc_string(&tags, "db.statement", Z_STRVAL_P(p));
+
+                }
             }
-        }
 
-        if(strcmp(class_name, "PDO") == 0) {
             char db_type[64] = {0};
             pdo_dbh_t *dbh = Z_PDO_DBH_P(&(execute_data->This));
             if (dbh != NULL) {
                 if (dbh->driver != NULL && dbh->driver->driver_name != NULL) {
-                    memcpy(db_type, (char *)dbh->driver->driver_name, dbh->driver->driver_name_len);
+                    memcpy(db_type, (char *) dbh->driver->driver_name, dbh->driver->driver_name_len);
                     add_assoc_string(&tags, "db.type", db_type);
                 }
 
                 if (dbh->data_source != NULL && db_type[0] != '\0') {
-                    add_assoc_string(&tags, "db.data_source", dbh->data_source);
+                    add_assoc_string(&tags, "db.data_source", (char *) dbh->data_source);
+                }
+            }
+        } else if (strcmp(class_name, "PDOStatement") == 0) {
+            char db_type[64] = {0};
+            pdo_stmt_t *stmt = (pdo_stmt_t *) Z_PDO_STMT_P(&(execute_data->This));
+            if (stmt != NULL) {
+                add_assoc_string(&tags, "db.statement", stmt->query_string);
+
+                if (stmt->dbh != NULL && stmt->dbh->driver->driver_name != NULL) {
+                    memcpy(db_type, (char *) stmt->dbh->driver->driver_name, stmt->dbh->driver->driver_name_len);
+                    add_assoc_string(&tags, "db.type", db_type);
+                }
+
+                if (db_type[0] != '\0' && stmt->dbh != NULL && stmt->dbh->data_source != NULL) {
+                    add_assoc_string(&tags, "db.data_source", (char *) stmt->dbh->data_source);
                 }
             }
         }
