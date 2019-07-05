@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"io"
-	"log"
 	"net"
 	"os"
 	"runtime"
@@ -54,14 +53,14 @@ func register(c net.Conn, j string) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Println("System error[register]:", err)
+			fmt.Println("System error[register]:", err)
 		}
 	}()
 
 	info := Register{}
 	err := json.Unmarshal([]byte(j), &info)
 	if err != nil {
-		log.Println("register => ", err)
+		fmt.Println("register => ", err)
 		c.Write([]byte(""))
 		return
 	}
@@ -69,7 +68,7 @@ func register(c net.Conn, j string) {
 	pid := info.Pid
 	if value, ok := registerMap.Load(pid); ok {
 		bind := value.(PHPSkyBind)
-		log.Printf("register => pid %d appid %d insId %d\n", pid, bind.AppId, bind.InstanceId)
+		fmt.Printf("register => pid %d appid %d insId %d\n", pid, bind.AppId, bind.InstanceId)
 		c.Write([]byte(strconv.FormatInt(int64(bind.AppId), 10) + "," + strconv.FormatInt(int64(bind.InstanceId), 10)))
 		return
 	} else {
@@ -81,7 +80,7 @@ func register(c net.Conn, j string) {
 
 	// if map not found pid.. start register
 	if _, ok := registerMap.Load(pid); !ok {
-		log.Println("register => Start register...")
+		fmt.Println("register => Start register...")
 		c := pb5.NewApplicationRegisterServiceClient(grpcConn)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
@@ -120,7 +119,7 @@ func register(c net.Conn, j string) {
 			instanceReq := &pb5.ApplicationInstance{
 				ApplicationId: regResp.GetApplication().GetValue(),
 				AgentUUID:     agentUUID,
-				RegisterTime:  time.Now().UnixNano(),
+				RegisterTime:  time.Now().UnixNano() / 1000000,
 				Osinfo: &pb5.OSInfo{
 					OsName:    runtime.GOOS,
 					Hostname:  hostName,
@@ -146,11 +145,11 @@ func register(c net.Conn, j string) {
 					InstanceId: instanceResp.GetApplicationInstanceId(),
 					Uuid:       agentUUID,
 				})
-				log.Println("register => Start register end...")
+				fmt.Println("register => Start register end...")
 			}
 		} else {
-			log.Println("register => ", err)
-			log.Println("register => Start register error...")
+			fmt.Println("register => ", err)
+			fmt.Println("register => Start register error...")
 		}
 	}
 }
@@ -159,12 +158,14 @@ func handleConn(c net.Conn) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Println("System error[register]:", err)
+			fmt.Println("System error[register]:", err)
 		}
 	}()
 
-	defer c.Close()
-	defer log.Println("Close conn..")
+	defer func() {
+		fmt.Println("Close conn..")
+		c.Close()
+	}()
 
 	buf := make([]byte, 4096)
 	var json string
@@ -173,7 +174,7 @@ func handleConn(c net.Conn) {
 		n, err := c.Read(buf)
 		if err != nil {
 			if err != io.EOF {
-				log.Println("conn read error:", err)
+				fmt.Println("conn read error:", err)
 			}
 			return
 		}
@@ -183,10 +184,10 @@ func handleConn(c net.Conn) {
 			if endIndex >= 0 {
 				body := json[0:endIndex]
 				if body[:1] == "0" {
-					log.Println("Service register protocol")
+					fmt.Println("Service register protocol")
 					go register(c, body[1:])
 				} else if body[:1] == "1" {
-					log.Println("Service send trace protocol")
+					fmt.Println("Service send trace protocol")
 					go service.SendTrace(grpcConn, body[1:])
 				}
 				json = json[endIndex+1:]
@@ -201,14 +202,14 @@ func heartbeat() {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Println("System error[register]:", err)
+			fmt.Println("System error[heartbeat]:", err)
 			go heartbeat()
 		}
 	}()
 
 	for {
 		registerMap.Range(func(key, value interface{}) bool {
-			log.Println("heartbeat => ...")
+			fmt.Println("heartbeat => ...")
 			bind := value.(PHPSkyBind)
 			c := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -216,10 +217,12 @@ func heartbeat() {
 
 			_, err := c.Heartbeat(ctx, &pb5.ApplicationInstanceHeartbeat{
 				ApplicationInstanceId: bind.InstanceId,
-				HeartbeatTime:         time.Now().UnixNano(),
+				HeartbeatTime:         time.Now().UnixNano() / 1000000,
 			})
 			if err != nil {
-				log.Println("heartbeat =>", err)
+				fmt.Println("heartbeat =>", err)
+			} else {
+				fmt.Printf("heartbeat => %d %d\n", bind.AppId, bind.InstanceId)
 			}
 
 			return true
@@ -233,17 +236,17 @@ func main() {
 	args := os.Args
 
 	// connection to sky server
-	log.Println("hello")
+	fmt.Println("hello skywalking")
 	var err error
 	grpcConn, err = grpc.Dial(args[1], grpc.WithInsecure())
 
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	defer grpcConn.Close()
 
 	if err := os.RemoveAll("/tmp/sky_agent.sock"); err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	l, err := net.Listen("unix", "/tmp/sky_agent.sock")
