@@ -2,6 +2,7 @@ package main
 
 import (
 	"agent/agent/pb5"
+	pb6Reg "agent/agent/pb6/register"
 	"agent/agent/service"
 	"context"
 	"encoding/json"
@@ -28,6 +29,7 @@ type PHPSkyBind struct {
 type Register struct {
 	AppCode string `json:"app_code"`
 	Pid     int    `json:"pid"`
+	Version int    `json:"version"`
 }
 
 var registerMapLock = new(sync.Mutex)
@@ -81,27 +83,58 @@ func register(c net.Conn, j string) {
 	// if map not found pid.. start register
 	if _, ok := registerMap.Load(pid); !ok {
 		fmt.Println("register => Start register...")
-		c := pb5.NewApplicationRegisterServiceClient(grpcConn)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-
-		var regErr error
-		var regResp *pb5.ApplicationMapping
 		var regAppStatus = false
+		var appId int32 = 0
+		var regErr error
 
-		// loop register
-		for {
-			regResp, regErr = c.ApplicationCodeRegister(ctx, &pb5.Application{
-				ApplicationCode: info.AppCode,
+		if info.Version == 5 {
+			c := pb5.NewApplicationRegisterServiceClient(grpcConn)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			defer cancel()
+
+			var regResp *pb5.ApplicationMapping
+
+			// loop register
+			for {
+				regResp, regErr = c.ApplicationCodeRegister(ctx, &pb5.Application{
+					ApplicationCode: info.AppCode,
+				})
+				if regErr != nil {
+					break
+				}
+				if regResp.GetApplication() != nil {
+					regAppStatus = true
+					appId = regResp.GetApplication().GetValue()
+					break
+				}
+				time.Sleep(time.Second)
+			}
+		} else if info.Version == 6 {
+			c := pb6Reg.NewRegisterClient(grpcConn)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			defer cancel()
+
+			var regResp *pb6Reg.ServiceRegisterMapping
+			var services []*pb6Reg.Service
+			services = append(services, &pb6Reg.Service{
+				ServiceName: info.AppCode,
 			})
-			if regErr != nil {
-				break
+			// loop register
+			for {
+				regResp, regErr = c.DoServiceRegister(ctx, &pb6Reg.Services{
+					Services: services,
+				})
+				if regErr != nil {
+					break
+				}
+				fmt.Println(regResp.GetServices())
+				os.Exit(0)
+				if regResp.GetServices() != nil {
+					regAppStatus = true
+					break
+				}
+				time.Sleep(time.Second)
 			}
-			if regResp.GetApplication() != nil {
-				regAppStatus = true
-				break
-			}
-			time.Sleep(time.Second)
 		}
 
 		if regAppStatus {
@@ -117,7 +150,7 @@ func register(c net.Conn, j string) {
 			agentUUID := uuid.New().String()
 
 			instanceReq := &pb5.ApplicationInstance{
-				ApplicationId: regResp.GetApplication().GetValue(),
+				ApplicationId: appId,
 				AgentUUID:     agentUUID,
 				RegisterTime:  time.Now().UnixNano() / 1000000,
 				Osinfo: &pb5.OSInfo{
@@ -141,7 +174,7 @@ func register(c net.Conn, j string) {
 			if instanceResp != nil && instanceResp.GetApplicationInstanceId() != 0 {
 				registerMap.Store(pid, PHPSkyBind{
 					Version:    5,
-					AppId:      regResp.GetApplication().GetValue(),
+					AppId:      appId,
 					InstanceId: instanceResp.GetApplicationInstanceId(),
 					Uuid:       agentUUID,
 				})

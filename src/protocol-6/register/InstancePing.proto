@@ -18,7 +18,7 @@
 
 syntax = "proto3";
 
-option go_package = "pb6/register";
+option go_package = "agent/agent/pb6/register";
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.register.v2";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
