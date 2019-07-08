@@ -323,20 +323,38 @@ func heartbeat() {
 		registerMap.Range(func(key, value interface{}) bool {
 			fmt.Println("heartbeat => ...")
 			bind := value.(PHPSkyBind)
-			c := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-			defer cancel()
 
-			_, err := c.Heartbeat(ctx, &pb5.ApplicationInstanceHeartbeat{
-				ApplicationInstanceId: bind.InstanceId,
-				HeartbeatTime:         time.Now().UnixNano() / 1000000,
-			})
-			if err != nil {
-				fmt.Println("heartbeat =>", err)
-			} else {
-				fmt.Printf("heartbeat => %d %d\n", bind.AppId, bind.InstanceId)
+			if bind.Version == 5 {
+
+				c := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer cancel()
+
+				_, err := c.Heartbeat(ctx, &pb5.ApplicationInstanceHeartbeat{
+					ApplicationInstanceId: bind.InstanceId,
+					HeartbeatTime:         time.Now().UnixNano() / 1000000,
+				})
+				if err != nil {
+					fmt.Println("heartbeat =>", err)
+				} else {
+					fmt.Printf("heartbeat => %d %d\n", bind.AppId, bind.InstanceId)
+				}
+			} else if bind.Version == 6 {
+				c := pb6Reg.NewServiceInstancePingClient(grpcConn)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer cancel()
+
+				_, err := c.DoPing(ctx, &pb6Reg.ServiceInstancePingPkg{
+					ServiceInstanceId:   bind.InstanceId,
+					Time:                time.Now().UnixNano() / 1000000,
+					ServiceInstanceUUID: bind.Uuid,
+				})
+				if err != nil {
+					fmt.Println("heartbeat =>", err)
+				} else {
+					fmt.Printf("heartbeat => %d %d\n", bind.AppId, bind.InstanceId)
+				}
 			}
-
 			return true
 		})
 		time.Sleep(time.Second * 40)
