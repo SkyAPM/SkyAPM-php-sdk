@@ -2,6 +2,7 @@ package main
 
 import (
 	"agent/agent/pb5"
+	"agent/agent/pb6/common"
 	pb6Reg "agent/agent/pb6/register"
 	"agent/agent/service"
 	"context"
@@ -85,7 +86,9 @@ func register(c net.Conn, j string) {
 		fmt.Println("register => Start register...")
 		var regAppStatus = false
 		var appId int32 = 0
+		var appInsId int32 = 0
 		var regErr error
+		agentUUID := uuid.New().String()
 
 		if info.Version == 5 {
 			c := pb5.NewApplicationRegisterServiceClient(grpcConn)
@@ -127,10 +130,18 @@ func register(c net.Conn, j string) {
 				if regErr != nil {
 					break
 				}
-				fmt.Println(regResp.GetServices())
-				os.Exit(0)
+
 				if regResp.GetServices() != nil {
-					regAppStatus = true
+					for _, v := range regResp.GetServices() {
+						if v.GetKey() == info.AppCode {
+							regAppStatus = true
+							appId = v.GetValue()
+							break
+						}
+					}
+				}
+
+				if regAppStatus {
 					break
 				}
 				time.Sleep(time.Second)
@@ -139,43 +150,111 @@ func register(c net.Conn, j string) {
 
 		if regAppStatus {
 			// start reg instance
-			instanceClient := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
-			instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
-			defer instanceCancel()
+			if info.Version == 5 {
+				instanceClient := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
+				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer instanceCancel()
 
-			var instanceErr error
-			var instanceResp *pb5.ApplicationInstanceMapping
-			hostName, _ := os.Hostname()
+				var instanceErr error
+				var instanceResp *pb5.ApplicationInstanceMapping
+				hostName, _ := os.Hostname()
 
-			agentUUID := uuid.New().String()
-
-			instanceReq := &pb5.ApplicationInstance{
-				ApplicationId: appId,
-				AgentUUID:     agentUUID,
-				RegisterTime:  time.Now().UnixNano() / 1000000,
-				Osinfo: &pb5.OSInfo{
-					OsName:    runtime.GOOS,
-					Hostname:  hostName,
-					ProcessNo: int32(pid),
-					Ipv4S:     ip4s(),
-				},
-			}
-			for {
-				instanceResp, instanceErr = instanceClient.RegisterInstance(instanceCtx, instanceReq)
-				if instanceErr != nil {
-					break
+				instanceReq := &pb5.ApplicationInstance{
+					ApplicationId: appId,
+					AgentUUID:     agentUUID,
+					RegisterTime:  time.Now().UnixNano() / 1000000,
+					Osinfo: &pb5.OSInfo{
+						OsName:    runtime.GOOS,
+						Hostname:  hostName,
+						ProcessNo: int32(pid),
+						Ipv4S:     ip4s(),
+					},
 				}
-				if instanceResp.GetApplicationInstanceId() != 0 {
-					break
+				for {
+					instanceResp, instanceErr = instanceClient.RegisterInstance(instanceCtx, instanceReq)
+					if instanceErr != nil {
+						break
+					}
+					if instanceResp.GetApplicationInstanceId() != 0 {
+						appInsId = instanceResp.GetApplicationInstanceId()
+						break
+					}
+					time.Sleep(time.Second)
 				}
-				time.Sleep(time.Second)
+			} else if info.Version == 6 {
+				instanceClient := pb6Reg.NewRegisterClient(grpcConn)
+				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer instanceCancel()
+
+				var instanceErr error
+				var instanceResp *pb6Reg.ServiceInstanceRegisterMapping
+				hostName, _ := os.Hostname()
+
+				var instances []*pb6Reg.ServiceInstance
+				var properties []*common.KeyStringValuePair
+
+				instances = append(instances, &pb6Reg.ServiceInstance{
+					ServiceId:    appId,
+					InstanceUUID: agentUUID,
+					Time:         time.Now().UnixNano() / 1000000,
+					Properties:   properties,
+				})
+
+				properties = append(properties, &common.KeyStringValuePair{
+					Key:   "os_name",
+					Value: runtime.GOOS,
+				})
+
+				properties = append(properties, &common.KeyStringValuePair{
+					Key:   "host_name",
+					Value: hostName,
+				})
+
+				properties = append(properties, &common.KeyStringValuePair{
+					Key:   "process_no",
+					Value: string(pid),
+				})
+
+				properties = append(properties, &common.KeyStringValuePair{
+					Key:   "language",
+					Value: "php",
+				})
+
+				for _, ip := range ip4s() {
+					properties = append(properties, &common.KeyStringValuePair{
+						Key:   "ipV4s",
+						Value: ip,
+					})
+				}
+
+				instanceReq := &pb6Reg.ServiceInstances{
+					Instances: instances,
+				}
+				for {
+					instanceResp, instanceErr = instanceClient.DoServiceInstanceRegister(instanceCtx, instanceReq)
+					if instanceErr != nil {
+						break
+					}
+					if instanceResp.GetServiceInstances() != nil {
+						for _, v := range instanceResp.GetServiceInstances() {
+							if v.GetKey() == agentUUID {
+								appInsId = v.GetValue()
+								break
+							}
+						}
+					}
+					if appInsId != 0 {
+						break
+					}
+					time.Sleep(time.Second)
+				}
 			}
 
-			if instanceResp != nil && instanceResp.GetApplicationInstanceId() != 0 {
+			if appInsId != 0 {
 				registerMap.Store(pid, PHPSkyBind{
-					Version:    5,
+					Version:    info.Version,
 					AppId:      appId,
-					InstanceId: instanceResp.GetApplicationInstanceId(),
+					InstanceId: appInsId,
 					Uuid:       agentUUID,
 				})
 				fmt.Println("register => Start register end...")
