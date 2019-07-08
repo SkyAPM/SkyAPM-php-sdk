@@ -319,7 +319,6 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 
         peer = (char *) emalloc(strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
         bzero(peer, strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
-        sprintf(peer, "%s://%s:%d", url_info->scheme, url_info->host, peer_port);
 
         if (url_info->query) {
             if (url_info->path == NULL) {
@@ -371,10 +370,11 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
         if (SKYWALKING_G(version) == 5) { // skywalking 5.x
+            sprintf(peer, "%s://%s:%d", url_info->scheme, url_info->host, peer_port);
             sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
         } else if (SKYWALKING_G(version) == 6) { // skywalking 6.x
-            // todo
-            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, NULL);
+            sprintf(peer, "%s:%d", url_info->host, peer_port);
+            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
         }
     }
 
@@ -566,7 +566,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 	skywalking_globals->app_code = NULL;
 	skywalking_globals->log_path = NULL;
 	skywalking_globals->enable = 0;
-	skywalking_globals->version = 5;
+	skywalking_globals->version = 6;
 	skywalking_globals->grpc = NULL;
 }
 
@@ -670,31 +670,47 @@ static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_na
                                                   sizeof("entryOperationName") - 1);
     zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId",
                                                   sizeof("distributedTraceId") - 1);
+    zval distributedTraceIdEncode;
+    zval traceSegmentIdEncode;
+    zval peerHostEncode;
+    zval entryEndpointNameEncode;
+    zval parentEndpointNameEncode;
 
-    ContextCarrier *contextCarrier;
+    char *sharpPeer = (char *) emalloc(sizeof(peer_host) + 1);
+    sprintf(sharpPeer, "#%s", peer_host);
+    char *sharpEntryEndpointName = (char *) emalloc(sizeof(peer_host) + 1);
+    sprintf(sharpEntryEndpointName, "#%s", Z_STRVAL_P(entryOperationName));
+    char *sharpParentEndpointName = (char *) emalloc(sizeof(peer_host) + 1);
+    sprintf(sharpParentEndpointName, "#%s", operation_name);
 
-    contextCarrier = emalloc(sizeof(*contextCarrier));
-    zval_b64_encode(&contextCarrier->primaryDistributedTraceId, Z_STRVAL_P(distributedTraceId));
-    zval_b64_encode(&contextCarrier->traceSegmentId, Z_STRVAL_P(traceId));
-    zval_b64_encode(&contextCarrier->peerHost, peer_host);
-    zval_b64_encode(&contextCarrier->entryEndpointName, Z_STRVAL_P(entryOperationName));
-    zval_b64_encode(&contextCarrier->parentEndpointName, operation_name);
+
+    zval_b64_encode(&distributedTraceIdEncode, Z_STRVAL_P(distributedTraceId));
+    zval_b64_encode(&traceSegmentIdEncode, Z_STRVAL_P(traceId));
+    zval_b64_encode(&peerHostEncode, sharpPeer);
+    zval_b64_encode(&entryEndpointNameEncode, sharpEntryEndpointName);
+    zval_b64_encode(&parentEndpointNameEncode, sharpParentEndpointName);
 
     ssize_t sw6_l = 0;
-    sw6_l = snprintf(NULL, 0, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(contextCarrier->primaryDistributedTraceId),
-                     Z_STRVAL(contextCarrier->traceSegmentId), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
-                     Z_STRVAL(contextCarrier->peerHost), Z_STRVAL(contextCarrier->entryEndpointName),
-                     Z_STRVAL(contextCarrier->parentEndpointName));
+    sw6_l = snprintf(NULL, 0, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(distributedTraceIdEncode),
+                     Z_STRVAL(traceSegmentIdEncode), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
+                     Z_STRVAL(peerHostEncode), Z_STRVAL(entryEndpointNameEncode),
+                     Z_STRVAL(parentEndpointNameEncode));
 
-    char *sw6 = (char*)emalloc(sw6_l + 1);
+    char *sw6 = (char *) emalloc(sw6_l + 1);
     bzero(sw6, sw6_l + 1);
-    snprintf(sw6, sw6_l + 1, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(contextCarrier->primaryDistributedTraceId),
-             Z_STRVAL(contextCarrier->traceSegmentId), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
-             Z_STRVAL(contextCarrier->peerHost), Z_STRVAL(contextCarrier->entryEndpointName),
-             Z_STRVAL(contextCarrier->parentEndpointName));
+    snprintf(sw6, sw6_l + 1, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(distributedTraceIdEncode),
+             Z_STRVAL(traceSegmentIdEncode), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
+             Z_STRVAL(peerHostEncode), Z_STRVAL(entryEndpointNameEncode),
+             Z_STRVAL(parentEndpointNameEncode));
 
-    efree(contextCarrier);
-
+    efree(sharpPeer);
+    efree(sharpEntryEndpointName);
+    efree(sharpParentEndpointName);
+    zval_dtor(&distributedTraceIdEncode);
+    zval_dtor(&traceSegmentIdEncode);
+    zval_dtor(&peerHostEncode);
+    zval_dtor(&entryEndpointNameEncode);
+    zval_dtor(&parentEndpointNameEncode);
     return sw6;
 }
 
@@ -703,9 +719,8 @@ static zend_string *trim_sharp(zval *tmp) {
 }
 
 static void zval_b64_encode(zval *out, char *in) {
-    char *enc = b64_encode(in, strlen(in));
-    zend_string *str = zend_string_init(enc, strlen(enc), 0);
-    ZVAL_STR(out, str);
+    char *enc = b64_encode((const unsigned char*)in, strlen(in));
+    ZVAL_STRING(out, enc);
     free(enc);
 }
 
@@ -826,12 +841,12 @@ static void generate_context() {
                     add_assoc_str(&SKYWALKING_G(context), "parentOperationName", trim_sharp(sw6_8));
                 }
                 add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", Z_STRVAL_P(sw6_1));
-            } else {
-                add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
-                add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", application_instance);
-                add_assoc_string(&SKYWALKING_G(context), "entryOperationName", get_page_request_uri());
-                add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", makeTraceId);
             }
+        } else {
+            add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
+            add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", application_instance);
+            add_assoc_string(&SKYWALKING_G(context), "entryOperationName", get_page_request_uri());
+            add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", makeTraceId);
         }
     }
 
