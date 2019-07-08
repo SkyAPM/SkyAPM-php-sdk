@@ -18,6 +18,7 @@
 
 syntax = "proto3";
 
+option go_package = "pb6/common";
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.common";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
