@@ -4,6 +4,7 @@
 package agent2
 
 import (
+	agent "agent/agent/pb6/agent"
 	common "agent/agent/pb6/common"
 	context "context"
 	fmt "fmt"
@@ -26,14 +27,14 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type SegmentObject struct {
-	TraceSegmentId       *common.UniqueId `protobuf:"bytes,1,opt,name=traceSegmentId,proto3" json:"traceSegmentId,omitempty"`
-	Spans                []*SpanObjectV2  `protobuf:"bytes,2,rep,name=spans,proto3" json:"spans,omitempty"`
-	ServiceId            int32            `protobuf:"varint,3,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
-	ServiceInstanceId    int32            `protobuf:"varint,4,opt,name=serviceInstanceId,proto3" json:"serviceInstanceId,omitempty"`
-	IsSizeLimited        bool             `protobuf:"varint,5,opt,name=isSizeLimited,proto3" json:"isSizeLimited,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_unrecognized     []byte           `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
+	TraceSegmentId       *agent.UniqueId `protobuf:"bytes,1,opt,name=traceSegmentId,proto3" json:"traceSegmentId,omitempty"`
+	Spans                []*SpanObjectV2 `protobuf:"bytes,2,rep,name=spans,proto3" json:"spans,omitempty"`
+	ServiceId            int32           `protobuf:"varint,3,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
+	ServiceInstanceId    int32           `protobuf:"varint,4,opt,name=serviceInstanceId,proto3" json:"serviceInstanceId,omitempty"`
+	IsSizeLimited        bool            `protobuf:"varint,5,opt,name=isSizeLimited,proto3" json:"isSizeLimited,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
 func (m *SegmentObject) Reset()         { *m = SegmentObject{} }
@@ -61,7 +62,7 @@ func (m *SegmentObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SegmentObject proto.InternalMessageInfo
 
-func (m *SegmentObject) GetTraceSegmentId() *common.UniqueId {
+func (m *SegmentObject) GetTraceSegmentId() *agent.UniqueId {
 	if m != nil {
 		return m.TraceSegmentId
 	}
@@ -97,20 +98,20 @@ func (m *SegmentObject) GetIsSizeLimited() bool {
 }
 
 type SegmentReference struct {
-	RefType                 common.RefType   `protobuf:"varint,1,opt,name=refType,proto3,enum=RefType" json:"refType,omitempty"`
-	ParentTraceSegmentId    *common.UniqueId `protobuf:"bytes,2,opt,name=parentTraceSegmentId,proto3" json:"parentTraceSegmentId,omitempty"`
-	ParentSpanId            int32            `protobuf:"varint,3,opt,name=parentSpanId,proto3" json:"parentSpanId,omitempty"`
-	ParentServiceInstanceId int32            `protobuf:"varint,4,opt,name=parentServiceInstanceId,proto3" json:"parentServiceInstanceId,omitempty"`
-	NetworkAddress          string           `protobuf:"bytes,5,opt,name=networkAddress,proto3" json:"networkAddress,omitempty"`
-	NetworkAddressId        int32            `protobuf:"varint,6,opt,name=networkAddressId,proto3" json:"networkAddressId,omitempty"`
-	EntryServiceInstanceId  int32            `protobuf:"varint,7,opt,name=entryServiceInstanceId,proto3" json:"entryServiceInstanceId,omitempty"`
-	EntryEndpoint           string           `protobuf:"bytes,8,opt,name=entryEndpoint,proto3" json:"entryEndpoint,omitempty"`
-	EntryEndpointId         int32            `protobuf:"varint,9,opt,name=entryEndpointId,proto3" json:"entryEndpointId,omitempty"`
-	ParentEndpoint          string           `protobuf:"bytes,10,opt,name=parentEndpoint,proto3" json:"parentEndpoint,omitempty"`
-	ParentEndpointId        int32            `protobuf:"varint,11,opt,name=parentEndpointId,proto3" json:"parentEndpointId,omitempty"`
-	XXX_NoUnkeyedLiteral    struct{}         `json:"-"`
-	XXX_unrecognized        []byte           `json:"-"`
-	XXX_sizecache           int32            `json:"-"`
+	RefType                 agent.RefType   `protobuf:"varint,1,opt,name=refType,proto3,enum=RefType" json:"refType,omitempty"`
+	ParentTraceSegmentId    *agent.UniqueId `protobuf:"bytes,2,opt,name=parentTraceSegmentId,proto3" json:"parentTraceSegmentId,omitempty"`
+	ParentSpanId            int32           `protobuf:"varint,3,opt,name=parentSpanId,proto3" json:"parentSpanId,omitempty"`
+	ParentServiceInstanceId int32           `protobuf:"varint,4,opt,name=parentServiceInstanceId,proto3" json:"parentServiceInstanceId,omitempty"`
+	NetworkAddress          string          `protobuf:"bytes,5,opt,name=networkAddress,proto3" json:"networkAddress,omitempty"`
+	NetworkAddressId        int32           `protobuf:"varint,6,opt,name=networkAddressId,proto3" json:"networkAddressId,omitempty"`
+	EntryServiceInstanceId  int32           `protobuf:"varint,7,opt,name=entryServiceInstanceId,proto3" json:"entryServiceInstanceId,omitempty"`
+	EntryEndpoint           string          `protobuf:"bytes,8,opt,name=entryEndpoint,proto3" json:"entryEndpoint,omitempty"`
+	EntryEndpointId         int32           `protobuf:"varint,9,opt,name=entryEndpointId,proto3" json:"entryEndpointId,omitempty"`
+	ParentEndpoint          string          `protobuf:"bytes,10,opt,name=parentEndpoint,proto3" json:"parentEndpoint,omitempty"`
+	ParentEndpointId        int32           `protobuf:"varint,11,opt,name=parentEndpointId,proto3" json:"parentEndpointId,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}        `json:"-"`
+	XXX_unrecognized        []byte          `json:"-"`
+	XXX_sizecache           int32           `json:"-"`
 }
 
 func (m *SegmentReference) Reset()         { *m = SegmentReference{} }
@@ -138,14 +139,14 @@ func (m *SegmentReference) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SegmentReference proto.InternalMessageInfo
 
-func (m *SegmentReference) GetRefType() common.RefType {
+func (m *SegmentReference) GetRefType() agent.RefType {
 	if m != nil {
 		return m.RefType
 	}
-	return common.RefType_CrossProcess
+	return agent.RefType_CrossProcess
 }
 
-func (m *SegmentReference) GetParentTraceSegmentId() *common.UniqueId {
+func (m *SegmentReference) GetParentTraceSegmentId() *agent.UniqueId {
 	if m != nil {
 		return m.ParentTraceSegmentId
 	}
@@ -225,8 +226,8 @@ type SpanObjectV2 struct {
 	OperationName        string                       `protobuf:"bytes,7,opt,name=operationName,proto3" json:"operationName,omitempty"`
 	PeerId               int32                        `protobuf:"varint,8,opt,name=peerId,proto3" json:"peerId,omitempty"`
 	Peer                 string                       `protobuf:"bytes,9,opt,name=peer,proto3" json:"peer,omitempty"`
-	SpanType             common.SpanType              `protobuf:"varint,10,opt,name=spanType,proto3,enum=SpanType" json:"spanType,omitempty"`
-	SpanLayer            common.SpanLayer             `protobuf:"varint,11,opt,name=spanLayer,proto3,enum=SpanLayer" json:"spanLayer,omitempty"`
+	SpanType             agent.SpanType               `protobuf:"varint,10,opt,name=spanType,proto3,enum=SpanType" json:"spanType,omitempty"`
+	SpanLayer            agent.SpanLayer              `protobuf:"varint,11,opt,name=spanLayer,proto3,enum=SpanLayer" json:"spanLayer,omitempty"`
 	ComponentId          int32                        `protobuf:"varint,12,opt,name=componentId,proto3" json:"componentId,omitempty"`
 	Component            string                       `protobuf:"bytes,13,opt,name=component,proto3" json:"component,omitempty"`
 	IsError              bool                         `protobuf:"varint,14,opt,name=isError,proto3" json:"isError,omitempty"`
@@ -325,18 +326,18 @@ func (m *SpanObjectV2) GetPeer() string {
 	return ""
 }
 
-func (m *SpanObjectV2) GetSpanType() common.SpanType {
+func (m *SpanObjectV2) GetSpanType() agent.SpanType {
 	if m != nil {
 		return m.SpanType
 	}
-	return common.SpanType_Entry
+	return agent.SpanType_Entry
 }
 
-func (m *SpanObjectV2) GetSpanLayer() common.SpanLayer {
+func (m *SpanObjectV2) GetSpanLayer() agent.SpanLayer {
 	if m != nil {
 		return m.SpanLayer
 	}
-	return common.SpanLayer_Unknown
+	return agent.SpanLayer_Unknown
 }
 
 func (m *SpanObjectV2) GetComponentId() int32 {
@@ -514,7 +515,7 @@ func (c *traceSegmentReportServiceClient) Collect(ctx context.Context, opts ...g
 }
 
 type TraceSegmentReportService_CollectClient interface {
-	Send(*common.UpstreamSegment) error
+	Send(*agent.UpstreamSegment) error
 	CloseAndRecv() (*common.Commands, error)
 	grpc.ClientStream
 }
@@ -523,7 +524,7 @@ type traceSegmentReportServiceCollectClient struct {
 	grpc.ClientStream
 }
 
-func (x *traceSegmentReportServiceCollectClient) Send(m *common.UpstreamSegment) error {
+func (x *traceSegmentReportServiceCollectClient) Send(m *agent.UpstreamSegment) error {
 	return x.ClientStream.SendMsg(m)
 }
 
@@ -561,7 +562,7 @@ func _TraceSegmentReportService_Collect_Handler(srv interface{}, stream grpc.Ser
 
 type TraceSegmentReportService_CollectServer interface {
 	SendAndClose(*common.Commands) error
-	Recv() (*common.UpstreamSegment, error)
+	Recv() (*agent.UpstreamSegment, error)
 	grpc.ServerStream
 }
 
@@ -573,8 +574,8 @@ func (x *traceSegmentReportServiceCollectServer) SendAndClose(m *common.Commands
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *traceSegmentReportServiceCollectServer) Recv() (*common.UpstreamSegment, error) {
-	m := new(common.UpstreamSegment)
+func (x *traceSegmentReportServiceCollectServer) Recv() (*agent.UpstreamSegment, error) {
+	m := new(agent.UpstreamSegment)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}

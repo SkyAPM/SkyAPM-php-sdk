@@ -2,6 +2,9 @@ package service
 
 import (
 	"agent/agent/pb5"
+	"agent/agent/pb6/agent"
+	"agent/agent/pb6/agent2"
+	"agent/agent/pb6/common"
 	"context"
 	"encoding/json"
 	"github.com/golang/protobuf/proto"
@@ -62,96 +65,185 @@ func SendTrace(conn *grpc.ClientConn, j string) {
 		log.Println("trace => ", err)
 		return
 	}
+	if info.Version == 5 {
+		log.Println("trace => Start trace...")
+		c := pb5.NewTraceSegmentServiceClient(conn)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
 
-	log.Println("trace => Start trace...")
-	c := pb5.NewTraceSegmentServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
-
-	client, err := c.Collect(ctx)
-	if err != nil {
-		log.Println("trace => ", err)
-		return
-	}
-
-	var globalTrace []*pb5.UniqueId
-
-	for _, v := range info.GlobalTraceIds {
-		globalTrace = append(globalTrace, buildUniqueId(v))
-	}
-
-	var spans []*pb5.SpanObject
-
-	for _, v := range info.Segment.Spans {
-		span := &pb5.SpanObject{
-			SpanId:        v.SpanId,
-			ParentSpanId:  v.ParentSpanId,
-			StartTime:     v.StartTime,
-			EndTime:       v.EndTime,
-			OperationName: v.OperationName,
-			Peer:          v.Peer,
-			Component:     v.ComponentName,
-			IsError:       v.IsError != 0,
+		client, err := c.Collect(ctx)
+		if err != nil {
+			log.Println("trace => ", err)
+			return
 		}
 
-		if v.ComponentId != 0 {
-			span.ComponentId = v.ComponentId
+		var globalTrace []*pb5.UniqueId
+
+		for _, v := range info.GlobalTraceIds {
+			globalTrace = append(globalTrace, buildUniqueId(v))
 		}
 
-		if v.SpanType == 0 {
-			span.SpanType = pb5.SpanType_Entry
-		} else if v.SpanType == 1 {
-			span.SpanType = pb5.SpanType_Exit
-		} else if v.SpanType == 2 {
-			span.SpanType = pb5.SpanType_Local
+		var spans []*pb5.SpanObject
+
+		for _, v := range info.Segment.Spans {
+			span := &pb5.SpanObject{
+				SpanId:        v.SpanId,
+				ParentSpanId:  v.ParentSpanId,
+				StartTime:     v.StartTime,
+				EndTime:       v.EndTime,
+				OperationName: v.OperationName,
+				Peer:          v.Peer,
+				Component:     v.ComponentName,
+				IsError:       v.IsError != 0,
+			}
+
+			if v.ComponentId != 0 {
+				span.ComponentId = v.ComponentId
+			}
+
+			if v.SpanType == 0 {
+				span.SpanType = pb5.SpanType_Entry
+			} else if v.SpanType == 1 {
+				span.SpanType = pb5.SpanType_Exit
+			} else if v.SpanType == 2 {
+				span.SpanType = pb5.SpanType_Local
+			}
+
+			if v.SpanLayer == 3 {
+				span.SpanLayer = pb5.SpanLayer_Http
+			} else if v.SpanLayer == 1 {
+				span.SpanLayer = pb5.SpanLayer_Database
+			}
+
+			buildTags(span, v.Tags)
+			buildRefs(span, v.Refs)
+
+			spans = append(spans, span)
 		}
 
-		if v.SpanLayer == 3 {
-			span.SpanLayer = pb5.SpanLayer_Http
-		} else if v.SpanLayer == 1 {
-			span.SpanLayer = pb5.SpanLayer_Database
+		segmentObject := &pb5.TraceSegmentObject{
+			TraceSegmentId:        buildUniqueId(info.Segment.TraceSegmentId),
+			Spans:                 spans,
+			ApplicationId:         info.ApplicationId,
+			ApplicationInstanceId: info.ApplicationInstance,
+			IsSizeLimited:         info.Segment.IsSizeLimited != 0,
+		}
+		//m := jsonpb.Marshaler{
+		//	EnumsAsInts:  true,
+		//}
+		seg, err := proto.Marshal(segmentObject)
+		//fmt.Println(seg)
+		if err != nil {
+			log.Println("trace => ", err)
+			return
 		}
 
-		buildTags(span, v.Tags)
-		buildRefs(span, v.Refs)
+		segment := &pb5.UpstreamSegment{
+			GlobalTraceIds: globalTrace,
+			Segment:        seg,
+		}
 
-		spans = append(spans, span)
-	}
+		err = client.Send(segment)
+		if err != nil {
+			log.Println("trace => ", err)
+			return
+		}
 
-	segmentObject := &pb5.TraceSegmentObject{
-		TraceSegmentId:        buildUniqueId(info.Segment.TraceSegmentId),
-		Spans:                 spans,
-		ApplicationId:         info.ApplicationId,
-		ApplicationInstanceId: info.ApplicationInstance,
-		IsSizeLimited:         info.Segment.IsSizeLimited != 0,
-	}
-	//m := jsonpb.Marshaler{
-	//	EnumsAsInts:  true,
-	//}
-	seg, err := proto.Marshal(segmentObject)
-	//fmt.Println(seg)
-	if err != nil {
-		log.Println("trace => ", err)
-		return
-	}
+		_, err = client.CloseAndRecv()
+		if err != nil {
+			log.Println("trace =>", err)
+		}
+		log.Println("trace => send ok")
+	} else if info.Version == 6 {
+		log.Println("trace => Start trace...")
+		c := agent2.NewTraceSegmentReportServiceClient(conn)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
 
-	segment := &pb5.UpstreamSegment{
-		GlobalTraceIds: globalTrace,
-		Segment:        seg,
-	}
+		client, err := c.Collect(ctx)
+		if err != nil {
+			log.Println("trace => ", err)
+			return
+		}
 
-	err = client.Send(segment)
-	if err != nil {
-		log.Println("trace => ", err)
-		return
-	}
+		var globalTrace []*agent.UniqueId
 
-	reply, err := client.CloseAndRecv()
-	if err != nil {
-		log.Println("trace =>", err)
+		for _, v := range info.GlobalTraceIds {
+			globalTrace = append(globalTrace, buildUniqueId6(v))
+		}
+
+		var spans []*agent2.SpanObjectV2
+
+		for _, v := range info.Segment.Spans {
+			span := &agent2.SpanObjectV2{
+				SpanId:        v.SpanId,
+				ParentSpanId:  v.ParentSpanId,
+				StartTime:     v.StartTime,
+				EndTime:       v.EndTime,
+				OperationName: v.OperationName,
+				Peer:          v.Peer,
+				Component:     v.ComponentName,
+				IsError:       v.IsError != 0,
+			}
+
+			if v.ComponentId != 0 {
+				span.ComponentId = v.ComponentId
+			}
+
+			if v.SpanType == 0 {
+				span.SpanType = agent.SpanType_Entry
+			} else if v.SpanType == 1 {
+				span.SpanType = agent.SpanType_Exit
+			} else if v.SpanType == 2 {
+				span.SpanType = agent.SpanType_Local
+			}
+
+			if v.SpanLayer == 3 {
+				span.SpanLayer = agent.SpanLayer_Http
+			} else if v.SpanLayer == 1 {
+				span.SpanLayer = agent.SpanLayer_Database
+			}
+
+			buildTags6(span, v.Tags)
+			buildRefs6(span, v.Refs)
+
+			spans = append(spans, span)
+		}
+
+		segmentObject := &agent2.SegmentObject{
+			TraceSegmentId:    buildUniqueId6(info.Segment.TraceSegmentId),
+			Spans:             spans,
+			ServiceId:         info.ApplicationId,
+			ServiceInstanceId: info.ApplicationInstance,
+			IsSizeLimited:     info.Segment.IsSizeLimited != 0,
+		}
+		//m := jsonpb.Marshaler{
+		//	EnumsAsInts:  true,
+		//}
+		seg, err := proto.Marshal(segmentObject)
+		//fmt.Println(seg)
+		if err != nil {
+			log.Println("trace => ", err)
+			return
+		}
+
+		segment := &agent.UpstreamSegment{
+			GlobalTraceIds: globalTrace,
+			Segment:        seg,
+		}
+
+		err = client.Send(segment)
+		if err != nil {
+			log.Println("trace => ", err)
+			return
+		}
+
+		_, err = client.CloseAndRecv()
+		if err != nil {
+			log.Println("trace =>", err)
+		}
+		log.Println("trace => send ok")
 	}
-	log.Println("trace => send ok")
-	log.Printf("Route summary: %v", reply)
 }
 
 func buildRefs(span *pb5.SpanObject, refs []ref) {
@@ -181,8 +273,51 @@ func buildRefs(span *pb5.SpanObject, refs []ref) {
 	}
 }
 
+func buildRefs6(span *agent2.SpanObjectV2, refs []ref) {
+	// refs
+	var spanRefs []*agent2.SegmentReference
+
+	for _, rev := range refs {
+		var refType agent.RefType
+		if rev.Type == 0 {
+			refType = agent.RefType_CrossProcess
+		}
+
+		spanRefs = append(spanRefs, &agent2.SegmentReference{
+			RefType:                 refType,
+			ParentTraceSegmentId:    buildUniqueId6(rev.ParentTraceSegmentId),
+			ParentSpanId:            rev.ParentSpanId,
+			ParentServiceInstanceId: rev.ParentApplicationInstanceId,
+			NetworkAddress:          rev.NetworkAddress,
+			EntryServiceInstanceId:  rev.EntryApplicationInstanceId,
+			EntryEndpoint:           rev.EntryServiceName,
+			ParentEndpoint:          rev.ParentServiceName,
+		})
+	}
+
+	if len(spanRefs) > 0 {
+		span.Refs = spanRefs
+	}
+}
+
 func buildUniqueId(str string) *pb5.UniqueId {
 	uniqueId := &pb5.UniqueId{}
+	var ids []int64
+	for _, idStr := range strings.Split(str, ".") {
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			log.Println("trace => ", err)
+			panic(err)
+		}
+		ids = append(ids, id)
+	}
+
+	uniqueId.IdParts = ids
+	return uniqueId
+}
+
+func buildUniqueId6(str string) *agent.UniqueId {
+	uniqueId := &agent.UniqueId{}
 	var ids []int64
 	for _, idStr := range strings.Split(str, ".") {
 		id, err := strconv.ParseInt(idStr, 10, 64)
@@ -203,6 +338,23 @@ func buildTags(span *pb5.SpanObject, t map[string]string) {
 
 	for k, v := range t {
 		kv := &pb5.KeyWithStringValue{
+			Key:   k,
+			Value: v,
+		}
+		tags = append(tags, kv)
+	}
+
+	if len(tags) > 0 {
+		span.Tags = tags
+	}
+}
+
+func buildTags6(span *agent2.SpanObjectV2, t map[string]string) {
+	// tags
+	var tags []*common.KeyStringValuePair
+
+	for k, v := range t {
+		kv := &common.KeyStringValuePair{
 			Key:   k,
 			Value: v,
 		}

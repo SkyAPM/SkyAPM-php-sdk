@@ -4,6 +4,7 @@
 package agent2
 
 import (
+	agent "agent/agent/pb6/agent"
 	common "agent/agent/pb6/common"
 	context "context"
 	fmt "fmt"
@@ -26,11 +27,11 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type JVMMetricCollection struct {
-	Metrics              []*common.JVMMetric `protobuf:"bytes,1,rep,name=metrics,proto3" json:"metrics,omitempty"`
-	ServiceInstanceId    int32               `protobuf:"varint,2,opt,name=serviceInstanceId,proto3" json:"serviceInstanceId,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
-	XXX_unrecognized     []byte              `json:"-"`
-	XXX_sizecache        int32               `json:"-"`
+	Metrics              []*agent.JVMMetric `protobuf:"bytes,1,rep,name=metrics,proto3" json:"metrics,omitempty"`
+	ServiceInstanceId    int32              `protobuf:"varint,2,opt,name=serviceInstanceId,proto3" json:"serviceInstanceId,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
 }
 
 func (m *JVMMetricCollection) Reset()         { *m = JVMMetricCollection{} }
@@ -58,7 +59,7 @@ func (m *JVMMetricCollection) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_JVMMetricCollection proto.InternalMessageInfo
 
-func (m *JVMMetricCollection) GetMetrics() []*common.JVMMetric {
+func (m *JVMMetricCollection) GetMetrics() []*agent.JVMMetric {
 	if m != nil {
 		return m.Metrics
 	}
