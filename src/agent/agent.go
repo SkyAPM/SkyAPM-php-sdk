@@ -1,9 +1,9 @@
 package main
 
 import (
-	//"agent/agent/pb5"
-	"agent/agent/pb6/common"
-	"agent/agent/pb6/reg"
+	"agent/agent/pb/agent"
+	"agent/agent/pb/common"
+	"agent/agent/pb/register2"
 	"agent/agent/service"
 	"context"
 	"encoding/json"
@@ -91,40 +91,40 @@ func register(c net.Conn, j string) {
 		agentUUID := uuid.New().String()
 
 		if info.Version == 5 {
-			//c := pb5.NewApplicationRegisterServiceClient(grpcConn)
-			//ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-			//defer cancel()
-			//
-			//var regResp *pb5.ApplicationMapping
-			//
-			//// loop register
-			//for {
-			//	regResp, regErr = c.ApplicationCodeRegister(ctx, &pb5.Application{
-			//		ApplicationCode: info.AppCode,
-			//	})
-			//	if regErr != nil {
-			//		break
-			//	}
-			//	if regResp.GetApplication() != nil {
-			//		regAppStatus = true
-			//		appId = regResp.GetApplication().GetValue()
-			//		break
-			//	}
-			//	time.Sleep(time.Second)
-			//}
-		} else if info.Version == 6 {
-			c := reg.NewRegisterClient(grpcConn)
+			c := agent.NewApplicationRegisterServiceClient(grpcConn)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 			defer cancel()
 
-			var regResp *reg.ServiceRegisterMapping
-			var services []*reg.Service
-			services = append(services, &reg.Service{
+			var regResp *agent.ApplicationMapping
+
+			// loop register
+			for {
+				regResp, regErr = c.ApplicationCodeRegister(ctx, &agent.Application{
+					ApplicationCode: info.AppCode,
+				})
+				if regErr != nil {
+					break
+				}
+				if regResp.GetApplication() != nil {
+					regAppStatus = true
+					appId = regResp.GetApplication().GetValue()
+					break
+				}
+				time.Sleep(time.Second)
+			}
+		} else if info.Version == 6 {
+			c := register2.NewRegisterClient(grpcConn)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			defer cancel()
+
+			var regResp *register2.ServiceRegisterMapping
+			var services []*register2.Service
+			services = append(services, &register2.Service{
 				ServiceName: info.AppCode,
 			})
 			// loop register
 			for {
-				regResp, regErr = c.DoServiceRegister(ctx, &reg.Services{
+				regResp, regErr = c.DoServiceRegister(ctx, &register2.Services{
 					Services: services,
 				})
 				if regErr != nil {
@@ -151,49 +151,49 @@ func register(c net.Conn, j string) {
 		if regAppStatus {
 			// start reg instance
 			if info.Version == 5 {
-				//instanceClient := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
-				//instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
-				//defer instanceCancel()
-				//
-				//var instanceErr error
-				//var instanceResp *pb5.ApplicationInstanceMapping
-				//hostName, _ := os.Hostname()
-				//
-				//instanceReq := &pb5.ApplicationInstance{
-				//	ApplicationId: appId,
-				//	AgentUUID:     agentUUID,
-				//	RegisterTime:  time.Now().UnixNano() / 1000000,
-				//	Osinfo: &pb5.OSInfo{
-				//		OsName:    runtime.GOOS,
-				//		Hostname:  hostName,
-				//		ProcessNo: int32(pid),
-				//		Ipv4S:     ip4s(),
-				//	},
-				//}
-				//for {
-				//	instanceResp, instanceErr = instanceClient.RegisterInstance(instanceCtx, instanceReq)
-				//	if instanceErr != nil {
-				//		break
-				//	}
-				//	if instanceResp.GetApplicationInstanceId() != 0 {
-				//		appInsId = instanceResp.GetApplicationInstanceId()
-				//		break
-				//	}
-				//	time.Sleep(time.Second)
-				//}
-			} else if info.Version == 6 {
-				instanceClient := reg.NewRegisterClient(grpcConn)
+				instanceClient := agent.NewInstanceDiscoveryServiceClient(grpcConn)
 				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
 				defer instanceCancel()
 
 				var instanceErr error
-				var instanceResp *reg.ServiceInstanceRegisterMapping
+				var instanceResp *agent.ApplicationInstanceMapping
 				hostName, _ := os.Hostname()
 
-				var instances []*reg.ServiceInstance
+				instanceReq := &agent.ApplicationInstance{
+					ApplicationId: appId,
+					AgentUUID:     agentUUID,
+					RegisterTime:  time.Now().UnixNano() / 1000000,
+					Osinfo: &agent.OSInfo{
+						OsName:    runtime.GOOS,
+						Hostname:  hostName,
+						ProcessNo: int32(pid),
+						Ipv4S:     ip4s(),
+					},
+				}
+				for {
+					instanceResp, instanceErr = instanceClient.RegisterInstance(instanceCtx, instanceReq)
+					if instanceErr != nil {
+						break
+					}
+					if instanceResp.GetApplicationInstanceId() != 0 {
+						appInsId = instanceResp.GetApplicationInstanceId()
+						break
+					}
+					time.Sleep(time.Second)
+				}
+			} else if info.Version == 6 {
+				instanceClient := register2.NewRegisterClient(grpcConn)
+				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer instanceCancel()
+
+				var instanceErr error
+				var instanceResp *register2.ServiceInstanceRegisterMapping
+				hostName, _ := os.Hostname()
+
+				var instances []*register2.ServiceInstance
 				var properties []*common.KeyStringValuePair
 
-				instances = append(instances, &reg.ServiceInstance{
+				instances = append(instances, &register2.ServiceInstance{
 					ServiceId:    appId,
 					InstanceUUID: agentUUID,
 					Time:         time.Now().UnixNano() / 1000000,
@@ -227,7 +227,7 @@ func register(c net.Conn, j string) {
 					})
 				}
 
-				instanceReq := &reg.ServiceInstances{
+				instanceReq := &register2.ServiceInstances{
 					Instances: instances,
 				}
 				for {
@@ -326,25 +326,25 @@ func heartbeat() {
 
 			if bind.Version == 5 {
 
-				//c := pb5.NewInstanceDiscoveryServiceClient(grpcConn)
-				//ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-				//defer cancel()
-				//
-				//_, err := c.Heartbeat(ctx, &pb5.ApplicationInstanceHeartbeat{
-				//	ApplicationInstanceId: bind.InstanceId,
-				//	HeartbeatTime:         time.Now().UnixNano() / 1000000,
-				//})
-				//if err != nil {
-				//	fmt.Println("heartbeat =>", err)
-				//} else {
-				//	fmt.Printf("heartbeat => %d %d\n", bind.AppId, bind.InstanceId)
-				//}
-			} else if bind.Version == 6 {
-				c := reg.NewServiceInstancePingClient(grpcConn)
+				c := agent.NewInstanceDiscoveryServiceClient(grpcConn)
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 				defer cancel()
 
-				_, err := c.DoPing(ctx, &reg.ServiceInstancePingPkg{
+				_, err := c.Heartbeat(ctx, &agent.ApplicationInstanceHeartbeat{
+					ApplicationInstanceId: bind.InstanceId,
+					HeartbeatTime:         time.Now().UnixNano() / 1000000,
+				})
+				if err != nil {
+					fmt.Println("heartbeat =>", err)
+				} else {
+					fmt.Printf("heartbeat => %d %d\n", bind.AppId, bind.InstanceId)
+				}
+			} else if bind.Version == 6 {
+				c := register2.NewServiceInstancePingClient(grpcConn)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer cancel()
+
+				_, err := c.DoPing(ctx, &register2.ServiceInstancePingPkg{
 					ServiceInstanceId:   bind.InstanceId,
 					Time:                time.Now().UnixNano() / 1000000,
 					ServiceInstanceUUID: bind.Uuid,
