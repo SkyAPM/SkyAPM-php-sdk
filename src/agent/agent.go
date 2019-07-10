@@ -103,6 +103,7 @@ func register(c net.Conn, j string) {
 					ApplicationCode: info.AppCode,
 				})
 				if regErr != nil {
+					fmt.Println("register error", regErr)
 					break
 				}
 				if regResp.GetApplication() != nil {
@@ -128,6 +129,7 @@ func register(c net.Conn, j string) {
 					Services: services,
 				})
 				if regErr != nil {
+					fmt.Println("register error", regErr)
 					break
 				}
 
@@ -173,6 +175,7 @@ func register(c net.Conn, j string) {
 				for {
 					instanceResp, instanceErr = instanceClient.RegisterInstance(instanceCtx, instanceReq)
 					if instanceErr != nil {
+						fmt.Println("register error", instanceErr)
 						break
 					}
 					if instanceResp.GetApplicationInstanceId() != 0 {
@@ -233,6 +236,7 @@ func register(c net.Conn, j string) {
 				for {
 					instanceResp, instanceErr = instanceClient.DoServiceInstanceRegister(instanceCtx, instanceReq)
 					if instanceErr != nil {
+						fmt.Println("register error", instanceErr)
 						break
 					}
 					if instanceResp.GetServiceInstances() != nil {

@@ -282,16 +282,36 @@ func buildRefs6(span *agent2.SpanObjectV2, refs []ref) {
 			refType = agent.RefType_CrossProcess
 		}
 
-		spanRefs = append(spanRefs, &agent2.SegmentReference{
+		var reference = &agent2.SegmentReference{
 			RefType:                 refType,
 			ParentTraceSegmentId:    buildUniqueId(rev.ParentTraceSegmentId),
 			ParentSpanId:            rev.ParentSpanId,
 			ParentServiceInstanceId: rev.ParentApplicationInstanceId,
-			NetworkAddress:          rev.NetworkAddress,
 			EntryServiceInstanceId:  rev.EntryApplicationInstanceId,
-			EntryEndpoint:           rev.EntryServiceName,
-			ParentEndpoint:          rev.ParentServiceName,
-		})
+		}
+
+		if rev.NetworkAddress[0:1] == "#" {
+			reference.NetworkAddress = rev.NetworkAddress
+		} else {
+			i, _ := strconv.ParseInt(rev.NetworkAddress, 10, 64)
+			reference.NetworkAddressId = int32(i)
+		}
+
+		if rev.EntryServiceName[0:1] == "#" {
+			reference.EntryEndpoint = rev.EntryServiceName
+		} else {
+			i, _ := strconv.ParseInt(rev.EntryServiceName, 10, 64)
+			reference.EntryEndpointId = int32(i)
+		}
+
+		if rev.ParentServiceName[0:1] == "#" {
+			reference.ParentEndpoint = rev.ParentServiceName
+		} else {
+			i, _ := strconv.ParseInt(rev.ParentServiceName, 10, 64)
+			reference.ParentEndpointId = int32(i)
+		}
+
+		spanRefs = append(spanRefs, reference)
 	}
 
 	if len(spanRefs) > 0 {
