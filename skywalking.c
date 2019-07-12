@@ -80,18 +80,36 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.app_code",    "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.sock_path",   "/tmp/sky_agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
+
+// 定义 skywalking_get_trace_info() 参数
+ZEND_BEGIN_ARG_INFO(arginfo_skywalking_get_trace_info, 0)
+ZEND_END_ARG_INFO()
+
+// 定义 skywalking_get_trace_info() 函数
+PHP_FUNCTION(skywalking_get_trace_info)
+{
+    // 如果应用未初始化，则返回空数组
+    if (application_instance == 0) {
+        zval empty;
+        array_init(&empty);
+        RETURN_ZVAL(&empty, 0, 1);
+    }
+
+    // 否则返回trace信息
+    RETURN_ZVAL(&SKYWALKING_G(UpstreamSegment), 1, 0)
+}
 
 /* {{{ skywalking_functions[]
  *
  * Every user visible function must have an entry in skywalking_functions[].
  */
 const zend_function_entry skywalking_functions[] = {
+    PHP_FE(skywalking_get_trace_info, arginfo_skywalking_get_trace_info)
 	PHP_FE_END	/* Must be the last line in skywalking_functions[] */
 };
 /* }}} */
@@ -558,16 +576,15 @@ void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     orig_curl_close(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
-/* {{{ php_skywalking_init_globals
+/* {{{
  */
 /* Uncomment this function if you have INI entries*/
 static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_globals)
 {
 	skywalking_globals->app_code = NULL;
-	skywalking_globals->log_path = NULL;
+	skywalking_globals->sock_path = "/tmp/sky_agent.sock";
 	skywalking_globals->enable = 0;
 	skywalking_globals->version = 6;
-	skywalking_globals->grpc = NULL;
 }
 
 
@@ -594,30 +611,10 @@ static char *sky_json_encode(zval *parameter){
 
 static void write_log(char *text) {
     if (application_instance != 0) {
-        // to file
-//        char *log_path;
-//        char logFilename[100];
-//        char message[strlen(text) + 1];
-//        log_path = SKY_G(log_path);
-//
-//        zend_string *_log_path, *_log_path_lower;
-//        _log_path = zend_string_init(log_path, strlen(log_path), 0);
-//        _log_path_lower = php_string_tolower(_log_path);
-//
-//        bzero(logFilename, 100);
-//        sprintf(logFilename, "%s/skywalking.%d-%d.log", ZSTR_VAL(_log_path_lower), get_second(), getpid());
-//
-//        zend_string_release(_log_path);
-//        zend_string_release(_log_path_lower);
-//        bzero(message, strlen(text));
-//        sprintf(message, "%s\n", text);
-//        _php_error_log_ex(3, message, strlen(message), logFilename, NULL);
-
         // to stream
-
         struct sockaddr_un un;
         un.sun_family = AF_UNIX;
-        strcpy(un.sun_path, sock_path);
+        strcpy(un.sun_path, SKYWALKING_G(sock_path));
         int fd;
         char message[strlen(text) + 2];
 
@@ -1126,7 +1123,7 @@ static int sky_register() {
     if (application_instance == 0) {
         struct sockaddr_un un;
         un.sun_family = AF_UNIX;
-        strcpy(un.sun_path, sock_path);
+        strcpy(un.sun_path, SKYWALKING_G(sock_path));
         int fd;
         char message[4096];
         char return_message[4096];
@@ -1278,18 +1275,6 @@ PHP_RSHUTDOWN_FUNCTION(skywalking)
  */
 PHP_MINFO_FUNCTION(skywalking)
 {
-
-	php_info_print_table_start();
-    if (SKYWALKING_G(enable)) {
-        php_info_print_table_header(2, "SkyWalking Support", "enabled");
-    } else {
-        php_info_print_table_header(2, "SkyWalking Support", "disabled");
-    }
-
-    php_info_print_table_header(2, "SkyWalking Agent", "/tmp/sky_agent.sock");
-
-	php_info_print_table_end();
-
 	DISPLAY_INI_ENTRIES();
 }
 /* }}} */

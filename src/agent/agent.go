@@ -7,6 +7,7 @@ import (
 	"agent/agent/service"
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -366,29 +367,40 @@ func heartbeat() {
 }
 
 func main() {
+	grpcHost := flag.String("grpc", "127.0.0.1:11800", "SkyWalking grpc 的服务端地址")
+	sockPath := flag.String("sock", "/tmp/sky_agent.sock", "agent的sock文件地址")
+	flag.Parse()
 
-	args := os.Args
+	fmt.Println("grpc host: " + *grpcHost)
+	fmt.Println("sock file: " + *sockPath)
+	fmt.Println("start skywalking")
 
 	// connection to sky server
-	fmt.Println("hello skywalking")
 	var err error
-	grpcConn, err = grpc.Dial(args[1], grpc.WithInsecure())
+	grpcConn, err = grpc.Dial(*grpcHost, grpc.WithInsecure())
 
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer grpcConn.Close()
 
-	if err := os.RemoveAll("/tmp/sky_agent.sock"); err != nil {
+	if err := os.RemoveAll(*sockPath); err != nil {
 		fmt.Println(err)
 	}
 
-	l, err := net.Listen("unix", "/tmp/sky_agent.sock")
+	l, err := net.Listen("unix", *sockPath)
 	if err != nil {
 		fmt.Println("listen error:", err)
 		return
 	}
 	defer l.Close()
+
+	// 修改sock文件的类型及权限
+	err = os.Chmod(*sockPath, os.ModeSocket | 0666)
+	if err != nil {
+		fmt.Println("sock file change mod error:", err)
+		return
+	}
 
 	go heartbeat()
 

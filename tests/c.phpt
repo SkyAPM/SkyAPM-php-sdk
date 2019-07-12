@@ -1,6 +1,5 @@
 <?php
 echo ":::bengin:::\n";
-ini_set("skywalking.log_path","/tmp/log2/");
 $curl = curl_init("http://192.168.88.132/");
 $headers = array(
 	"Content-type: text/xml",

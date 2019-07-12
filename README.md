@@ -1,12 +1,18 @@
+SkyAPM PHP 修改版
+==========
+[SkyAMP-php-sdk原仓库地址](https://github.com/SkyAPM/SkyAPM-php-sdk)
+
+## 修改点
+见 [Documents](docs/README.md)
+
 SkyAPM PHP
 ==========
-
 <img src="https://skyapmtest.github.io/page-resources/SkyAPM/skyapm.png" alt="Sky Walking logo" height="90px" align="right" />
 
 **SkyAPM PHP** is the PHP instrumentation agent, which is compatible with [Apache SkyWalking](https://github.com/apache/skywalking) backend and others compatible agents/SDKs
 
 ## Documents
-* [Documents in English](docs/README.md)
+* [Documents](docs/README.md)
 
 ## Live Demo
 Host in Beijing. Go to [demo](http://106.75.237.45:8080/).
