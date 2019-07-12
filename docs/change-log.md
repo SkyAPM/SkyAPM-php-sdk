@@ -6,6 +6,6 @@
 
 
 ## SkyWalking 扩展修改
-1. 新增 skywalking_get_trace_info():array 方法，获取trace数据
+1. 新增 skywalking_get_trace_info():array 方法，获取trace数据。
 2. 删除无用的skywalking.log_path及skywalking.grpc配置项
 3. 新增 skywalking.sock_path 配置项，支持自定义sock文件的路径
