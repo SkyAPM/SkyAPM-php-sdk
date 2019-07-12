@@ -8,28 +8,28 @@ PHP7+
 ## 安装PHP的SkyWalking扩展(Ubuntu环境)
 
 
-1. 安装php-dev (具体的PHP版本以你的环境为准，必须php7+)
+1.安装php-dev (具体的PHP版本以你的环境为准，必须php7+)
 
 ```shell
 sudo apt install php7.2-dev
 ```
 
 
-2. 安装curl开发包
+2.安装curl开发包
 
 ```shell
 sudo apt install curl-dev 
 ```
 
 
-3. git clone 源码
+3.git clone 源码
 
 ```shell
 git clone https://github.com/bostin/SkyAPM-php-sdk.git /path/to/SkyAPM-php-sdk
 ```
 
 
-4. 编译安装SkyAPM-php-sdk
+4.编译安装SkyAPM-php-sdk
 
 ```shell
 cd /path/to/SkyAPM-php-sdk
@@ -40,7 +40,7 @@ sudo make install
 ```
 
 
-5. 新建php的skywalking扩展配置文件，写入配置
+5.新建php的skywalking扩展配置文件，写入配置
 
 ```shell
 # 扩展so
@@ -56,14 +56,14 @@ skywalking.sock_path=/tmp/sky_agent.sock
 ```
 
 
-6. 重启php-fpm服务
+6.重启php-fpm服务
 
 ```shell
 sudo service php-fpm restart
 ```
 
 
-7. 查看skywalking扩展是否成功加载
+7.查看skywalking扩展是否成功加载
 
 ```shell
 php -m | grep skywalking
