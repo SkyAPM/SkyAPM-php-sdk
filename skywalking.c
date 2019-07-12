@@ -104,7 +104,113 @@ const zend_function_entry class_skywalking[] = {
 
 
 ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
-    ori_execute_ex(execute_data);
+
+    zend_function *zf = execute_data->func;
+    const char *class_name = (zf->common.scope != NULL && zf->common.scope->name != NULL) ? ZSTR_VAL(
+            zf->common.scope->name) : NULL;
+    const char *function_name = zf->common.function_name == NULL ? NULL : ZSTR_VAL(zf->common.function_name);
+
+    char *operationName = NULL;
+    if (class_name != NULL) {
+        if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "__call") == 0) {
+            // params
+            uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+            if (arg_count) {
+                zval *p = ZEND_CALL_ARG(execute_data, 1);
+
+                if (Z_TYPE_P(p) == IS_STRING) {
+                    operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
+                    strcpy(operationName, class_name);
+                    strcat(operationName, "->");
+                    strcat(operationName, Z_STRVAL_P(p));
+                }
+            }
+        }
+    }
+
+    if (operationName != NULL) {
+        zval tags;
+        array_init(&tags);
+
+        if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "__call") == 0) {
+            uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+            zval *fname = ZEND_CALL_ARG(execute_data, 1);
+            for (int i = 1; i < arg_count + 1; ++i) {
+                if (i == 1) {
+                    continue;
+                }
+                zval *pam = ZEND_CALL_ARG(execute_data, i);
+                if (Z_TYPE_P(pam) == IS_ARRAY) {
+                    zend_ulong num_key;
+                    zval *entry;
+                    ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(pam), num_key, entry)
+                            {
+                                char *fnamewall = (char *) emalloc(strlen(Z_STRVAL_P(fname)) + 3);
+                                sprintf(fnamewall, "|%s|", Z_STRVAL_P(fname));
+                                // first params
+                                if (num_key == 0) {
+                                    switch (Z_TYPE_P(entry)) {
+                                        case IS_STRING:
+                                            // string
+                                            if (strstr(REDIS_KEY_STRING, fnamewall)) { // add tag key
+                                                add_assoc_string(&tags, "redis.key", Z_STRVAL_P(entry));
+                                            } else if (strstr(REDIS_OPERATION_STRING, fnamewall)) { // add tag operation
+                                                add_assoc_string(&tags, "redis.operation", Z_STRVAL_P(entry));
+                                            }
+                                            break;
+                                        case IS_ARRAY:
+
+                                            break;
+                                    }
+                                }
+
+                                efree(fnamewall);
+                            }
+                    ZEND_HASH_FOREACH_END();
+
+                }
+            }
+        }
+
+        zval temp;
+        zval *spans = NULL;
+        zval *span_id = NULL;
+        zval *last_span = NULL;
+        char *l_millisecond;
+        long millisecond;
+        array_init(&temp);
+        spans = get_spans();
+        last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
+        span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
+
+        add_assoc_long(&temp, "spanId", Z_LVAL_P(span_id) + 1);
+        add_assoc_long(&temp, "parentSpanId", 0);
+        l_millisecond = get_millisecond();
+        millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
+        efree(l_millisecond);
+        add_assoc_long(&temp, "startTime", millisecond);
+        add_assoc_long(&temp, "spanType", 1);
+        add_assoc_long(&temp, "spanLayer", 1);
+        add_assoc_long(&temp, "componentId", COMPONENT_JEDIS);
+        add_assoc_string(&temp, "operationName", operationName);
+        add_assoc_string(&temp, "peer", "");
+        efree(operationName);
+
+        ori_execute_ex(execute_data);
+
+        l_millisecond = get_millisecond();
+        millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
+        efree(l_millisecond);
+
+
+        add_assoc_zval(&temp, "tags", &tags);
+        add_assoc_long(&temp, "endTime", millisecond);
+        add_assoc_long(&temp, "isError", 0);
+
+        zend_hash_next_index_insert(Z_ARRVAL_P(spans), &temp);
+    } else {
+        ori_execute_ex(execute_data);
+    }
 }
 
 ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
@@ -166,6 +272,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 switch (Z_TYPE_P(p)) {
                     case IS_STRING:
                         add_assoc_string(&tags, "db.statement", Z_STRVAL_P(p));
+                        break;
 
                 }
             }
@@ -1182,9 +1289,9 @@ PHP_MINIT_FUNCTION (skywalking) {
             return SUCCESS;
         }
 
-//        ori_execute_ex = zend_execute_ex;
-//        zend_execute_ex = sky_execute_ex;
-//
+        ori_execute_ex = zend_execute_ex;
+        zend_execute_ex = sky_execute_ex;
+
         ori_execute_internal = zend_execute_internal;
         zend_execute_internal = sky_execute_internal;
 

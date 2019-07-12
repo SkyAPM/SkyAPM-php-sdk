@@ -95,6 +95,16 @@ extern zend_module_entry skywalking_module_entry;
 #define SKYWALKING_TIME "ti"
 #define SKYWALKING_LOG_DATA "ld"
 
+#define REDIS_KEY_KEY "|dump|exists|expire|expireat|move|persist|pexpire|pexpireat|pttl|rename|renamenx|sort|ttl|type|"
+#define REDIS_KEY_STRING "|append|bitcount|bitfield|decr|decrby|get|getbit|getrange|getset|incr|incrby|incrbyfloat|psetex|set|setbit|setex|setnx|setrange|strlen|"
+#define REDIS_OPERATION_STRING "|bitop|"
+#define REDIS_KEY_HASH "|hdel|hexists|hget|hgetall|hincrby|hincrbyfloat|hkeys|hlen|hmget|hmset|hscan|hset|hsetnx|hvals|hstrlen|"
+#define REDIS_KEY_LIST "|lindex|linsert|llen|lpop|lpush|lpushx|lrange|lrem|lset|ltrim|rpop|rpush|rpushx|"
+#define REDIS_KEY_SET "|sadd|scard|sismember|smembers|spop|srandmember|srem|sscan|"
+#define REDIS_KEY_SORT "|zadd|zcard|zcount|zincrby|zrange|zrangebyscore|zrank|zrem|zremrangebyrank|zremrangebyscore|zrevrange|zrevrangebyscore|zrevrank|zscore|zscan|zrangebylex|zrevrangebylex|zremrangebylex|zlexcount|"
+#define REDIS_KEY_HLL "|pfadd|watch|"
+#define REDIS_KEY_GEO "|geoadd|geohash|geopos|geodist|georadius|georadiusbymember|"
+
 
 
 #define RAND_RANGE(__n, __min, __max, __tmax) \
