@@ -304,10 +304,14 @@ func handleConn(c net.Conn) {
 					fmt.Println("Service register protocol")
 					go register(c, body[1:])
 				} else if body[:1] == "1" {
+					fmt.Println("got json");
+					fmt.Println(string(body[1:]))
 					fmt.Println("Service send trace protocol")
 					go service.SendTrace(grpcConn, body[1:])
 				}
 				json = json[endIndex+1:]
+
+				
 			} else {
 				break
 			}
