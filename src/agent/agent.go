@@ -116,7 +116,7 @@ func register(c net.Conn, j string) {
 			}
 		} else if info.Version == 6 {
 			c := register2.NewRegisterClient(grpcConn)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 			defer cancel()
 
 			var regResp *register2.ServiceRegisterMapping
