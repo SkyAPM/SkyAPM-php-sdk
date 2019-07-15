@@ -239,10 +239,10 @@ func register(c net.Conn, j string) {
 					Instances: instances,
 				}
 				for {
+					fmt.Println("instanceReq ", instanceReq)
 					instanceResp, instanceErr = instanceClient.DoServiceInstanceRegister(instanceCtx, instanceReq)
 					if instanceErr != nil {
 						fmt.Println("ServiceInstance register error", instanceErr)
-						fmt.Println("ServiceInstance register error", instanceCtx.Err())
 						break
 					}
 					if instanceResp.GetServiceInstances() != nil {
