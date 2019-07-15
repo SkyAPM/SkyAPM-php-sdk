@@ -191,7 +191,7 @@ func register(c net.Conn, j string) {
 				}
 			} else if info.Version == 6 {
 				instanceClient := register2.NewRegisterClient(grpcConn)
-				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
+				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*30)
 				defer instanceCancel()
 
 				var instanceErr error
