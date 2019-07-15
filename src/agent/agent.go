@@ -38,6 +38,8 @@ var registerMapLock = new(sync.Mutex)
 var registerMap sync.Map
 var grpcConn *grpc.ClientConn
 
+const grpcTimeout time.Duration = 3 * time.Second
+
 func ip4s() []string {
 	ipv4s, addErr := net.InterfaceAddrs()
 	var ips []string
@@ -95,7 +97,7 @@ func register(c net.Conn, j string) {
 
 		if info.Version == 5 {
 			c := agent.NewApplicationRegisterServiceClient(grpcConn)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			ctx, cancel := context.WithTimeout(context.Background(), grpcTimeout)
 			defer cancel()
 
 			var regResp *agent.ApplicationMapping
@@ -118,10 +120,8 @@ func register(c net.Conn, j string) {
 			}
 		} else if info.Version == 6 {
 			c := register2.NewRegisterClient(grpcConn)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+			ctx, cancel := context.WithTimeout(context.Background(), grpcTimeout)
 			defer cancel()
-
-			fmt.Println("time.Second*30 ", time.Second*30)
 
 			var regResp *register2.ServiceRegisterMapping
 			var services []*register2.Service
@@ -159,7 +159,7 @@ func register(c net.Conn, j string) {
 			// start reg instance
 			if info.Version == 5 {
 				instanceClient := agent.NewInstanceDiscoveryServiceClient(grpcConn)
-				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*3)
+				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), grpcTimeout)
 				defer instanceCancel()
 
 				var instanceErr error
@@ -191,7 +191,7 @@ func register(c net.Conn, j string) {
 				}
 			} else if info.Version == 6 {
 				instanceClient := register2.NewRegisterClient(grpcConn)
-				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), time.Second*30)
+				instanceCtx, instanceCancel := context.WithTimeout(context.Background(), grpcTimeout)
 				defer instanceCancel()
 
 				var instanceErr error
@@ -242,6 +242,7 @@ func register(c net.Conn, j string) {
 					instanceResp, instanceErr = instanceClient.DoServiceInstanceRegister(instanceCtx, instanceReq)
 					if instanceErr != nil {
 						fmt.Println("ServiceInstance register error", instanceErr)
+						fmt.Println("ServiceInstance register error", instanceCtx.Err())
 						break
 					}
 					if instanceResp.GetServiceInstances() != nil {
