@@ -91,6 +91,8 @@ func register(c net.Conn, j string) {
 		var regErr error
 		agentUUID := uuid.New().String()
 
+		fmt.Println("info.Version ", info.Version)
+
 		if info.Version == 5 {
 			c := agent.NewApplicationRegisterServiceClient(grpcConn)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -119,6 +121,8 @@ func register(c net.Conn, j string) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 			defer cancel()
 
+			fmt.Println("time.Second*30 ", time.Second*30)
+
 			var regResp *register2.ServiceRegisterMapping
 			var services []*register2.Service
 			services = append(services, &register2.Service{
@@ -130,7 +134,7 @@ func register(c net.Conn, j string) {
 					Services: services,
 				})
 				if regErr != nil {
-					fmt.Println("register error", regErr)
+					fmt.Println("Service register error", regErr)
 					break
 				}
 
@@ -237,7 +241,7 @@ func register(c net.Conn, j string) {
 				for {
 					instanceResp, instanceErr = instanceClient.DoServiceInstanceRegister(instanceCtx, instanceReq)
 					if instanceErr != nil {
-						fmt.Println("register error", instanceErr)
+						fmt.Println("ServiceInstance register error", instanceErr)
 						break
 					}
 					if instanceResp.GetServiceInstances() != nil {
