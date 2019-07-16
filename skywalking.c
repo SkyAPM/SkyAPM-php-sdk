@@ -306,7 +306,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     }
     php_url *url_info = NULL;
     if(is_send == 1) {
-        url_info = php_url_parse_ex(url_str, strlen(url_str));
+        url_info = php_url_parse(url_str);
         if(url_info->scheme == NULL || url_info->host == NULL) {
             zval_dtor(&curlInfo);
             php_url_free(url_info);
