@@ -136,7 +136,8 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
             add_assoc_string(&tags, "db.type", "redis");
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
             zval *fname = ZEND_CALL_ARG(execute_data, 1);
-            for (int i = 1; i < arg_count + 1; ++i) {
+	    int i;
+            for (i = 1; i < arg_count + 1; ++i) {
                 if (i == 1) {
                     continue;
                 }
