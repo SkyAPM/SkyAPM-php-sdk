@@ -79,7 +79,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 /* Remove comments and fill if you need to have entries in php.ini*/
 PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.version",   	"5", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code",    "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.sock_path",   "/tmp/sky_agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
@@ -324,45 +324,64 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     ssize_t full_url_l = 0;
     char *full_url = NULL;
 
+    char *url_info_schema = NULL;
+    char *url_info_host = NULL;
+    char *url_info_path = NULL;
+    char *url_info_query = NULL;
+
+    if (is_send == 1) {
+#if PHP_VERSION_ID >= 70300
+    url_info_schema = ZSTR_VAL(url_info->scheme);
+    url_info_host = ZSTR_VAL(url_info->host);
+    url_info_path = ZSTR_VAL(url_info->path);
+    url_info_query = ZSTR_VAL(url_info->query);
+#else
+    url_info_schema = url_info->scheme;
+    url_info_host = url_info->host;
+    url_info_path = url_info->path;
+    url_info_query = url_info->query;
+#endif
+    }
+
     if (is_send == 1) {
         int peer_port = 0;
         if (url_info->port) {
             peer_port = url_info->port;
         } else {
-            if (strcasecmp("http", ZSTR_VAL(url_info->scheme)) == 0) {
+            if (strcasecmp("http", url_info_schema) == 0) {
                 peer_port = 80;
             } else {
                 peer_port = 443;
             }
         }
 
-        peer = (char *) emalloc(ZSTR_LEN(url_info->scheme) + 3 + ZSTR_LEN(url_info->host) + 7);
-        bzero(peer, ZSTR_LEN(url_info->scheme) + 3 + ZSTR_LEN(url_info->host) + 7);
+        peer = (char *) emalloc(strlen(url_info_schema) + 3 + strlen(url_info_host) + 7);
+        bzero(peer, strlen(url_info_schema) + 3 + strlen(url_info_host) + 7);
 
-        if (url_info->query) {
-            if (url_info->path == NULL) {
+        if (url_info_query) {
+            if (url_info_path == NULL) {
                 operation_name_l = snprintf(NULL, 0, "%s", "/");
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s", "/");
 
-                full_url_l = snprintf(NULL, 0, "%s?%s", "/", ZSTR_VAL(url_info->query));
+                full_url_l = snprintf(NULL, 0, "%s?%s", "/", url_info_query);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s?%s", "/", ZSTR_VAL(url_info->query));
+                sprintf(full_url, "%s?%s", "/", url_info_query);
             } else {
-                operation_name_l = snprintf(NULL, 0, "%s", ZSTR_VAL(url_info->path));
+                operation_name_l = snprintf(NULL, 0, "%s", url_info_path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s", ZSTR_VAL(url_info->path));
+                sprintf(operation_name, "%s", url_info_path);
 
-                full_url_l = snprintf(NULL, 0, "%s?%s", ZSTR_VAL(url_info->path), ZSTR_VAL(url_info->query));
+                full_url_l = snprintf(NULL, 0, "%s?%s", url_info_path, url_info_query);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s?%s", ZSTR_VAL(url_info->path), ZSTR_VAL(url_info->query));
+                sprintf(full_url, "%s?%s", url_info_path, url_info_query);
             }
         } else {
-            if (url_info->path == NULL) {
+            if (url_info_path == NULL) {
                 operation_name_l = snprintf(NULL, 0, "%s", "/");
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
@@ -373,15 +392,15 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 bzero(full_url, full_url_l + 1);
                 sprintf(full_url, "%s", "/");
             } else {
-                operation_name_l = snprintf(NULL, 0, "%s", ZSTR_VAL(url_info->path));
+                operation_name_l = snprintf(NULL, 0, "%s", url_info_path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s", ZSTR_VAL(url_info->path));
+                sprintf(operation_name, "%s", url_info_path);
 
-                full_url_l = snprintf(NULL, 0, "%s", ZSTR_VAL(url_info->path));
+                full_url_l = snprintf(NULL, 0, "%s", url_info_path);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s", ZSTR_VAL(url_info->path));
+                sprintf(full_url, "%s", url_info_path);
             }
         }
 
@@ -389,10 +408,10 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
         if (SKYWALKING_G(version) == 5) { // skywalking 5.x
-            sprintf(peer, "%s://%s:%d", ZSTR_VAL(url_info->scheme), ZSTR_VAL(url_info->host), peer_port);
+            sprintf(peer, "%s://%s:%d", url_info_schema, url_info_host, peer_port);
             sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
         } else if (SKYWALKING_G(version) == 6) { // skywalking 6.x
-            sprintf(peer, "%s:%d", ZSTR_VAL(url_info->host), peer_port);
+            sprintf(peer, "%s:%d", url_info_host, peer_port);
             sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
         }
     }
