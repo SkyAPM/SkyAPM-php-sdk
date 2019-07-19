@@ -67,7 +67,7 @@ static int application_id = 0;
 static int sky_close = 0;
 static int sky_increment_id = 0;
 static int cli_debug = 0;
-const char *sock_path = "/tmp/sky_agent.sock";
+static char *sock_path = "/tmp/sky_agent.sock";
 
 static void (*ori_execute_ex)(zend_execute_data *execute_data);
 static void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value);
@@ -81,8 +81,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky_agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -673,10 +672,9 @@ void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
 static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_globals)
 {
 	skywalking_globals->app_code = NULL;
-	skywalking_globals->log_path = NULL;
 	skywalking_globals->enable = 0;
 	skywalking_globals->version = 6;
-	skywalking_globals->grpc = NULL;
+	skywalking_globals->sock_path = "/tmp/sky_agent.sock";
 }
 
 
@@ -703,25 +701,6 @@ static char *sky_json_encode(zval *parameter){
 
 static void write_log(char *text) {
     if (application_instance != 0) {
-        // to file
-//        char *log_path;
-//        char logFilename[100];
-//        char message[strlen(text) + 1];
-//        log_path = SKY_G(log_path);
-//
-//        zend_string *_log_path, *_log_path_lower;
-//        _log_path = zend_string_init(log_path, strlen(log_path), 0);
-//        _log_path_lower = php_string_tolower(_log_path);
-//
-//        bzero(logFilename, 100);
-//        sprintf(logFilename, "%s/skywalking.%d-%d.log", ZSTR_VAL(_log_path_lower), get_second(), getpid());
-//
-//        zend_string_release(_log_path);
-//        zend_string_release(_log_path_lower);
-//        bzero(message, strlen(text));
-//        sprintf(message, "%s\n", text);
-//        _php_error_log_ex(3, message, strlen(message), logFilename, NULL);
-
         // to stream
 
         struct sockaddr_un un;

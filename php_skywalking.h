@@ -170,10 +170,9 @@ static void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
 	and END macros here:
 */
 ZEND_BEGIN_MODULE_GLOBALS(skywalking)
-    char *log_path;
+    char *sock_path;
     char *app_code;
     zend_bool enable;
-    char *grpc;
     zval UpstreamSegment;
     zval context;
     zval curl_header;
