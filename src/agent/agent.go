@@ -7,6 +7,7 @@ import (
 	"agent/agent/service"
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -366,29 +367,40 @@ func heartbeat() {
 }
 
 func main() {
-
-	args := os.Args
+	grpcHost := flag.String("grpc", "127.0.0.1:11800", "SkyWalking GRPC Host")
+	sockPath := flag.String("sock", "/tmp/sky_agent.sock", "SkyWalking PHP SDK sock file path")
+	flag.Parse()
 
 	// connection to sky server
 	fmt.Println("hello skywalking")
+	fmt.Println("GRPC Host: ", *grpcHost)
+	fmt.Println("Sock Path: ", *sockPath)
+
 	var err error
-	grpcConn, err = grpc.Dial(args[1], grpc.WithInsecure())
+	grpcConn, err = grpc.Dial(*grpcHost, grpc.WithInsecure())
 
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer grpcConn.Close()
 
-	if err := os.RemoveAll("/tmp/sky_agent.sock"); err != nil {
+	if err := os.RemoveAll(*sockPath); err != nil {
 		fmt.Println(err)
 	}
 
-	l, err := net.Listen("unix", "/tmp/sky_agent.sock")
+	l, err := net.Listen("unix", *sockPath)
 	if err != nil {
 		fmt.Println("listen error:", err)
 		return
 	}
 	defer l.Close()
+
+	// change sock file type and mode
+	err = os.Chmod(*sockPath, os.ModeSocket | 0666)
+	if err != nil {
+		fmt.Println("sock file change mod error:", err)
+		return
+	}
 
 	go heartbeat()
 
