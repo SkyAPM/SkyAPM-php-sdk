@@ -86,11 +86,30 @@ PHP_INI_END()
 
 /* }}} */
 
+// declare args for skywalking_get_trace_info()
+ZEND_BEGIN_ARG_INFO(arginfo_skywalking_get_trace_info, 0)
+ZEND_END_ARG_INFO()
+
+// declare function skywalking_get_trace_info()
+PHP_FUNCTION(skywalking_get_trace_info)
+{
+    if (application_instance == 0) {
+        zval empty;
+        array_init(&empty);
+        RETURN_ZVAL(&empty, 0, 1);
+    }
+
+    // return array
+    RETURN_ZVAL(&SKYWALKING_G(UpstreamSegment), 1, 0)
+}
+
+
 /* {{{ skywalking_functions[]
  *
  * Every user visible function must have an entry in skywalking_functions[].
  */
 const zend_function_entry skywalking_functions[] = {
+    PHP_FE(skywalking_get_trace_info, arginfo_skywalking_get_trace_info)
 	PHP_FE_END	/* Must be the last line in skywalking_functions[] */
 };
 /* }}} */
@@ -705,7 +724,7 @@ static void write_log(char *text) {
 
         struct sockaddr_un un;
         un.sun_family = AF_UNIX;
-        strcpy(un.sun_path, sock_path);
+        strcpy(un.sun_path, SKYWALKING_G(sock_path));
         int fd;
         char message[strlen(text) + 2];
 
@@ -1214,7 +1233,7 @@ static int sky_register() {
     if (application_instance == 0) {
         struct sockaddr_un un;
         un.sun_family = AF_UNIX;
-        strcpy(un.sun_path, sock_path);
+        strcpy(un.sun_path, SKYWALKING_G(sock_path));
         int fd;
         char message[4096];
         char return_message[4096];
@@ -1366,18 +1385,6 @@ PHP_RSHUTDOWN_FUNCTION(skywalking)
  */
 PHP_MINFO_FUNCTION(skywalking)
 {
-
-	php_info_print_table_start();
-    if (SKYWALKING_G(enable)) {
-        php_info_print_table_header(2, "SkyWalking Support", "enabled");
-    } else {
-        php_info_print_table_header(2, "SkyWalking Support", "disabled");
-    }
-
-    php_info_print_table_header(2, "SkyWalking Agent", "/tmp/sky_agent.sock");
-
-	php_info_print_table_end();
-
 	DISPLAY_INI_ENTRIES();
 }
 /* }}} */
