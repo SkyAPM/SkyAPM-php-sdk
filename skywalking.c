@@ -432,20 +432,35 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     ssize_t full_url_l = 0;
     char *full_url = NULL;
 
+
     if (is_send == 1) {
+
+// for php7.3.0+
+#if PHP_VERSION_ID >= 70300
+        char *php_url_scheme = ZSTR_VAL(url_info->scheme);
+        char *php_url_host = ZSTR_VAL(url_info->host);
+        char *php_url_path = ZSTR_VAL(url_info->path);
+        char *php_url_query = ZSTR_VAL(url_info->query);
+#else
+        char *php_url_scheme = url_info->scheme;
+        char *php_url_host = url_info->host;
+        char *php_url_path = url_info->path;
+        char *php_url_query = url_info->query;
+#endif
+
         int peer_port = 0;
         if (url_info->port) {
             peer_port = url_info->port;
         } else {
-            if (strcasecmp("http", url_info->scheme) == 0) {
+            if (strcasecmp("http", php_url_scheme) == 0) {
                 peer_port = 80;
             } else {
                 peer_port = 443;
             }
         }
 
-        peer = (char *) emalloc(strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
-        bzero(peer, strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
+        peer = (char *) emalloc(strlen(php_url_scheme) + 3 + strlen(php_url_host) + 7);
+        bzero(peer, strlen(php_url_scheme) + 3 + strlen(php_url_host) + 7);
 
         if (url_info->query) {
             if (url_info->path == NULL) {
@@ -454,20 +469,20 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s", "/");
 
-                full_url_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+                full_url_l = snprintf(NULL, 0, "%s?%s", "/", php_url_query);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s?%s", "/", url_info->query);
+                sprintf(full_url, "%s?%s", "/", php_url_query);
             } else {
-                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
+                operation_name_l = snprintf(NULL, 0, "%s", php_url_path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s", url_info->path);
+                sprintf(operation_name, "%s", php_url_path);
 
-                full_url_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+                full_url_l = snprintf(NULL, 0, "%s?%s", php_url_path, php_url_query);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s?%s", url_info->path, url_info->query);
+                sprintf(full_url, "%s?%s", php_url_path, php_url_query);
             }
         } else {
             if (url_info->path == NULL) {
@@ -481,15 +496,15 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 bzero(full_url, full_url_l + 1);
                 sprintf(full_url, "%s", "/");
             } else {
-                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
+                operation_name_l = snprintf(NULL, 0, "%s", php_url_path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s", url_info->path);
+                sprintf(operation_name, "%s", php_url_path);
 
-                full_url_l = snprintf(NULL, 0, "%s", url_info->path);
+                full_url_l = snprintf(NULL, 0, "%s", php_url_path);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s", url_info->path);
+                sprintf(full_url, "%s", php_url_path);
             }
         }
 
@@ -497,10 +512,10 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
         if (SKYWALKING_G(version) == 5) { // skywalking 5.x
-            sprintf(peer, "%s://%s:%d", url_info->scheme, url_info->host, peer_port);
+            sprintf(peer, "%s://%s:%d", php_url_scheme, php_url_host, peer_port);
             sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
         } else if (SKYWALKING_G(version) == 6) { // skywalking 6.x
-            sprintf(peer, "%s:%d", url_info->host, peer_port);
+            sprintf(peer, "%s:%d", php_url_host, peer_port);
             sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
         }
     }
