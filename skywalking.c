@@ -355,7 +355,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 }
             }
         } else if (function_name != NULL) {
-            #ifdef SKYWALKING_ENABLED_MYSQLI
+#ifdef SKYWALKING_ENABLED_MYSQLI
                 if (strcmp(class_name, "mysqli") == 0 && strcmp(function_name, "query") == 0) {
                     add_assoc_string(&tags, "db.type", "mysqli");
                     // params
@@ -371,7 +371,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                         }
                     }
                 }
-            #endif
+#endif
         }
 
 
