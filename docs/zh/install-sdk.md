@@ -50,7 +50,7 @@ skywalking.enable=1
 # skywalking的版本：5或者6（默认值为6）
 skywalking.version=6
 # app_code代码，不要含特殊字符，请使用数字、字母、下换线。(默认为：hello_skywalking)
-skywalking.app_code=dada_www_001
+skywalking.app_code=hello_skywalking
 # sock文件路径（默认值为/tmp/sky_agent.sock）
 skywalking.sock_path=/tmp/sky_agent.sock
 ```
