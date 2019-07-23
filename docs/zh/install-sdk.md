@@ -25,7 +25,7 @@ sudo apt install curl-dev
 3.git clone 源码
 
 ```shell
-git clone https://github.com/bostin/SkyAPM-php-sdk.git /path/to/SkyAPM-php-sdk
+git clone https://github.com/SkyAPM/SkyAPM-php-sdk.git /path/to/SkyAPM-php-sdk
 ```
 
 
