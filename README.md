@@ -21,6 +21,7 @@ Host in Beijing. Go to [demo](http://106.75.237.45:8080/).
 ## Support List
 1. CURL
 1. PDO
+1. Mysqli
 
 ## Contact Us
 * Submit an [issue](https://github.com/SkyAPM/SkyAPM-php-sdk/issues)
