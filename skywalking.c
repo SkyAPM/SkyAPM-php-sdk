@@ -35,6 +35,7 @@
 #include "ext/standard/url.h" /* for php_url */
 #include "ext/standard/php_var.h"
 #include "ext/pdo/php_pdo_driver.h"
+#include "ext/mysqli/php_mysqli_structs.h"
 
 #include "ext/standard/basic_functions.h"
 #include "ext/standard/php_math.h"
@@ -250,6 +251,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 
     int is_procedural_mysqli = 0; // "Procedural style" or "Object oriented style" ?
     char *operationName = NULL;
+    char *peer = NULL;
     char *component = NULL;
     if (class_name != NULL) {
         if (strcmp(class_name, "PDO") == 0) {
@@ -345,9 +347,23 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                     add_assoc_string(&tags, "db.data_source", (char *) stmt->dbh->data_source);
                 }
             }
-        } else if (function_name != NULL) {
-            if (strcmp(class_name, "mysqli") == 0 && strcmp(function_name, "query") == 0) {
-                add_assoc_string(&tags, "db.type", "mysqli");
+        } else if (strcmp(class_name, "mysqli") == 0) {
+            if (strcmp(function_name, "query") == 0) {
+                mysqli_object *mysqli = (mysqli_object *) Z_MYSQLI_P(&(execute_data->This));
+                MYSQLI_RESOURCE *my_res = (MYSQLI_RESOURCE *) mysqli->ptr;
+                if (my_res && my_res->ptr) {
+                    MY_MYSQL *mysql = (MY_MYSQL *) my_res->ptr;
+                    if (mysql->mysql) {
+                        add_assoc_string(&tags, "db.host", mysql->mysql->data->host);
+                        add_assoc_long(&tags, "db.port", mysql->mysql->data->port);
+                        peer = (char *) emalloc(strlen(mysql->mysql->data->host) + 10);
+                        bzero(peer, strlen(mysql->mysql->data->host) + 10);
+                        sprintf(peer, "%s:%d", mysql->mysql->data->host, mysql->mysql->data->port);
+                    }
+                }
+
+
+                add_assoc_string(&tags, "db.type", "mysql");
                 // params
                 uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
                 if (arg_count) {
@@ -386,9 +402,12 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 //        add_assoc_string(&temp, "component", component);
         add_assoc_long(&temp, "componentId", COMPONENT_MYSQL_JDBC_DRIVER);
         add_assoc_string(&temp, "operationName", operationName);
-        add_assoc_string(&temp, "peer", "");
+        add_assoc_string(&temp, "peer", peer == NULL ? "" : peer);
         efree(component);
         efree(operationName);
+        if (peer != NULL) {
+            efree(peer);
+        }
 
         if (ori_execute_internal) {
             ori_execute_internal(execute_data, return_value);
