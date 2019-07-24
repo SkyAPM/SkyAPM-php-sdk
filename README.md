@@ -7,6 +7,7 @@ SkyAPM PHP
 
 ## Documents
 * [Documents in English](docs/README.md)
+* [中文文档](docs/README_ZH.md)
 
 ## Live Demo
 Host in Beijing. Go to [demo](http://106.75.237.45:8080/).

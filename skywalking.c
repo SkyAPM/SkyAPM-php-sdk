@@ -67,7 +67,7 @@ static int application_id = 0;
 static int sky_close = 0;
 static int sky_increment_id = 0;
 static int cli_debug = 0;
-const char *sock_path = "/tmp/sky_agent.sock";
+static char *sock_path = "/tmp/sky_agent.sock";
 
 static void (*ori_execute_ex)(zend_execute_data *execute_data);
 static void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value);
@@ -81,17 +81,35 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky_agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
+
+// declare args for skywalking_get_trace_info()
+ZEND_BEGIN_ARG_INFO(arginfo_skywalking_get_trace_info, 0)
+ZEND_END_ARG_INFO()
+
+// declare function skywalking_get_trace_info()
+PHP_FUNCTION(skywalking_get_trace_info)
+{
+    if (application_instance == 0) {
+        zval empty;
+        array_init(&empty);
+        RETURN_ZVAL(&empty, 0, 1);
+    }
+
+    // return array
+    RETURN_ZVAL(&SKYWALKING_G(UpstreamSegment), 1, 0)
+}
+
 
 /* {{{ skywalking_functions[]
  *
  * Every user visible function must have an entry in skywalking_functions[].
  */
 const zend_function_entry skywalking_functions[] = {
+    PHP_FE(skywalking_get_trace_info, arginfo_skywalking_get_trace_info)
 	PHP_FE_END	/* Must be the last line in skywalking_functions[] */
 };
 /* }}} */
@@ -414,20 +432,35 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
     ssize_t full_url_l = 0;
     char *full_url = NULL;
 
+
     if (is_send == 1) {
+
+// for php7.3.0+
+#if PHP_VERSION_ID >= 70300
+        char *php_url_scheme = ZSTR_VAL(url_info->scheme);
+        char *php_url_host = ZSTR_VAL(url_info->host);
+        char *php_url_path = ZSTR_VAL(url_info->path);
+        char *php_url_query = ZSTR_VAL(url_info->query);
+#else
+        char *php_url_scheme = url_info->scheme;
+        char *php_url_host = url_info->host;
+        char *php_url_path = url_info->path;
+        char *php_url_query = url_info->query;
+#endif
+
         int peer_port = 0;
         if (url_info->port) {
             peer_port = url_info->port;
         } else {
-            if (strcasecmp("http", url_info->scheme) == 0) {
+            if (strcasecmp("http", php_url_scheme) == 0) {
                 peer_port = 80;
             } else {
                 peer_port = 443;
             }
         }
 
-        peer = (char *) emalloc(strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
-        bzero(peer, strlen(url_info->scheme) + 3 + strlen(url_info->host) + 7);
+        peer = (char *) emalloc(strlen(php_url_scheme) + 3 + strlen(php_url_host) + 7);
+        bzero(peer, strlen(php_url_scheme) + 3 + strlen(php_url_host) + 7);
 
         if (url_info->query) {
             if (url_info->path == NULL) {
@@ -436,20 +469,20 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 bzero(operation_name, operation_name_l + 1);
                 sprintf(operation_name, "%s", "/");
 
-                full_url_l = snprintf(NULL, 0, "%s?%s", "/", url_info->query);
+                full_url_l = snprintf(NULL, 0, "%s?%s", "/", php_url_query);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s?%s", "/", url_info->query);
+                sprintf(full_url, "%s?%s", "/", php_url_query);
             } else {
-                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
+                operation_name_l = snprintf(NULL, 0, "%s", php_url_path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s", url_info->path);
+                sprintf(operation_name, "%s", php_url_path);
 
-                full_url_l = snprintf(NULL, 0, "%s?%s", url_info->path, url_info->query);
+                full_url_l = snprintf(NULL, 0, "%s?%s", php_url_path, php_url_query);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s?%s", url_info->path, url_info->query);
+                sprintf(full_url, "%s?%s", php_url_path, php_url_query);
             }
         } else {
             if (url_info->path == NULL) {
@@ -463,15 +496,15 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
                 bzero(full_url, full_url_l + 1);
                 sprintf(full_url, "%s", "/");
             } else {
-                operation_name_l = snprintf(NULL, 0, "%s", url_info->path);
+                operation_name_l = snprintf(NULL, 0, "%s", php_url_path);
                 operation_name = (char *) emalloc(operation_name_l + 1);
                 bzero(operation_name, operation_name_l + 1);
-                sprintf(operation_name, "%s", url_info->path);
+                sprintf(operation_name, "%s", php_url_path);
 
-                full_url_l = snprintf(NULL, 0, "%s", url_info->path);
+                full_url_l = snprintf(NULL, 0, "%s", php_url_path);
                 full_url = (char *) emalloc(full_url_l + 1);
                 bzero(full_url, full_url_l + 1);
-                sprintf(full_url, "%s", url_info->path);
+                sprintf(full_url, "%s", php_url_path);
             }
         }
 
@@ -479,10 +512,10 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         last_span = zend_hash_index_find(Z_ARRVAL_P(spans), zend_hash_num_elements(Z_ARRVAL_P(spans)) - 1);
         span_id = zend_hash_str_find(Z_ARRVAL_P(last_span), "spanId", sizeof("spanId") - 1);
         if (SKYWALKING_G(version) == 5) { // skywalking 5.x
-            sprintf(peer, "%s://%s:%d", url_info->scheme, url_info->host, peer_port);
+            sprintf(peer, "%s://%s:%d", php_url_scheme, php_url_host, peer_port);
             sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
         } else if (SKYWALKING_G(version) == 6) { // skywalking 6.x
-            sprintf(peer, "%s:%d", url_info->host, peer_port);
+            sprintf(peer, "%s:%d", php_url_host, peer_port);
             sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
         }
     }
@@ -673,10 +706,9 @@ void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
 static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_globals)
 {
 	skywalking_globals->app_code = NULL;
-	skywalking_globals->log_path = NULL;
 	skywalking_globals->enable = 0;
 	skywalking_globals->version = 6;
-	skywalking_globals->grpc = NULL;
+	skywalking_globals->sock_path = "/tmp/sky_agent.sock";
 }
 
 
@@ -703,30 +735,11 @@ static char *sky_json_encode(zval *parameter){
 
 static void write_log(char *text) {
     if (application_instance != 0) {
-        // to file
-//        char *log_path;
-//        char logFilename[100];
-//        char message[strlen(text) + 1];
-//        log_path = SKY_G(log_path);
-//
-//        zend_string *_log_path, *_log_path_lower;
-//        _log_path = zend_string_init(log_path, strlen(log_path), 0);
-//        _log_path_lower = php_string_tolower(_log_path);
-//
-//        bzero(logFilename, 100);
-//        sprintf(logFilename, "%s/skywalking.%d-%d.log", ZSTR_VAL(_log_path_lower), get_second(), getpid());
-//
-//        zend_string_release(_log_path);
-//        zend_string_release(_log_path_lower);
-//        bzero(message, strlen(text));
-//        sprintf(message, "%s\n", text);
-//        _php_error_log_ex(3, message, strlen(message), logFilename, NULL);
-
         // to stream
 
         struct sockaddr_un un;
         un.sun_family = AF_UNIX;
-        strcpy(un.sun_path, sock_path);
+        strcpy(un.sun_path, SKYWALKING_G(sock_path));
         int fd;
         char message[strlen(text) + 2];
 
@@ -1235,7 +1248,7 @@ static int sky_register() {
     if (application_instance == 0) {
         struct sockaddr_un un;
         un.sun_family = AF_UNIX;
-        strcpy(un.sun_path, sock_path);
+        strcpy(un.sun_path, SKYWALKING_G(sock_path));
         int fd;
         char message[4096];
         char return_message[4096];
@@ -1387,18 +1400,6 @@ PHP_RSHUTDOWN_FUNCTION(skywalking)
  */
 PHP_MINFO_FUNCTION(skywalking)
 {
-
-	php_info_print_table_start();
-    if (SKYWALKING_G(enable)) {
-        php_info_print_table_header(2, "SkyWalking Support", "enabled");
-    } else {
-        php_info_print_table_header(2, "SkyWalking Support", "disabled");
-    }
-
-    php_info_print_table_header(2, "SkyWalking Agent", "/tmp/sky_agent.sock");
-
-	php_info_print_table_end();
-
 	DISPLAY_INI_ENTRIES();
 }
 /* }}} */
