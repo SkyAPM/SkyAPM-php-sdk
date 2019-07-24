@@ -36,6 +36,7 @@
 #include "ext/standard/php_var.h"
 #include "ext/pdo/php_pdo_driver.h"
 #include "ext/mysqli/php_mysqli_structs.h"
+#include "ext/pcre/php_pcre.h"
 
 #include "ext/standard/basic_functions.h"
 #include "ext/standard/php_math.h"
@@ -119,6 +120,36 @@ const zend_function_entry skywalking_functions[] = {
 const zend_function_entry class_skywalking[] = {
 	PHP_FE_END
 };
+
+static char *pcre_match(char *pattern, int len, char *subject) {
+    pcre_cache_entry *cache;
+    zval *result = (zval *) emalloc(sizeof(zval));
+    bzero(result, sizeof(zval));
+    zval *subpats = (zval *) emalloc(sizeof(zval));
+    bzero(subpats, sizeof(zval));
+    char *ret = NULL;
+
+    zend_string *pattern_str = zend_string_init(pattern, len, 0);
+    if ((cache = pcre_get_compiled_regex_cache(pattern_str)) != NULL) {
+        php_pcre_match_impl(cache, subject, strlen(subject), result, subpats, 0, 0, 0, 0);
+        zval *match = NULL;
+        if (Z_LVAL_P(result) > 0 && Z_TYPE_P(subpats) == IS_ARRAY) {
+            zval *value = zend_hash_index_find(Z_ARRVAL_P(subpats), 1);
+            if (value != NULL) {
+                match = value;
+                if (Z_TYPE_P(match) == IS_STRING) {
+                    ret = estrdup(Z_STRVAL_P(match));
+                }
+            }
+        }
+    }
+    zend_string_free(pattern_str);
+    efree(result);
+    zval_dtor(subpats);
+    efree(subpats);
+    return ret;
+
+}
 
 
 ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
@@ -330,6 +361,15 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 
                 if (dbh->data_source != NULL && db_type[0] != '\0') {
                     add_assoc_string(&tags, "db.data_source", (char *) dbh->data_source);
+                    char *host = pcre_match("(host=([^;\\s]+))", sizeof("(host=([^;\\s]+))")-1, (char *) dbh->data_source);
+                    char *port = pcre_match("(port=([^;\\s]+))", sizeof("(port=([^;\\s]+))")-1, (char *) dbh->data_source);
+                    if (host != NULL && port != NULL) {
+                        peer = (char *) emalloc(strlen(host) + 10);
+                        bzero(peer, strlen(host) + 10);
+                        sprintf(peer, "%s:%s", host, port);
+                    }
+                    if (host != NULL) efree(host);
+                    if (port != NULL) efree(port);
                 }
             }
         } else if (strcmp(class_name, "PDOStatement") == 0) {
@@ -345,6 +385,15 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 
                 if (db_type[0] != '\0' && stmt->dbh != NULL && stmt->dbh->data_source != NULL) {
                     add_assoc_string(&tags, "db.data_source", (char *) stmt->dbh->data_source);
+                    char *host = pcre_match("(host=([^;\\s]+))", sizeof("(host=([^;\\s]+))")-1, (char *) stmt->dbh->data_source);
+                    char *port = pcre_match("(port=([^;\\s]+))", sizeof("(port=([^;\\s]+))")-1, (char *) stmt->dbh->data_source);
+                    if (host != NULL && port != NULL) {
+                        peer = (char *) emalloc(strlen(host) + 10);
+                        bzero(peer, strlen(host) + 10);
+                        sprintf(peer, "%s:%s", host, port);
+                    }
+                    if (host != NULL) efree(host);
+                    if (port != NULL) efree(port);
                 }
             }
         } else if (strcmp(class_name, "mysqli") == 0) {
@@ -354,11 +403,16 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 if (my_res && my_res->ptr) {
                     MY_MYSQL *mysql = (MY_MYSQL *) my_res->ptr;
                     if (mysql->mysql) {
-                        add_assoc_string(&tags, "db.host", mysql->mysql->data->host);
+#if PHP_VERSION_ID >= 70200
+                        char *host = mysql->mysql->data->hostname.s;
+#else
+                        char *host = mysql->mysql->data->host;
+#endif
+                        add_assoc_string(&tags, "db.host", host);
                         add_assoc_long(&tags, "db.port", mysql->mysql->data->port);
-                        peer = (char *) emalloc(strlen(mysql->mysql->data->host) + 10);
-                        bzero(peer, strlen(mysql->mysql->data->host) + 10);
-                        sprintf(peer, "%s:%d", mysql->mysql->data->host, mysql->mysql->data->port);
+                        peer = (char *) emalloc(strlen(host) + 10);
+                        bzero(peer, strlen(host) + 10);
+                        sprintf(peer, "%s:%d", host, mysql->mysql->data->port);
                     }
                 }
 
