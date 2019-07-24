@@ -1,7 +1,6 @@
 # 20190722
 ## SkyWalking 扩展修改
-1. 支持对mysqli扩展的支持
-
+1. 支持对mysqli扩展的支持(目前暂时仅支持`mysqli::query()`)
 
 # 20190719
 ## Agent 修改
