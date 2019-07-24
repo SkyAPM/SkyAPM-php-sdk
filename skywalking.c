@@ -249,10 +249,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             zf->common.scope->name) : NULL;
     const char *function_name = zf->common.function_name == NULL ? NULL : ZSTR_VAL(zf->common.function_name);
 
-#ifdef SKYWALKING_ENABLED_MYSQLI
-    int is_mysqli_function = 0;
-#endif
-
+    int is_procedural_mysqli = 0; // "Procedural style" or "Object oriented style" ?
     char *operationName = NULL;
     char *component = NULL;
     if (class_name != NULL) {
@@ -277,9 +274,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 strcat(operationName, "->");
                 strcat(operationName, function_name);
             }
-        }
-#ifdef SKYWALKING_ENABLED_MYSQLI
-        if (strcmp(class_name, "mysqli") == 0) {
+        } else if (strcmp(class_name, "mysqli") == 0) {
             if (strcmp(function_name, "query") == 0) {
                 component = (char *) emalloc(strlen("mysqli") + 1);
                 strcpy(component, "mysqli");
@@ -289,9 +284,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 strcat(operationName, function_name);
             }
         }
-#endif
     } else if (function_name != NULL) {
-#ifdef SKYWALKING_ENABLED_MYSQLI
         if (strcmp(function_name, "mysqli_query") == 0) {
             class_name = "mysqli";
             function_name = "query";
@@ -302,9 +295,8 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             strcat(operationName, "->");
             strcat(operationName, function_name);
 
-            is_mysqli_function = 1;
+            is_procedural_mysqli = 1;
         }
-#endif
     }
 
     if (operationName != NULL) {
@@ -355,23 +347,21 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 }
             }
         } else if (function_name != NULL) {
-#ifdef SKYWALKING_ENABLED_MYSQLI
-                if (strcmp(class_name, "mysqli") == 0 && strcmp(function_name, "query") == 0) {
-                    add_assoc_string(&tags, "db.type", "mysqli");
-                    // params
-                    uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
-                    if (arg_count) {
-                        zval *p = is_mysqli_function ? ZEND_CALL_ARG(execute_data, 2) : ZEND_CALL_ARG(execute_data, 1);
-                        //db.statement
-                        switch (Z_TYPE_P(p)) {
-                            case IS_STRING:
-                                add_assoc_string(&tags, "db.statement", Z_STRVAL_P(p));
-                                break;
+            if (strcmp(class_name, "mysqli") == 0 && strcmp(function_name, "query") == 0) {
+                add_assoc_string(&tags, "db.type", "mysqli");
+                // params
+                uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+                if (arg_count) {
+                    zval *p = is_procedural_mysqli ? ZEND_CALL_ARG(execute_data, 2) : ZEND_CALL_ARG(execute_data, 1);
+                    //db.statement
+                    switch (Z_TYPE_P(p)) {
+                        case IS_STRING:
+                            add_assoc_string(&tags, "db.statement", Z_STRVAL_P(p));
+                            break;
 
-                        }
                     }
                 }
-#endif
+            }
         }
 
 
