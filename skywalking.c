@@ -67,7 +67,6 @@ static int application_id = 0;
 static int sky_close = 0;
 static int sky_increment_id = 0;
 static int cli_debug = 0;
-static char *sock_path = "/tmp/sky_agent.sock";
 
 static void (*ori_execute_ex)(zend_execute_data *execute_data);
 static void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value);
