@@ -398,7 +398,13 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             }
         } else if (strcmp(class_name, "mysqli") == 0) {
             if (strcmp(function_name, "query") == 0) {
-                mysqli_object *mysqli = (mysqli_object *) Z_MYSQLI_P(&(execute_data->This));
+                mysqli_object *mysqli = NULL;
+                if(is_procedural_mysqli) {
+                    mysqli = (mysqli_object *) Z_MYSQLI_P(ZEND_CALL_ARG(execute_data, 1));
+                } else {
+                    mysqli = (mysqli_object *) Z_MYSQLI_P(&(execute_data->This));
+                }
+
                 MYSQLI_RESOURCE *my_res = (MYSQLI_RESOURCE *) mysqli->ptr;
                 if (my_res && my_res->ptr) {
                     MY_MYSQL *mysql = (MY_MYSQL *) my_res->ptr;
