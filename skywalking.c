@@ -414,14 +414,15 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 #else
                         char *host = mysql->mysql->data->host;
 #endif
+                        char port[6];
+                        sprintf(port, "%d", mysql->mysql->data->port);
                         add_assoc_string(&tags, "db.host", host);
-                        add_assoc_long(&tags, "db.port", mysql->mysql->data->port);
+                        add_assoc_string(&tags, "db.port", port);
                         peer = (char *) emalloc(strlen(host) + 10);
                         bzero(peer, strlen(host) + 10);
                         sprintf(peer, "%s:%d", host, mysql->mysql->data->port);
                     }
                 }
-
 
                 add_assoc_string(&tags, "db.type", "mysql");
                 // params
