@@ -21,18 +21,23 @@ sudo apt install php7.2-dev
 sudo apt install curl-dev 
 ```
 
-
-3.git clone 源码
+3.确定根目录
 
 ```shell
-git clone https://github.com/SkyAPM/SkyAPM-php-sdk.git /path/to/SkyAPM-php-sdk
+mkdir -p /data/skywalking && cd /data/skywalking
+```
+
+4.git clone 源码
+
+```shell
+git clone https://github.com/SkyAPM/SkyAPM-php-sdk.git
 ```
 
 
 4.编译安装SkyAPM-php-sdk
 
 ```shell
-cd /path/to/SkyAPM-php-sdk
+cd SkyAPM-php-sdk
 phpize
 ./configure
 make
@@ -43,17 +48,31 @@ sudo make install
 5.新建php的skywalking扩展配置文件，写入配置
 
 ```shell
-# 扩展so
+# 假设php.ini文件为 /usr/local/php/etc/php.ini
+
+sudo cat >> /usr/local/php/etc/php.ini<<EOF
+; Loading extensions in PHP
 extension=skywalking.so
-# 是否启用：0 关闭；1 启用 (默认值为0)
-skywalking.enable=1
-# skywalking的版本：5或者6（默认值为6）
-skywalking.version=6
-# app_code代码，不要含特殊字符，请使用数字、字母、下换线。(默认为：hello_skywalking)
-skywalking.app_code=hello_skywalking
-# sock文件路径（默认值为/tmp/sky_agent.sock）
+; enable skywalking
+skywalking.enable = 1
+; Set skyWalking collector version
+skywalking.version = 6
+; Set app code e.g. MyProjectName
+skywalking.app_code = your_php_project_name
+; Set skywalking php agent sock path
 skywalking.sock_path=/tmp/sky_agent.sock
+EOF
 ```
+扩展so
+extension=skywalking.so
+是否启用：0 关闭；1 启用 (默认值为0)
+skywalking.enable=1
+skywalking的版本：5或者6（默认值为6）
+skywalking.version=6
+app_code代码，不要含特殊字符，请使用数字、字母、下换线。(默认为：hello_skywalking)
+skywalking.app_code=hello_skywalking
+sock文件路径（默认值为/tmp/sky_agent.sock）
+skywalking.sock_path=/tmp/sky_agent.sock
 
 
 6.重启php-fpm服务
