@@ -409,7 +409,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 if (my_res && my_res->ptr) {
                     MY_MYSQL *mysql = (MY_MYSQL *) my_res->ptr;
                     if (mysql->mysql) {
-#if PHP_VERSION_ID >= 70200
+#if PHP_VERSION_ID >= 70100
                         char *host = mysql->mysql->data->hostname.s;
 #else
                         char *host = mysql->mysql->data->host;
