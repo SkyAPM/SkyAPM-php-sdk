@@ -859,7 +859,8 @@ static void write_log(char *text) {
         un.sun_family = AF_UNIX;
         strcpy(un.sun_path, SKYWALKING_G(sock_path));
         int fd;
-        char message[strlen(text) + 2];
+        char *message = (char*) emalloc(strlen(text) + 10);
+        bzero(message, strlen(text) + 10);
 
         fd = socket(AF_UNIX, SOCK_STREAM, 0);
         if (fd >= 0) {
@@ -870,12 +871,12 @@ static void write_log(char *text) {
             int conn = connect(fd, (struct sockaddr *) &un, sizeof(un));
 
             if (conn >= 0) {
-                bzero(message, strlen(text) + 2);
                 sprintf(message, "1%s\n", text);
                 write(fd, message, strlen(message));
             }
             close(fd);
         }
+        efree(message);
     }
 
 }
