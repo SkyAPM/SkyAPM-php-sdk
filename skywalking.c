@@ -198,31 +198,62 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                 if (Z_TYPE_P(pam) == IS_ARRAY) {
                     zend_ulong num_key;
                     zval *entry;
+                    int is_string_command = 0;
+                    smart_str command = {0};
                     ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(pam), num_key, entry)
                             {
                                 char *fnamewall = (char *) emalloc(strlen(Z_STRVAL_P(fname)) + 3);
                                 sprintf(fnamewall, "|%s|", Z_STRVAL_P(fname));
+
+                                // strtolower for matching redis key
+                                fnamewall = php_strtolower(fnamewall, strlen(fnamewall));
                                 // first params
                                 if (num_key == 0) {
                                     switch (Z_TYPE_P(entry)) {
                                         case IS_STRING:
+                                            is_string_command = 1;
+                                            smart_str_appends(&command, php_strtolower(Z_STRVAL_P(fname), Z_STRLEN_P(fname)));
+                                            smart_str_appends(&command, " ");
+
                                             // string
-                                            if (strstr(REDIS_KEY_STRING, fnamewall)) { // add tag key
+                                            if (strstr(REDIS_KEY_STRING, fnamewall)
+                                                || strstr(REDIS_KEY_KEY, fnamewall)
+                                                || strstr(REDIS_KEY_HASH, fnamewall)
+                                                || strstr(REDIS_KEY_LIST, fnamewall)
+                                                || strstr(REDIS_KEY_SET, fnamewall)
+                                                || strstr(REDIS_KEY_SORT, fnamewall)
+                                                || strstr(REDIS_KEY_HLL, fnamewall)
+                                                || strstr(REDIS_KEY_GEO, fnamewall)
+                                            ) { // add tag key
                                                 add_assoc_string(&tags, "redis.key", Z_STRVAL_P(entry));
                                             } else if (strstr(REDIS_OPERATION_STRING, fnamewall)) { // add tag operation
                                                 add_assoc_string(&tags, "redis.operation", Z_STRVAL_P(entry));
                                             }
                                             break;
                                         case IS_ARRAY:
-
+                                            // @todo
                                             break;
                                     }
                                 }
 
+                                // collect command params for string command
+                                if (is_string_command == 1) {
+                                    if (Z_TYPE_P(entry) != IS_STRING) {
+                                        convert_to_string(entry);
+                                    }
+                                    smart_str_appends(&command, Z_STRVAL_P(entry));
+                                    smart_str_appends(&command, " ");
+                                }
                                 efree(fnamewall);
                             }
                     ZEND_HASH_FOREACH_END();
 
+                    // store command to tags
+                    if (command.s) {
+                        smart_str_0(&command);
+                        add_assoc_string(&tags, "redis.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
+                        smart_str_free(&command);
+                    }
                 }
             }
         }
