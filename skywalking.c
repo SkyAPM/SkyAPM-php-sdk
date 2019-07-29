@@ -172,7 +172,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                 zval *p = ZEND_CALL_ARG(execute_data, 1);
 
                 if (Z_TYPE_P(p) == IS_STRING) {
-                    operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
+                    operationName = (char *) emalloc(strlen(class_name) + strlen(Z_STRVAL_P(p)) + 3);
                     strcpy(operationName, class_name);
                     strcat(operationName, "->");
                     strcat(operationName, Z_STRVAL_P(p));
