@@ -19,7 +19,7 @@
  * php curl扩展发出的请求
  * php PDO扩展发出的请求
  * php mysqli扩展发出的请求
- * php yar扩展(client)发出的请求: (需要在编译时指定：`./configure --enable-yarclient=yes`来启用)
+ * php yar扩展(client)发出的请求
 
 1. skywalking_get_trace_info()函数的返回值格式？
  * 返回值为数组。如果扩展加载但是未启用(`skywalking.enable=0`), 则返回空数组

@@ -351,9 +351,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 strcat(operationName, "->");
                 strcat(operationName, function_name);
             }
-        }
-#ifdef ENABLE_YAR_CLIENT
-        if (strcmp(class_name, "Yar_Client") == 0) {
+        } else if (strcmp(class_name, "Yar_Client") == 0) {
             if (strcmp(function_name, "__call") == 0) {
                 componentId = COMPONENT_GRPC;
                 component = (char *) emalloc(strlen("Yar_Client") + 1);
@@ -370,7 +368,6 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 }
             }
         }
-#endif
     } else if (function_name != NULL) {
         if (strcmp(function_name, "mysqli_query") == 0) {
             class_name = "mysqli";
@@ -493,9 +490,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                     }
                 }
             }
-        }
-#ifdef ENABLE_YAR_CLIENT
-        if (strcmp(class_name, "Yar_Client") == 0) {
+        } else if (strcmp(class_name, "Yar_Client") == 0) {
             if (strcmp(function_name, "__call") == 0) {
                 zval rv, _uri;
                 ZVAL_STRING(&_uri, "_uri");
@@ -510,7 +505,6 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 }
             }
         }
-#endif
 
         zval temp;
         zval *spans = NULL;
