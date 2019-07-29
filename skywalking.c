@@ -153,6 +153,10 @@ static char *pcre_match(char *pattern, int len, char *subject) {
 
 
 ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
+    if (sky_close == 1) {
+        ori_execute_ex(execute_data);
+        return;
+    }
 
     zend_function *zf = execute_data->func;
     const char *class_name = (zf->common.scope != NULL && zf->common.scope->name != NULL) ? ZSTR_VAL(
