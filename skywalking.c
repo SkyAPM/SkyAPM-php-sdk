@@ -153,7 +153,7 @@ static char *pcre_match(char *pattern, int len, char *subject) {
 
 
 ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
-    if (sky_close == 1) {
+    if (application_instance == 0) {
         ori_execute_ex(execute_data);
         return;
     }
