@@ -35,7 +35,6 @@
 #include "ext/standard/url.h" /* for php_url */
 #include "ext/standard/php_var.h"
 #include "ext/pdo/php_pdo_driver.h"
-#include "ext/mysqli/php_mysqli_structs.h"
 #include "ext/pcre/php_pcre.h"
 
 #include "ext/standard/basic_functions.h"
@@ -57,6 +56,10 @@
 #include <sys/un.h>
 
 #include "b64.h"
+
+#ifdef MYSQLI_USE_MYSQLND
+#include "ext/mysqli/php_mysqli_structs.h"
+#endif
 
 /* If you declare any globals in php_skywalking.h uncomment this:
 */
@@ -450,6 +453,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             }
         } else if (strcmp(class_name, "mysqli") == 0) {
             if (strcmp(function_name, "query") == 0) {
+#ifdef MYSQLI_USE_MYSQLND
                 mysqli_object *mysqli = NULL;
                 if(is_procedural_mysqli) {
                     mysqli = (mysqli_object *) Z_MYSQLI_P(ZEND_CALL_ARG(execute_data, 1));
@@ -475,7 +479,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                         sprintf(peer, "%s:%d", host, mysql->mysql->data->port);
                     }
                 }
-
+#endif
                 add_assoc_string(&tags, "db.type", "mysql");
                 // params
                 uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
