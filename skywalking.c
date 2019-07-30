@@ -919,6 +919,9 @@ static char *sky_json_encode(zval *parameter){
 static void write_log(char *text) {
     if (application_instance != 0) {
         // to stream
+        if(text == NULL) {
+            return;
+        }
 
         struct sockaddr_un un;
         un.sun_family = AF_UNIX;
