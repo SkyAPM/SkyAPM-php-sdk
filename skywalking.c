@@ -189,7 +189,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
             add_assoc_string(&tags, "db.type", "redis");
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
             zval *fname = ZEND_CALL_ARG(execute_data, 1);
-	    int i;
+	        int i;
             for (i = 1; i < arg_count + 1; ++i) {
                 if (i == 1) {
                     continue;
@@ -319,6 +319,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
     char *operationName = NULL;
     char *peer = NULL;
     char *component = NULL;
+    int componentId = COMPONENT_MYSQL_JDBC_DRIVER;
     if (class_name != NULL) {
         if (strcmp(class_name, "PDO") == 0) {
             if (strcmp(function_name, "exec") == 0
@@ -349,6 +350,22 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 strcpy(operationName, class_name);
                 strcat(operationName, "->");
                 strcat(operationName, function_name);
+            }
+        } else if (strcmp(class_name, "Yar_Client") == 0) {
+            if (strcmp(function_name, "__call") == 0) {
+                componentId = COMPONENT_GRPC;
+                component = (char *) emalloc(strlen("Yar_Client") + 1);
+                strcpy(component, "Yar_Client");
+                uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+                if (arg_count) {
+                    zval *p = ZEND_CALL_ARG(execute_data, 1);
+                    if (Z_TYPE_P(p) == IS_STRING) {
+                        operationName = (char *) emalloc(strlen(class_name) + strlen(Z_STRVAL_P(p)) + 3);
+                        strcpy(operationName, class_name);
+                        strcat(operationName, "->");
+                        strcat(operationName, Z_STRVAL_P(p));
+                    }
+                }
             }
         }
     } else if (function_name != NULL) {
@@ -473,8 +490,21 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                     }
                 }
             }
+        } else if (strcmp(class_name, "Yar_Client") == 0) {
+            if (strcmp(function_name, "__call") == 0) {
+                zval rv, _uri;
+                ZVAL_STRING(&_uri, "_uri");
+                zval *yar_uri = Z_OBJ_HT(EX(This))->read_property(&EX(This), &_uri, BP_VAR_R, 0, &rv);
+                add_assoc_string(&tags, "yar.uri", Z_STRVAL_P(yar_uri));
+                uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+                if (arg_count) {
+                    zval *p = ZEND_CALL_ARG(execute_data, 1);
+                    if (Z_TYPE_P(p) == IS_STRING) {
+                        add_assoc_string(&tags, "yar.method", Z_STRVAL_P(p));
+                    }
+                }
+            }
         }
-
 
         zval temp;
         zval *spans = NULL;
@@ -496,7 +526,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
         add_assoc_long(&temp, "spanType", 1);
         add_assoc_long(&temp, "spanLayer", 1);
 //        add_assoc_string(&temp, "component", component);
-        add_assoc_long(&temp, "componentId", COMPONENT_MYSQL_JDBC_DRIVER);
+        add_assoc_long(&temp, "componentId", componentId);
         add_assoc_string(&temp, "operationName", operationName);
         add_assoc_string(&temp, "peer", peer == NULL ? "" : peer);
         efree(component);

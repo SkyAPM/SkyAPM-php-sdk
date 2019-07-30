@@ -22,6 +22,7 @@ Host in Beijing. Go to [demo](http://106.75.237.45:8080/).
 1. CURL
 1. PDO
 1. Mysqli
+1. Yar Client ([Yar](https://www.php.net/manual/en/book.yar.php))
 
 ## Contact Us
 * Submit an [issue](https://github.com/SkyAPM/SkyAPM-php-sdk/issues)
