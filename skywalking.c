@@ -900,7 +900,7 @@ static char *sky_json_encode(zval *parameter){
 
 	smart_str buf = {0};
 	zend_long options = 64;
-#if PHP_VERSION_ID >= 71000
+#if PHP_VERSION_ID >= 70100
 	return_code = php_json_encode(&buf, parameter, (int)options);
 	if (return_code != SUCCESS) {
 		smart_str_free(&buf);
