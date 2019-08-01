@@ -167,6 +167,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
     const char *function_name = zf->common.function_name == NULL ? NULL : ZSTR_VAL(zf->common.function_name);
 
     char *operationName = NULL;
+    int componentId = 0;
     if (class_name != NULL) {
         if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "__call") == 0) {
             // params
@@ -176,10 +177,23 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
 
                 if (Z_TYPE_P(p) == IS_STRING) {
                     operationName = (char *) emalloc(strlen(class_name) + strlen(Z_STRVAL_P(p)) + 3);
+                    componentId = COMPONENT_JEDIS;
                     strcpy(operationName, class_name);
                     strcat(operationName, "->");
                     strcat(operationName, Z_STRVAL_P(p));
                 }
+            }
+        } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
+            if (strcmp(function_name, "_simpleRequest") == 0
+                || strcmp(function_name, "_clientStreamRequest") == 0
+                || strcmp(function_name, "_serverStreamRequest") == 0
+                || strcmp(function_name, "_bidiRequest") == 0
+            ) {
+                operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
+                componentId = COMPONENT_GRPC;
+                strcpy(operationName, class_name);
+                strcat(operationName, "->");
+                strcat(operationName, function_name);
             }
         }
     }
@@ -259,6 +273,12 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                     }
                 }
             }
+        } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
+            add_assoc_string(&tags, "rpc.type", "grpc");
+            zval *p = ZEND_CALL_ARG(execute_data, 1);
+            if (Z_TYPE_P(p) == IS_STRING) {
+                add_assoc_string(&tags, "rpc.method", Z_STRVAL_P(p));
+            }
         }
 
         zval temp;
@@ -280,7 +300,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
         add_assoc_long(&temp, "startTime", millisecond);
         add_assoc_long(&temp, "spanType", 1);
         add_assoc_long(&temp, "spanLayer", 1);
-        add_assoc_long(&temp, "componentId", COMPONENT_JEDIS);
+        add_assoc_long(&temp, "componentId", componentId);
         add_assoc_string(&temp, "operationName", operationName);
         add_assoc_string(&temp, "peer", "");
         efree(operationName);
