@@ -913,16 +913,20 @@ static char *sky_json_encode(zval *parameter){
 	php_json_encode(&buf, parameter, (int)options);
 #endif
 	smart_str_0(&buf);
-	char *bufs = ZSTR_VAL(buf.s);
-	smart_str_free(&buf);
-	return bufs;
+	if(buf.s != NULL) {
+        char *bufs = emalloc(strlen(ZSTR_VAL(buf.s)) + 1);
+        strcpy(bufs, ZSTR_VAL(buf.s));
+        smart_str_free(&buf);
+        return bufs;
+	}
+    return NULL;
 }
 
 
 static void write_log(char *text) {
     if (application_instance != 0) {
         // to stream
-        if(text == NULL) {
+        if(text == NULL || strlen(text) <= 0) {
             return;
         }
 
@@ -948,6 +952,7 @@ static void write_log(char *text) {
             close(fd);
         }
         efree(message);
+        efree(text);
     }
 
 }
