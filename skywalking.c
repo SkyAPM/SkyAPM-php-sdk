@@ -161,7 +161,7 @@ static char *sky_redis_fnamewall(const char *function_name) {
     return fnamewall;
 }
 
-static int sky_redis_key_func(char *fnamewall) {
+static int sky_redis_opt_for_string_key(char *fnamewall) {
     if (strstr(REDIS_KEY_STRING, fnamewall)
         || strstr(REDIS_KEY_KEY, fnamewall)
         || strstr(REDIS_KEY_HASH, fnamewall)
@@ -237,7 +237,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                                             smart_str_appends(&command, " ");
 
                                             // string
-                                            if (sky_redis_key_func(fnamewall) == 1) { // add tag key
+                                            if (sky_redis_opt_for_string_key(fnamewall) == 1) { // add tag key
                                                 add_assoc_string(&tags, "redis.key", Z_STRVAL_P(entry));
                                             } else if (strstr(REDIS_OPERATION_STRING, fnamewall)) { // add tag operation
                                                 add_assoc_string(&tags, "redis.operation", Z_STRVAL_P(entry));
@@ -382,7 +382,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             }
         } else if (strcmp(class_name, "Redis") == 0 || strcmp(class_name, "RedisCluster") == 0) {
             char *fnamewall = sky_redis_fnamewall(function_name);
-            if (sky_redis_key_func(fnamewall) == 1) {
+            if (sky_redis_opt_for_string_key(fnamewall) == 1) {
                 componentId = COMPONENT_JEDIS;
                 component = (char *) emalloc(strlen("Redis") + 1);
                 strcpy(component, "Redis");
