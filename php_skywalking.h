@@ -151,6 +151,8 @@ static void write_log( char *text);
 static void request_init();
 static void zval_b64_encode(zval *out, char *in);
 static void zval_b64_decode(zval *out, char *in);
+static char *sky_redis_fnamewall(const char *function_name);
+static int sky_redis_key_func(char *fnamewall);
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS);
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS);
