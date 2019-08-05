@@ -20,6 +20,7 @@
  * php PDO扩展发出的请求
  * php mysqli扩展发出的请求
  * php yar扩展(client)发出的请求
+ * php [grpc/grpc](https://github.com/grpc/grpc-php) 发出的请求
  * php redis扩展发出的请求
  * php predis库发出的请求
 

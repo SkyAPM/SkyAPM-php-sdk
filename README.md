@@ -23,6 +23,7 @@ Host in Beijing. Go to [demo](http://106.75.237.45:8080/).
 1. PDO
 1. Mysqli
 1. Yar Client ([Yar](https://www.php.net/manual/en/book.yar.php))
+1. GRPC Client ([GRPC](https://github.com/grpc/grpc-php))
 1. Predis Client ([Predis](https://packagist.org/packages/predis/predis))
 1. Redis Extension ([Redis Extension](https://github.com/phpredis/phpredis))
 
