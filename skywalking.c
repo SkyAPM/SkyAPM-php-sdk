@@ -375,7 +375,12 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             }
         } else if (strcmp(class_name, "Yar_Client") == 0) {
             if (strcmp(function_name, "__call") == 0) {
-                componentId = COMPONENT_GRPC;
+                if (SKYWALKING_G(version) == 5) {
+                    componentId = COMPONENT_GRPC;
+                } else {
+                    componentId = COMPONENT_RPC;
+                }
+
                 component = (char *) emalloc(strlen("Yar_Client") + 1);
                 strcpy(component, "Yar_Client");
                 uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
