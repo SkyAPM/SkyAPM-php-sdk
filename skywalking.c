@@ -69,7 +69,6 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 static int le_skywalking;
 static int application_instance = 0;
 static int application_id = 0;
-static int sky_close = 0;
 static int sky_increment_id = 0;
 static int cli_debug = 0;
 
@@ -314,7 +313,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
 
 ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
 
-    if (sky_close == 1) {
+    if (application_instance == 0) {
         if (ori_execute_internal) {
             ori_execute_internal(execute_data, return_value);
         } else {
@@ -628,7 +627,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 {
-    if(sky_close == 1) {
+    if(application_instance == 0) {
         orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -867,7 +866,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 }
 
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
-    if(sky_close == 1) {
+    if(application_instance == 0) {
         orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -897,7 +896,7 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
 void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
-    if(sky_close == 1) {
+    if(application_instance == 0) {
         orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -924,7 +923,7 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
 void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
-    if(sky_close == 1) {
+    if(application_instance == 0) {
         orig_curl_close(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -1614,10 +1613,7 @@ PHP_RINIT_FUNCTION(skywalking)
         }
         sky_register();
         if (application_instance == 0) {
-            sky_close = 1;
             return SUCCESS;
-        } else {
-            sky_close = 0;
         }
         sky_increment_id++;
         if (sky_increment_id >= 9999) {
@@ -1639,7 +1635,7 @@ PHP_RSHUTDOWN_FUNCTION(skywalking)
         if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
             return SUCCESS;
         }
-        if (sky_close == 1) {
+        if (application_instance == 0) {
             return SUCCESS;
         }
 		sky_flush_all();
