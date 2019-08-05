@@ -153,6 +153,28 @@ static char *pcre_match(char *pattern, int len, char *subject) {
 
 }
 
+static char *sky_redis_fnamewall(const char *function_name) {
+    char *fnamewall = (char *) emalloc(strlen(function_name) + 3);
+    sprintf(fnamewall, "|%s|", function_name);
+    fnamewall = php_strtolower(fnamewall, strlen(fnamewall));
+    return fnamewall;
+}
+
+static int sky_redis_opt_for_string_key(char *fnamewall) {
+    if (strstr(REDIS_KEY_STRING, fnamewall)
+        || strstr(REDIS_KEY_KEY, fnamewall)
+        || strstr(REDIS_KEY_HASH, fnamewall)
+        || strstr(REDIS_KEY_LIST, fnamewall)
+        || strstr(REDIS_KEY_SET, fnamewall)
+        || strstr(REDIS_KEY_SORT, fnamewall)
+        || strstr(REDIS_KEY_HLL, fnamewall)
+        || strstr(REDIS_KEY_GEO, fnamewall)
+    ) {
+        return 1;
+    }
+    return 0;
+}
+
 
 ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
     if (application_instance == 0) {
@@ -222,11 +244,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                     smart_str command = {0};
                     ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(pam), num_key, entry)
                             {
-                                char *fnamewall = (char *) emalloc(strlen(Z_STRVAL_P(fname)) + 3);
-                                sprintf(fnamewall, "|%s|", Z_STRVAL_P(fname));
-
-                                // strtolower for matching redis key
-                                fnamewall = php_strtolower(fnamewall, strlen(fnamewall));
+                                char *fnamewall = sky_redis_fnamewall(Z_STRVAL_P(fname));
                                 // first params
                                 if (num_key == 0) {
                                     switch (Z_TYPE_P(entry)) {
@@ -236,15 +254,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                                             smart_str_appends(&command, " ");
 
                                             // string
-                                            if (strstr(REDIS_KEY_STRING, fnamewall)
-                                                || strstr(REDIS_KEY_KEY, fnamewall)
-                                                || strstr(REDIS_KEY_HASH, fnamewall)
-                                                || strstr(REDIS_KEY_LIST, fnamewall)
-                                                || strstr(REDIS_KEY_SET, fnamewall)
-                                                || strstr(REDIS_KEY_SORT, fnamewall)
-                                                || strstr(REDIS_KEY_HLL, fnamewall)
-                                                || strstr(REDIS_KEY_GEO, fnamewall)
-                                            ) { // add tag key
+                                            if (sky_redis_opt_for_string_key(fnamewall) == 1) { // add tag key
                                                 add_assoc_string(&tags, "redis.key", Z_STRVAL_P(entry));
                                             } else if (strstr(REDIS_OPERATION_STRING, fnamewall)) { // add tag operation
                                                 add_assoc_string(&tags, "redis.operation", Z_STRVAL_P(entry));
@@ -398,6 +408,18 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                     }
                 }
             }
+        } else if (strcmp(class_name, "Redis") == 0 || strcmp(class_name, "RedisCluster") == 0) {
+            char *fnamewall = sky_redis_fnamewall(function_name);
+            if (sky_redis_opt_for_string_key(fnamewall) == 1) {
+                componentId = COMPONENT_JEDIS;
+                component = (char *) emalloc(strlen("Redis") + 1);
+                strcpy(component, "Redis");
+                operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
+                strcpy(operationName, class_name);
+                strcat(operationName, "->");
+                strcat(operationName, function_name);
+            }
+            efree(fnamewall);
         }
     } else if (function_name != NULL) {
         if (strcmp(function_name, "mysqli_query") == 0) {
@@ -535,6 +557,39 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                         add_assoc_string(&tags, "yar.method", Z_STRVAL_P(p));
                     }
                 }
+            }
+        } else if (strcmp(class_name, "Redis") == 0 || strcmp(class_name, "RedisCluster") == 0) {
+            add_assoc_string(&tags, "db.type", "redis");
+            uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+
+            smart_str command = {0};
+            smart_str_appends(&command, php_strtolower((char *) function_name, strlen((char *) function_name)));
+            smart_str_appends(&command, " ");
+
+            int is_string_command = 1;
+            int i;
+            for (i = 1; i < arg_count + 1; ++i) {
+                zval *p = ZEND_CALL_ARG(execute_data, i);
+                if (Z_TYPE_P(p) == IS_ARRAY) {
+                    is_string_command = 0;
+                    break;
+                }
+                if (Z_TYPE_P(p) != IS_STRING) {
+                    convert_to_string(p);
+                }
+                if (i == 1) {
+                    add_assoc_string(&tags, "redis.key", Z_STRVAL_P(p));
+                }
+                smart_str_appends(&command, php_strtolower(Z_STRVAL_P(p), Z_STRLEN_P(p)));
+                smart_str_appends(&command, " ");
+            }
+            // store command to tags
+            if (command.s) {
+                smart_str_0(&command);
+                if (is_string_command) {
+                    add_assoc_string(&tags, "redis.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
+                }
+                smart_str_free(&command);
             }
         }
 
