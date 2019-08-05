@@ -189,7 +189,11 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                 || strcmp(function_name, "_bidiRequest") == 0
             ) {
                 operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
-                componentId = COMPONENT_GRPC;
+                if (SKYWALKING_G(version) == 5) {
+                    componentId = COMPONENT_GRPC;
+                } else {
+                    componentId = COMPONENT_RPC;
+                }
                 strcpy(operationName, class_name);
                 strcat(operationName, "->");
                 strcat(operationName, function_name);
