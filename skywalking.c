@@ -269,7 +269,10 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                                 // collect command params for string command
                                 if (is_string_command == 1) {
                                     if (Z_TYPE_P(entry) != IS_STRING) {
-                                        convert_to_string(entry);
+                                        zval tmp = *entry;
+                                        zval_copy_ctor(&tmp);
+                                        convert_to_string(&tmp);
+                                        entry = &tmp;
                                     }
                                     smart_str_appends(&command, Z_STRVAL_P(entry));
                                     smart_str_appends(&command, " ");
@@ -575,7 +578,10 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                     break;
                 }
                 if (Z_TYPE_P(p) != IS_STRING) {
-                    convert_to_string(p);
+                    zval tmp = *p;
+                    zval_copy_ctor(&tmp);
+                    convert_to_string(&tmp);
+                    p = &tmp;
                 }
                 if (i == 1) {
                     add_assoc_string(&tags, "redis.key", Z_STRVAL_P(p));
