@@ -269,12 +269,11 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                                 // collect command params for string command
                                 if (is_string_command == 1) {
                                     if (Z_TYPE_P(entry) != IS_STRING) {
-                                        zval tmp = *entry;
-                                        zval_copy_ctor(&tmp);
-                                        convert_to_string(&tmp);
-                                        entry = &tmp;
+                                        // @todo covert entry to string
+                                        is_string_command = 0;
+                                    } else {
+                                        smart_str_appends(&command, Z_STRVAL_P(entry));
                                     }
-                                    smart_str_appends(&command, Z_STRVAL_P(entry));
                                     smart_str_appends(&command, " ");
                                 }
                                 efree(fnamewall);
@@ -284,7 +283,9 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                     // store command to tags
                     if (command.s) {
                         smart_str_0(&command);
-                        add_assoc_string(&tags, "redis.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
+                        if (is_string_command) {
+                            add_assoc_string(&tags, "redis.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
+                        }
                         smart_str_free(&command);
                     }
                 }
@@ -578,10 +579,8 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                     break;
                 }
                 if (Z_TYPE_P(p) != IS_STRING) {
-                    zval tmp = *p;
-                    zval_copy_ctor(&tmp);
-                    convert_to_string(&tmp);
-                    p = &tmp;
+                    is_string_command = 0;
+                    break;
                 }
                 if (i == 1) {
                     add_assoc_string(&tags, "redis.key", Z_STRVAL_P(p));
