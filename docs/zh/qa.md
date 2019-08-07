@@ -20,6 +20,9 @@
  * php PDO扩展发出的请求
  * php mysqli扩展发出的请求
  * php yar扩展(client)发出的请求
+ * php [grpc/grpc](https://github.com/grpc/grpc-php) 发出的请求
+ * php redis扩展发出的请求
+ * php predis库发出的请求
 
 1. skywalking_get_trace_info()函数的返回值格式？
  * 返回值为数组。如果扩展加载但是未启用(`skywalking.enable=0`), 则返回空数组

@@ -70,7 +70,6 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 static int le_skywalking;
 static int application_instance = 0;
 static int application_id = 0;
-static int sky_close = 0;
 static int sky_increment_id = 0;
 static int cli_debug = 0;
 
@@ -154,6 +153,28 @@ static char *pcre_match(char *pattern, int len, char *subject) {
 
 }
 
+static char *sky_redis_fnamewall(const char *function_name) {
+    char *fnamewall = (char *) emalloc(strlen(function_name) + 3);
+    sprintf(fnamewall, "|%s|", function_name);
+    fnamewall = php_strtolower(fnamewall, strlen(fnamewall));
+    return fnamewall;
+}
+
+static int sky_redis_opt_for_string_key(char *fnamewall) {
+    if (strstr(REDIS_KEY_STRING, fnamewall)
+        || strstr(REDIS_KEY_KEY, fnamewall)
+        || strstr(REDIS_KEY_HASH, fnamewall)
+        || strstr(REDIS_KEY_LIST, fnamewall)
+        || strstr(REDIS_KEY_SET, fnamewall)
+        || strstr(REDIS_KEY_SORT, fnamewall)
+        || strstr(REDIS_KEY_HLL, fnamewall)
+        || strstr(REDIS_KEY_GEO, fnamewall)
+    ) {
+        return 1;
+    }
+    return 0;
+}
+
 
 ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
     if (application_instance == 0) {
@@ -167,6 +188,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
     const char *function_name = zf->common.function_name == NULL ? NULL : ZSTR_VAL(zf->common.function_name);
 
     char *operationName = NULL;
+    int componentId = 0;
     if (class_name != NULL) {
         if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "executeCommand") == 0) {
             // params
@@ -179,11 +201,28 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
 
                 if (Z_TYPE_P(id) == IS_STRING) {
                     operationName = (char *) emalloc(strlen(class_name) + strlen(Z_STRVAL_P(id)) + 3);
+                    componentId = COMPONENT_JEDIS;
                     strcpy(operationName, class_name);
                     strcat(operationName, "->");
                     strcat(operationName, Z_STRVAL_P(id));
                 }
                 efree(id);
+            }
+        } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
+            if (strcmp(function_name, "_simpleRequest") == 0
+                || strcmp(function_name, "_clientStreamRequest") == 0
+                || strcmp(function_name, "_serverStreamRequest") == 0
+                || strcmp(function_name, "_bidiRequest") == 0
+            ) {
+                operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
+                if (SKYWALKING_G(version) == 5) {
+                    componentId = COMPONENT_GRPC;
+                } else {
+                    componentId = COMPONENT_RPC;
+                }
+                strcpy(operationName, class_name);
+                strcat(operationName, "->");
+                strcat(operationName, function_name);
             }
         }
     }
@@ -235,6 +274,12 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
             zval_ptr_dtor(arguments);
             efree(id);
             efree(arguments);
+        } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
+            add_assoc_string(&tags, "rpc.type", "grpc");
+            zval *p = ZEND_CALL_ARG(execute_data, 1);
+            if (Z_TYPE_P(p) == IS_STRING) {
+                add_assoc_string(&tags, "rpc.method", Z_STRVAL_P(p));
+            }
         }
 
         zval temp;
@@ -256,7 +301,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
         add_assoc_long(&temp, "startTime", millisecond);
         add_assoc_long(&temp, "spanType", 1);
         add_assoc_long(&temp, "spanLayer", 1);
-        add_assoc_long(&temp, "componentId", COMPONENT_JEDIS);
+        add_assoc_long(&temp, "componentId", componentId);
         add_assoc_string(&temp, "operationName", operationName);
         add_assoc_string(&temp, "peer", "");
         efree(operationName);
@@ -280,7 +325,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
 
 ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
 
-    if (sky_close == 1) {
+    if (application_instance == 0) {
         if (ori_execute_internal) {
             ori_execute_internal(execute_data, return_value);
         } else {
@@ -351,6 +396,18 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                     }
                 }
             }
+        } else if (strcmp(class_name, "Redis") == 0 || strcmp(class_name, "RedisCluster") == 0) {
+            char *fnamewall = sky_redis_fnamewall(function_name);
+            if (sky_redis_opt_for_string_key(fnamewall) == 1) {
+                componentId = COMPONENT_JEDIS;
+                component = (char *) emalloc(strlen("Redis") + 1);
+                strcpy(component, "Redis");
+                operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
+                strcpy(operationName, class_name);
+                strcat(operationName, "->");
+                strcat(operationName, function_name);
+            }
+            efree(fnamewall);
         }
     } else if (function_name != NULL) {
         if (strcmp(function_name, "mysqli_query") == 0) {
@@ -489,6 +546,39 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                     }
                 }
             }
+        } else if (strcmp(class_name, "Redis") == 0 || strcmp(class_name, "RedisCluster") == 0) {
+            add_assoc_string(&tags, "db.type", "redis");
+            uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+
+            smart_str command = {0};
+            smart_str_appends(&command, php_strtolower((char *) function_name, strlen((char *) function_name)));
+            smart_str_appends(&command, " ");
+
+            int is_string_command = 1;
+            int i;
+            for (i = 1; i < arg_count + 1; ++i) {
+                zval *p = ZEND_CALL_ARG(execute_data, i);
+                if (Z_TYPE_P(p) == IS_ARRAY) {
+                    is_string_command = 0;
+                    break;
+                }
+                if (Z_TYPE_P(p) != IS_STRING) {
+                    convert_to_string(p);
+                }
+                if (i == 1) {
+                    add_assoc_string(&tags, "redis.key", Z_STRVAL_P(p));
+                }
+                smart_str_appends(&command, php_strtolower(Z_STRVAL_P(p), Z_STRLEN_P(p)));
+                smart_str_appends(&command, " ");
+            }
+            // store command to tags
+            if (command.s) {
+                smart_str_0(&command);
+                if (is_string_command) {
+                    add_assoc_string(&tags, "redis.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
+                }
+                smart_str_free(&command);
+            }
         }
 
         zval temp;
@@ -554,7 +644,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 {
-    if(sky_close == 1) {
+    if(application_instance == 0) {
         orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -793,7 +883,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
 }
 
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
-    if(sky_close == 1) {
+    if(application_instance == 0) {
         orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -823,7 +913,7 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
 void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
-    if(sky_close == 1) {
+    if(application_instance == 0) {
         orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -850,7 +940,7 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
 void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
-    if(sky_close == 1) {
+    if(application_instance == 0) {
         orig_curl_close(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -1540,10 +1630,7 @@ PHP_RINIT_FUNCTION(skywalking)
         }
         sky_register();
         if (application_instance == 0) {
-            sky_close = 1;
             return SUCCESS;
-        } else {
-            sky_close = 0;
         }
         sky_increment_id++;
         if (sky_increment_id >= 9999) {
@@ -1565,7 +1652,7 @@ PHP_RSHUTDOWN_FUNCTION(skywalking)
         if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
             return SUCCESS;
         }
-        if (sky_close == 1) {
+        if (application_instance == 0) {
             return SUCCESS;
         }
 		sky_flush_all();
