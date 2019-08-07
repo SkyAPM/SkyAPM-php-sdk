@@ -156,7 +156,7 @@ static char *pcre_match(char *pattern, int len, char *subject) {
 static char *sky_redis_fnamewall(const char *function_name) {
     char *fnamewall = (char *) emalloc(strlen(function_name) + 3);
     sprintf(fnamewall, "|%s|", function_name);
-    fnamewall = php_strtolower(fnamewall, strlen(fnamewall));
+    fnamewall = zend_str_tolower_dup(fnamewall, strlen(fnamewall));
     return fnamewall;
 }
 
@@ -250,7 +250,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                                     switch (Z_TYPE_P(entry)) {
                                         case IS_STRING:
                                             is_string_command = 1;
-                                            smart_str_appends(&command, php_strtolower(Z_STRVAL_P(fname), Z_STRLEN_P(fname)));
+                                            smart_str_appends(&command, zend_str_tolower_dup(Z_STRVAL_P(fname), Z_STRLEN_P(fname)));
                                             smart_str_appends(&command, " ");
 
                                             // string
@@ -563,7 +563,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
 
             smart_str command = {0};
-            smart_str_appends(&command, php_strtolower((char *) function_name, strlen((char *) function_name)));
+            smart_str_appends(&command, zend_str_tolower_dup((char *) function_name, strlen((char *) function_name)));
             smart_str_appends(&command, " ");
 
             int is_string_command = 1;
@@ -580,7 +580,7 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 if (i == 1) {
                     add_assoc_string(&tags, "redis.key", Z_STRVAL_P(p));
                 }
-                smart_str_appends(&command, php_strtolower(Z_STRVAL_P(p), Z_STRLEN_P(p)));
+                smart_str_appends(&command, zend_str_tolower_dup(Z_STRVAL_P(p), Z_STRLEN_P(p)));
                 smart_str_appends(&command, " ");
             }
             // store command to tags
