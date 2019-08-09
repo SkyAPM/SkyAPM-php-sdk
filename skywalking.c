@@ -26,6 +26,7 @@
 
 #include "main/SAPI.h" /* for sapi_module */
 #include "zend_smart_str.h" /* for smart_str */
+#include <zend_interfaces.h>
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
@@ -101,7 +102,6 @@ PHP_FUNCTION(skywalking_get_trace_info)
         array_init(&empty);
         RETURN_ZVAL(&empty, 0, 1);
     }
-
     // return array
     RETURN_ZVAL(&SKYWALKING_G(UpstreamSegment), 1, 0)
 }
@@ -190,19 +190,23 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
     char *operationName = NULL;
     int componentId = 0;
     if (class_name != NULL) {
-        if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "__call") == 0) {
+        if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "executeCommand") == 0) {
             // params
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
             if (arg_count) {
                 zval *p = ZEND_CALL_ARG(execute_data, 1);
 
-                if (Z_TYPE_P(p) == IS_STRING) {
-                    operationName = (char *) emalloc(strlen(class_name) + strlen(Z_STRVAL_P(p)) + 3);
+                zval *id = (zval *) emalloc(sizeof(zval));
+                zend_call_method(p, Z_OBJCE_P(p), NULL, ZEND_STRL("getid"), id, 0, NULL, NULL);
+
+                if (Z_TYPE_P(id) == IS_STRING) {
+                    operationName = (char *) emalloc(strlen(class_name) + strlen(Z_STRVAL_P(id)) + 3);
                     componentId = COMPONENT_JEDIS;
                     strcpy(operationName, class_name);
                     strcat(operationName, "->");
-                    strcat(operationName, Z_STRVAL_P(p));
+                    strcat(operationName, Z_STRVAL_P(id));
                 }
+                efree(id);
             }
         } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
             if (strcmp(function_name, "_simpleRequest") == 0
@@ -227,65 +231,49 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
         zval tags;
         array_init(&tags);
 
-        if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "__call") == 0) {
+        if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "executeCommand") == 0) {
             add_assoc_string(&tags, "db.type", "redis");
-            uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
-            zval *fname = ZEND_CALL_ARG(execute_data, 1);
-	        int i;
-            for (i = 1; i < arg_count + 1; ++i) {
-                if (i == 1) {
-                    continue;
-                }
-                zval *pam = ZEND_CALL_ARG(execute_data, i);
-                if (Z_TYPE_P(pam) == IS_ARRAY) {
-                    zend_ulong num_key;
-                    zval *entry;
-                    int is_string_command = 0;
-                    smart_str command = {0};
-                    ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(pam), num_key, entry)
-                            {
-                                char *fnamewall = sky_redis_fnamewall(Z_STRVAL_P(fname));
-                                // first params
-                                if (num_key == 0) {
-                                    switch (Z_TYPE_P(entry)) {
-                                        case IS_STRING:
-                                            is_string_command = 1;
-                                            smart_str_appends(&command, php_strtolower(Z_STRVAL_P(fname), Z_STRLEN_P(fname)));
-                                            smart_str_appends(&command, " ");
+            zval *p = ZEND_CALL_ARG(execute_data, 1);
+            zval *id = (zval *) emalloc(sizeof(zval));
+            zval *arguments = (zval *) emalloc(sizeof(zval));
+            zend_call_method(p, Z_OBJCE_P(p), NULL, ZEND_STRL("getid"), id, 0, NULL, NULL);
+            zend_call_method(p, Z_OBJCE_P(p), NULL, ZEND_STRL("getarguments"), arguments, 0, NULL, NULL);
 
-                                            // string
-                                            if (sky_redis_opt_for_string_key(fnamewall) == 1) { // add tag key
-                                                add_assoc_string(&tags, "redis.key", Z_STRVAL_P(entry));
-                                            } else if (strstr(REDIS_OPERATION_STRING, fnamewall)) { // add tag operation
-                                                add_assoc_string(&tags, "redis.operation", Z_STRVAL_P(entry));
-                                            }
-                                            break;
-                                        case IS_ARRAY:
-                                            // @todo
-                                            break;
-                                    }
-                                }
-
-                                // collect command params for string command
-                                if (is_string_command == 1) {
-                                    if (Z_TYPE_P(entry) != IS_STRING) {
-                                        convert_to_string(entry);
-                                    }
+            if (Z_TYPE_P(arguments) == IS_ARRAY) {
+                zend_ulong num_key;
+                zval *entry;
+                smart_str command = {0};
+                smart_str_appends(&command, Z_STRVAL_P(id));
+                smart_str_appends(&command, " ");
+                ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(arguments), num_key, entry)
+                        {
+                            switch (Z_TYPE_P(entry)) {
+                                case IS_STRING:
                                     smart_str_appends(&command, Z_STRVAL_P(entry));
                                     smart_str_appends(&command, " ");
-                                }
-                                efree(fnamewall);
+                                    break;
+                                case IS_ARRAY:
+                                    break;
+                                default:
+                                    convert_to_string(entry)
+                                    smart_str_appends(&command, Z_STRVAL_P(entry));
+                                    smart_str_appends(&command, " ");
+                                    break;
                             }
-                    ZEND_HASH_FOREACH_END();
+                        }
+                ZEND_HASH_FOREACH_END();
 
-                    // store command to tags
-                    if (command.s) {
-                        smart_str_0(&command);
-                        add_assoc_string(&tags, "redis.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
-                        smart_str_free(&command);
-                    }
+                // store command to tags
+                if (command.s) {
+                    smart_str_0(&command);
+                    add_assoc_string(&tags, "redis.command", ZSTR_VAL(command.s));
+                    smart_str_free(&command);
                 }
             }
+            zval_ptr_dtor(id);
+            zval_ptr_dtor(arguments);
+            efree(id);
+            efree(arguments);
         } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
             add_assoc_string(&tags, "rpc.type", "grpc");
             zval *p = ZEND_CALL_ARG(execute_data, 1);
