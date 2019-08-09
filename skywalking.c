@@ -255,7 +255,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                                 case IS_ARRAY:
                                     break;
                                 default:
-                                    convert_to_string(entry);// @todo hmset() 会有问题
+                                    convert_to_string(entry);
                                     smart_str_appends(&command, Z_STRVAL_P(entry));
                                     smart_str_appends(&command, " ");
                                     break;
