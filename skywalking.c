@@ -1187,8 +1187,12 @@ static void generate_context() {
         } else {
             add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
             add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", application_instance);
-            add_assoc_string(&SKYWALKING_G(context), "entryOperationName", get_page_request_uri());
+            char *uri = get_page_request_uri();
+            add_assoc_string(&SKYWALKING_G(context), "entryOperationName", (uri == NULL) ? "" : uri);
             add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", makeTraceId);
+            if(uri != NULL) {
+                efree(uri);
+            }
         }
     } else if (SKYWALKING_G(version) == 6) {
         sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
@@ -1255,8 +1259,12 @@ static void generate_context() {
         } else {
             add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
             add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", application_instance);
-            add_assoc_string(&SKYWALKING_G(context), "entryOperationName", get_page_request_uri());
+            char *uri = get_page_request_uri();
+            add_assoc_string(&SKYWALKING_G(context), "entryOperationName", (uri == NULL) ? "" : uri);
             add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", makeTraceId);
+            if(uri != NULL) {
+                efree(uri);
+            }
         }
     }
 
@@ -1307,9 +1315,13 @@ static char *get_page_request_uri() {
     }
 
     smart_str_0(&uri);
-    char *uris = ZSTR_VAL(uri.s);
-    smart_str_free(&uri);
-    return uris;
+    if (uri.s != NULL) {
+        char *uris = emalloc(strlen(ZSTR_VAL(uri.s)) + 1);
+        strcpy(uris, ZSTR_VAL(uri.s));
+        smart_str_free(&uri);
+        return uris;
+    }
+    return NULL;
 }
 
 static char *get_page_request_peer() {
@@ -1434,6 +1446,9 @@ static void request_init() {
 
     if (peer != NULL) {
         efree(peer);
+    }
+    if (uri != NULL) {
+        efree(uri);
     }
 
     zval *isChild = zend_hash_str_find(Z_ARRVAL_P(&SKYWALKING_G(context)), "isChild", sizeof("isChild") - 1);
