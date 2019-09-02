@@ -1064,16 +1064,15 @@ static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_na
     zval entryEndpointNameEncode;
     zval parentEndpointNameEncode;
 
-    char *sharpPeer = (char *) emalloc(strlen(peer_host) + 1);
-    bzero(sharpPeer, strlen(peer_host) + 1);
+    char *sharpPeer = (char *) emalloc(strlen(peer_host) + 2);
+    bzero(sharpPeer, strlen(peer_host) + 2);
     sprintf(sharpPeer, "#%s", peer_host);
 
-    char *sharpEntryEndpointName = (char *) emalloc(strlen(Z_STRVAL_P(entryOperationName)) + 1);
-    bzero(sharpEntryEndpointName, strlen(Z_STRVAL_P(entryOperationName)) + 1);
+    char *sharpEntryEndpointName = (char *) emalloc(strlen(Z_STRVAL_P(entryOperationName)) + 2);
+    bzero(sharpEntryEndpointName, strlen(Z_STRVAL_P(entryOperationName)) + 2);
     sprintf(sharpEntryEndpointName, "#%s", Z_STRVAL_P(entryOperationName));
-
-    char *sharpParentEndpointName = (char *) emalloc(strlen(operation_name) + 1);
-    bzero(sharpParentEndpointName, strlen(operation_name) + 1);
+    char *sharpParentEndpointName = (char *) emalloc(strlen(operation_name) + 2);
+    bzero(sharpParentEndpointName, strlen(operation_name) + 2);
     sprintf(sharpParentEndpointName, "#%s", operation_name);
 
     zval_b64_encode(&distributedTraceIdEncode, Z_STRVAL_P(distributedTraceId));
@@ -1411,7 +1410,9 @@ static void request_init() {
 	zval temp;
     char *peer = NULL;
     char *uri = get_page_request_uri();
-    char *path = (char*)emalloc(sizeof(char) * strlen(uri) + 5);
+    char *path = (char*)emalloc(strlen(uri) + 5);
+    bzero(path, strlen(uri) + 5);
+
 
     int i;
     for(i = 0; i < strlen(uri); i++) {
