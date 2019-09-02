@@ -1064,16 +1064,14 @@ static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_na
     zval entryEndpointNameEncode;
     zval parentEndpointNameEncode;
 
-    char *sharpPeer = (char *) emalloc(strlen(peer_host) + 2);
-    bzero(sharpPeer, strlen(peer_host) + 2);
-    sprintf(sharpPeer, "#%s", peer_host);
+    char *sharpPeer;
+    spprintf(&sharpPeer, 0, "#%s", peer_host);
 
-    char *sharpEntryEndpointName = (char *) emalloc(strlen(Z_STRVAL_P(entryOperationName)) + 2);
-    bzero(sharpEntryEndpointName, strlen(Z_STRVAL_P(entryOperationName)) + 2);
-    sprintf(sharpEntryEndpointName, "#%s", Z_STRVAL_P(entryOperationName));
-    char *sharpParentEndpointName = (char *) emalloc(strlen(operation_name) + 2);
-    bzero(sharpParentEndpointName, strlen(operation_name) + 2);
-    sprintf(sharpParentEndpointName, "#%s", operation_name);
+    char *sharpEntryEndpointName;
+    spprintf(&sharpEntryEndpointName, 0, "#%s", Z_STRVAL_P(entryOperationName));
+
+    char *sharpParentEndpointName;
+    spprintf(&sharpParentEndpointName, 0, "#%s", operation_name);
 
     zval_b64_encode(&distributedTraceIdEncode, Z_STRVAL_P(distributedTraceId));
     zval_b64_encode(&traceSegmentIdEncode, Z_STRVAL_P(traceId));
