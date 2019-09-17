@@ -10,12 +10,10 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
-	"io"
 	"net"
 	"os"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -270,50 +268,6 @@ func register(c net.Conn, j string) {
 	}
 }
 
-func handleConn(c net.Conn) {
-	defer func() {
-		err := recover()
-		if err != nil {
-			fmt.Println("System error[register]:", err)
-		}
-	}()
-
-	defer func() {
-		fmt.Println("Close conn..")
-		c.Close()
-	}()
-
-	buf := make([]byte, 4096)
-	var json string
-	var endIndex int
-	for {
-		n, err := c.Read(buf)
-		if err != nil {
-			if err != io.EOF {
-				fmt.Println("conn read error:", err)
-			}
-			return
-		}
-		json += string(buf[0:n])
-		for {
-			endIndex = strings.IndexAny(json, "\n")
-			if endIndex >= 0 {
-				body := json[0:endIndex]
-				if body[:1] == "0" {
-					fmt.Println("Service register protocol")
-					go register(c, body[1:])
-				} else if body[:1] == "1" {
-					fmt.Println("Service send trace protocol")
-					go service.SendTrace(grpcConn, body[1:])
-				}
-				json = json[endIndex+1:]
-			} else {
-				break
-			}
-		}
-	}
-}
-
 func heartbeat() {
 	defer func() {
 		err := recover()
@@ -366,64 +320,7 @@ func heartbeat() {
 }
 
 func main() {
-
-	args := os.Args
-	if len(args) <= 1 || (len(args) == 2 && (args[1] == "-h" || args[1] == "--help")) {
-		fmt.Println("The skywalking PHP agent")
-		fmt.Println("Use sky_php_agent_linux_x64 grpc_address [sock_path]")
-		fmt.Println("e.g. sky_php_agent_linux_x64 127.0.0.1:11800")
-		os.Exit(0)
-	}
-
-	grpcHost := args[1]
-	sockPath := "/tmp/sky_agent.sock"
-	if len(args) >= 3 {
-		sockPath = args[2]
-	}
-
-	// connection to sky server
 	fmt.Println("hello skywalking")
-	fmt.Println("GRPC Host: ", grpcHost)
-	fmt.Println("Sock Path: ", sockPath)
-
-	var err error
-	grpcConn, err = grpc.Dial(grpcHost, grpc.WithInsecure())
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer grpcConn.Close()
-
-	if err := os.RemoveAll(sockPath); err != nil {
-		fmt.Println(err)
-	}
-
-	l, err := net.Listen("unix", sockPath)
-	if err != nil {
-		fmt.Println("listen error:", err)
-		return
-	}
-	defer l.Close()
-
-	// change sock file type and mode
-	err = os.Chmod(sockPath, os.ModeSocket|0666)
-	if err != nil {
-		fmt.Println("sock file change mod error:", err)
-		return
-	}
-
-	go heartbeat()
-
-	fmt.Println("listen:", sockPath)
-
-	for {
-		c, err := l.Accept()
-		if err != nil {
-			fmt.Println("accept error:", err)
-			break
-		}
-		// start a new goroutine to handle
-		// the new connection.
-		go handleConn(c)
-	}
+	a := service.NewAgent()
+	a.Run()
 }
