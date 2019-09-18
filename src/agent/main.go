@@ -320,7 +320,6 @@ func heartbeat() {
 }
 
 func main() {
-	fmt.Println("hello skywalking")
 	a := service.NewAgent()
 	a.Run()
 }

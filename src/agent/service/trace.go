@@ -6,7 +6,6 @@ import (
 	"agent/agent/pb/common"
 	"encoding/json"
 	"github.com/golang/protobuf/proto"
-	"log"
 	"strconv"
 	"strings"
 )
