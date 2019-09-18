@@ -1,12 +1,14 @@
 package service
 
 import (
+	"agent/agent/logger"
 	"agent/agent/pb/agent"
 	"agent/agent/pb/agent2"
+	"agent/agent/pb/register2"
 	"container/list"
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 	"io"
 	"net"
@@ -15,15 +17,7 @@ import (
 	"time"
 )
 
-var log = logrus.New()
-
-func init() {
-	log.SetOutput(os.Stdout)
-	log.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02 15:04:05",
-	})
-}
+var log = logger.Log
 
 type register struct {
 	c    net.Conn
@@ -33,13 +27,15 @@ type register struct {
 type grpcClient struct {
 	segmentClientV5 agent.TraceSegmentServiceClient
 	segmentClientV6 agent2.TraceSegmentReportServiceClient
+	pingClient5     agent.InstanceDiscoveryServiceClient
+	pintClient6     register2.ServiceInstancePingClient
 	streamV5        agent.TraceSegmentService_CollectClient
 	streamV6        agent2.TraceSegmentReportService_CollectClient
 }
 
 type Agent struct {
-	grpc           string
-	conn           *grpc.ClientConn
+	flag           *cli.Context
+	grpcConn       *grpc.ClientConn
 	grpcClient     grpcClient
 	socket         string
 	socketListener net.Listener
@@ -49,9 +45,10 @@ type Agent struct {
 	queue          *list.List
 }
 
-func NewAgent() *Agent {
+func NewAgent(cli *cli.Context) *Agent {
 	var agent = &Agent{
-		socket:   "/tmp/sky_agent.sock",
+		flag:     cli,
+		socket:   cli.String("socket"),
 		register: make(chan *register),
 		trace:    make(chan string),
 		queue:    list.New(),
@@ -99,7 +96,7 @@ func (t *Agent) Run() {
 				log.Errorln(err)
 			}
 		}
-		err = t.conn.Close()
+		err = t.grpcConn.Close()
 		if err != nil {
 			log.Errorln(err)
 		}
@@ -108,12 +105,14 @@ func (t *Agent) Run() {
 
 func (t *Agent) connGRPC() {
 	var err error
-	t.conn, err = grpc.Dial(t.grpc, grpc.WithInsecure())
+	t.grpcConn, err = grpc.Dial(t.flag.String("grpc"), grpc.WithInsecure())
 	if err != nil {
 		log.Panic(err)
 	}
-	t.grpcClient.segmentClientV5 = agent.NewTraceSegmentServiceClient(t.conn)
-	t.grpcClient.segmentClientV6 = agent2.NewTraceSegmentReportServiceClient(t.conn)
+	t.grpcClient.segmentClientV5 = agent.NewTraceSegmentServiceClient(t.grpcConn)
+	t.grpcClient.segmentClientV6 = agent2.NewTraceSegmentReportServiceClient(t.grpcConn)
+	t.grpcClient.pingClient5 = agent.NewInstanceDiscoveryServiceClient(t.grpcConn)
+	t.grpcClient.pintClient6 = register2.NewServiceInstancePingClient(t.grpcConn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
