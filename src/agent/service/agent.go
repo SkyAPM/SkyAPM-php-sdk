@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -27,6 +28,7 @@ type Agent struct {
 	socket          string
 	socketListener  net.Listener
 	register        chan *register
+	registerCache   sync.Map
 	trace           chan string
 	queue           *list.List
 }
@@ -52,7 +54,6 @@ func NewAgent() *Agent {
 	}()
 
 	go agent.sub()
-	go agent.send()
 
 	return agent
 }
@@ -112,8 +113,13 @@ func (t *Agent) listenSocket() {
 }
 
 func (t *Agent) sub() {
+	heartbeatTicker := time.NewTicker(time.Duration(time.Second * 40))
+	defer heartbeatTicker.Stop()
+
 	for {
 		select {
+		case <-heartbeatTicker.C:
+			go t.heartbeat()
 		case register := <-t.register:
 			go t.reg(register)
 		case trace := <-t.trace:
