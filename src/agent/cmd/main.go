@@ -10,6 +10,13 @@ import (
 var log = logger.Log
 
 func main() {
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error(err)
+		}
+	}()
+
 	app := cli.NewApp()
 	app.Name = "sky_php_agent"
 	app.Usage = "the skywalking trace sending agent"
