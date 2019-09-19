@@ -241,7 +241,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
 
             if (Z_TYPE_P(arguments) == IS_ARRAY) {
                 zend_ulong num_key;
-                zval *entry;
+                zval *entry, str_entry;
                 smart_str command = {0};
                 smart_str_appends(&command, Z_STRVAL_P(id));
                 smart_str_appends(&command, " ");
@@ -255,8 +255,9 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                                 case IS_ARRAY:
                                     break;
                                 default:
-                                    convert_to_string(entry);
-                                    smart_str_appends(&command, Z_STRVAL_P(entry));
+                                    ZVAL_COPY(&str_entry, entry);
+                                    convert_to_string(&str_entry);
+                                    smart_str_appends(&command, Z_STRVAL_P(&str_entry));
                                     smart_str_appends(&command, " ");
                                     break;
                             }
@@ -557,18 +558,21 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             int is_string_command = 1;
             int i;
             for (i = 1; i < arg_count + 1; ++i) {
+                zval str_p;
                 zval *p = ZEND_CALL_ARG(execute_data, i);
                 if (Z_TYPE_P(p) == IS_ARRAY) {
                     is_string_command = 0;
                     break;
                 }
-                if (Z_TYPE_P(p) != IS_STRING) {
-                    convert_to_string(p);
+
+                ZVAL_COPY(&str_p, p);
+                if (Z_TYPE_P(&str_p) != IS_STRING) {
+                    convert_to_string(&str_p);
                 }
                 if (i == 1) {
-                    add_assoc_string(&tags, "redis.key", Z_STRVAL_P(p));
+                    add_assoc_string(&tags, "redis.key", Z_STRVAL_P(&str_p));
                 }
-                smart_str_appends(&command, zend_str_tolower_dup(Z_STRVAL_P(p), Z_STRLEN_P(p)));
+                smart_str_appends(&command, zend_str_tolower_dup(Z_STRVAL_P(&str_p), Z_STRLEN_P(&str_p)));
                 smart_str_appends(&command, " ");
             }
             // store command to tags
