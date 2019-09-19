@@ -5,7 +5,9 @@ import (
 	"agent/agent/pb/agent2"
 	"agent/agent/pb/common"
 	"encoding/json"
+	"fmt"
 	"github.com/golang/protobuf/proto"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -55,6 +57,38 @@ type ref struct {
 	EntryApplicationInstanceId  int32  `json:"entryApplicationInstanceId"`
 	EntryServiceName            string `json:"entryServiceName"`
 	ParentServiceName           string `json:"parentServiceName"`
+}
+
+func (t *Agent) send(segments []*upstreamSegment) {
+	var err error
+
+	for _, segment := range segments {
+		log.Println("trace => Start trace...")
+		if segment.Version == 5 {
+			if t.grpcClient.streamV5 != nil {
+				if err = t.grpcClient.streamV5.Send(segment.segment); err != nil {
+					if err == io.EOF {
+						break
+					}
+					fmt.Println(err)
+				}
+			} else {
+				fmt.Println("stream not open")
+			}
+
+		} else if segment.Version == 6 {
+			if t.grpcClient.streamV6 != nil {
+				if err = t.grpcClient.streamV6.Send(segment.segment); err != nil {
+					if err == io.EOF {
+						break
+					}
+					fmt.Println(err)
+				}
+			} else {
+				fmt.Println("stream not open")
+			}
+		}
+	}
 }
 
 func format(j string) *upstreamSegment {

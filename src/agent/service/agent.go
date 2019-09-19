@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
-	"io"
 	"net"
 	"os"
 	"sync"
@@ -34,15 +33,16 @@ type grpcClient struct {
 }
 
 type Agent struct {
-	flag           *cli.Context
-	grpcConn       *grpc.ClientConn
-	grpcClient     grpcClient
-	socket         string
-	socketListener net.Listener
-	register       chan *register
-	registerCache  sync.Map
-	trace          chan string
-	queue          *list.List
+	flag              *cli.Context
+	grpcConn          *grpc.ClientConn
+	grpcClient        grpcClient
+	socket            string
+	socketListener    net.Listener
+	register          chan *register
+	registerCache     sync.Map
+	registerCacheLock sync.Mutex
+	trace             chan string
+	queue             *list.List
 }
 
 func NewAgent(cli *cli.Context) *Agent {
@@ -186,43 +186,6 @@ func (t *Agent) sub() {
 					}
 				}
 				go t.send(segments)
-			}
-		}
-	}
-}
-
-func (t *Agent) doRegister(r *register) {
-	fmt.Println(r)
-	fmt.Println(t.grpcClient.segmentClientV5)
-}
-
-func (t *Agent) send(segments []*upstreamSegment) {
-	var err error
-
-	for _, segment := range segments {
-		log.Println("trace => Start trace...")
-		if segment.Version == 5 {
-			if t.grpcClient.streamV5 != nil {
-				if err = t.grpcClient.streamV5.Send(segment.segment); err != nil {
-					if err == io.EOF {
-						break
-					}
-					fmt.Println(err)
-				}
-			} else {
-				fmt.Println("stream not open")
-			}
-
-		} else if segment.Version == 6 {
-			if t.grpcClient.streamV6 != nil {
-				if err = t.grpcClient.streamV6.Send(segment.segment); err != nil {
-					if err == io.EOF {
-						break
-					}
-					fmt.Println(err)
-				}
-			} else {
-				fmt.Println("stream not open")
 			}
 		}
 	}

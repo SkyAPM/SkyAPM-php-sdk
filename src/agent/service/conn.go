@@ -22,12 +22,6 @@ func NewConn(a *Agent, c net.Conn) *Conn {
 }
 
 func (c *Conn) Handle() {
-	defer func() {
-		err := recover()
-		if err != nil {
-			fmt.Println("System error[register]:", err)
-		}
-	}()
 
 	defer func() {
 		fmt.Println("Close conn..")
