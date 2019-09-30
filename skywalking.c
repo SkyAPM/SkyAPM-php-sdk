@@ -70,6 +70,7 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 static int le_skywalking;
 static int application_instance = 0;
 static int application_id = 0;
+static char application_uuid[37] = {0};
 static int sky_increment_id = 0;
 static int cli_debug = 0;
 
@@ -85,7 +86,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky_agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky-agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -1357,6 +1358,7 @@ static void request_init() {
     generate_context();
 
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_instance", application_instance);
+    add_assoc_stringl(&SKYWALKING_G(UpstreamSegment), "uuid", application_uuid, strlen(application_uuid));
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "pid", getppid());
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_id", application_id);
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "version", SKYWALKING_G(version));
@@ -1529,9 +1531,10 @@ static int sky_register() {
                     p = strtok(NULL, ",");
                 }
 
-                if (ids[0] != NULL && ids[1] != NULL) {
+                if (ids[0] != NULL && ids[1] != NULL && ids[2] != NULL) {
                     application_id = atoi(ids[0]);
                     application_instance = atoi(ids[1]);
+                    strncpy(application_uuid, ids[2], sizeof application_uuid - 1);
                 }
             }
 
