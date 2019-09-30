@@ -7,17 +7,22 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
-	"log"
+	"io"
 	"strconv"
 	"strings"
 	"time"
 )
 
+type upstreamSegment struct {
+	Version int
+	segment *agent.UpstreamSegment
+}
+
 type trace struct {
 	ApplicationInstance int32    `json:"application_instance"`
 	Pid                 int      `json:"pid"`
 	ApplicationId       int32    `json:"application_id"`
+	Uuid                string   `json:"uuid"`
 	Version             int      `json:"version"`
 	Segment             segment  `json:"segment"`
 	GlobalTraceIds      []string `json:"globalTraceIds"`
@@ -56,26 +61,76 @@ type ref struct {
 	ParentServiceName           string `json:"parentServiceName"`
 }
 
-func SendTrace(conn *grpc.ClientConn, j string) {
+func (t *Agent) send(segments []*upstreamSegment) {
+	var err error
+
+	log.Infof("start sending trace..., count %d", len(segments))
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	streamV5, err := t.grpcClient.segmentClientV5.Collect(ctx)
+	if err != nil {
+		log.Warningln(err)
+	}
+
+	ctx6, cancel6 := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel6()
+	streamV6, err := t.grpcClient.segmentClientV6.Collect(ctx6)
+	if err != nil {
+		log.Warningln(err)
+	}
+
+	if streamV5 == nil && streamV6 == nil {
+		log.Error("no stream available")
+	}
+
+	for _, segment := range segments {
+		if segment.Version == 5 {
+			if streamV5 != nil {
+				if err = streamV5.Send(segment.segment); err != nil {
+					if err == io.EOF {
+						log.Warn(err)
+					} else {
+						log.Error(err)
+					}
+
+				}
+			} else {
+				log.Warn("stream not open, sending fail")
+			}
+
+		} else if segment.Version == 6 {
+			if streamV6 != nil {
+				if err = streamV6.Send(segment.segment); err != nil {
+					if err == io.EOF {
+						log.Warn(err)
+					} else {
+						log.Error(err)
+					}
+				}
+			} else {
+				log.Warn("stream not open, sending fail")
+			}
+		}
+	}
+	if streamV5 != nil {
+		streamV5.CloseAndRecv()
+	}
+	if streamV6 == nil {
+		streamV6.CloseAndRecv()
+	}
+	log.Info("sending success...")
+}
+
+func format(j string) *upstreamSegment {
 	info := trace{}
 	err := json.Unmarshal([]byte(j), &info)
 
 	if err != nil {
-		log.Println("trace => ", err)
-		return
+		log.Error("trace json decode:", err)
+		return nil
 	}
 	if info.Version == 5 {
-		log.Println("trace => Start trace...")
-		c := agent.NewTraceSegmentServiceClient(conn)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-
-		client, err := c.Collect(ctx)
-		if err != nil {
-			log.Println("trace => ", err)
-			return
-		}
-
 		var globalTrace []*agent.UniqueId
 
 		for _, v := range info.GlobalTraceIds {
@@ -131,39 +186,21 @@ func SendTrace(conn *grpc.ClientConn, j string) {
 		//	EnumsAsInts:  true,
 		//}
 		seg, err := proto.Marshal(segmentObject)
-		//fmt.Println(seg)
+		//log.Info(seg)
 		if err != nil {
-			log.Println("trace => ", err)
-			return
+			log.Error("trace json encode:", err)
+			return nil
 		}
 
 		segment := &agent.UpstreamSegment{
 			GlobalTraceIds: globalTrace,
 			Segment:        seg,
 		}
-
-		err = client.Send(segment)
-		if err != nil {
-			log.Println("trace => ", err)
-			return
+		return &upstreamSegment{
+			Version: info.Version,
+			segment: segment,
 		}
-
-		_, err = client.CloseAndRecv()
-		if err != nil {
-			log.Println("trace =>", err)
-		}
-		log.Println("trace => send ok")
 	} else if info.Version == 6 {
-		log.Println("trace => Start trace...")
-		c := agent2.NewTraceSegmentReportServiceClient(conn)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-
-		client, err := c.Collect(ctx)
-		if err != nil {
-			log.Println("trace => ", err)
-			return
-		}
 
 		var globalTrace []*agent.UniqueId
 
@@ -220,10 +257,10 @@ func SendTrace(conn *grpc.ClientConn, j string) {
 		//	EnumsAsInts:  true,
 		//}
 		seg, err := proto.Marshal(segmentObject)
-		//fmt.Println(seg)
+		//log.Info(seg)
 		if err != nil {
-			log.Println("trace => ", err)
-			return
+			log.Error("trace proto encode:", err)
+			return nil
 		}
 
 		segment := &agent.UpstreamSegment{
@@ -231,18 +268,12 @@ func SendTrace(conn *grpc.ClientConn, j string) {
 			Segment:        seg,
 		}
 
-		err = client.Send(segment)
-		if err != nil {
-			log.Println("trace => ", err)
-			return
+		return &upstreamSegment{
+			Version: info.Version,
+			segment: segment,
 		}
-
-		_, err = client.CloseAndRecv()
-		if err != nil {
-			log.Println("trace =>", err)
-		}
-		log.Println("trace => send ok")
 	}
+	return nil
 }
 
 func buildRefs(span *agent.SpanObject, refs []ref) {
