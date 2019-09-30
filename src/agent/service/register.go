@@ -6,7 +6,6 @@ import (
 	"agent/agent/pb/register2"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/google/uuid"
 	"net"
 	"os"
@@ -43,12 +42,27 @@ func ip4s() []string {
 	return ips
 }
 
+func (t *Agent) recoverRegister(r string) {
+	var info trace
+	err := json.Unmarshal([]byte(r), &info)
+	if err == nil {
+		if _, ok := t.registerCache.Load(info.Pid); !ok {
+			t.registerCache.Store(info.Pid, registerCache{
+				Version:    info.Version,
+				AppId:      info.ApplicationId,
+				InstanceId: info.ApplicationInstance,
+				Uuid:       info.Uuid,
+			})
+		}
+	}
+}
+
 func (t *Agent) doRegister(r *register) {
 
 	info := registerReq{}
 	err := json.Unmarshal([]byte(r.body), &info)
 	if err != nil {
-		log.Info("register => ", err)
+		log.Error("register json decode error", err)
 		r.c.Write([]byte(""))
 		return
 	}
@@ -56,8 +70,8 @@ func (t *Agent) doRegister(r *register) {
 	pid := info.Pid
 	if value, ok := t.registerCache.Load(pid); ok {
 		bind := value.(registerCache)
-		log.Info("register => pid %d appid %d insId %d\n", pid, bind.AppId, bind.InstanceId)
-		r.c.Write([]byte(strconv.FormatInt(int64(bind.AppId), 10) + "," + strconv.FormatInt(int64(bind.InstanceId), 10)))
+		log.Infof("register => pid %d appid %d insId %d", pid, bind.AppId, bind.InstanceId)
+		r.c.Write([]byte(strconv.FormatInt(int64(bind.AppId), 10) + "," + strconv.FormatInt(int64(bind.InstanceId), 10) + "," + bind.Uuid))
 		return
 	} else {
 		r.c.Write([]byte(""))
@@ -68,7 +82,7 @@ func (t *Agent) doRegister(r *register) {
 
 	// if map not found pid.. start register
 	if _, ok := t.registerCache.Load(pid); !ok {
-		fmt.Println("register => Start register...")
+		log.Infof("start register pid %d used SkyWalking v%d", pid, info.Version)
 		var regAppStatus = false
 		var appId int32 = 0
 		var appInsId int32 = 0
@@ -88,7 +102,7 @@ func (t *Agent) doRegister(r *register) {
 					ApplicationCode: info.AppCode,
 				})
 				if regErr != nil {
-					log.Error("register error", regErr)
+					log.Error("register error:", regErr)
 					break
 				}
 				if regResp.GetApplication() != nil {
@@ -114,7 +128,7 @@ func (t *Agent) doRegister(r *register) {
 					Services: services,
 				})
 				if regErr != nil {
-					log.Error("register error", regErr)
+					log.Error("register error:", regErr)
 					break
 				}
 
@@ -160,7 +174,7 @@ func (t *Agent) doRegister(r *register) {
 				for {
 					instanceResp, instanceErr = instanceClient.RegisterInstance(instanceCtx, instanceReq)
 					if instanceErr != nil {
-						log.Error("register error", instanceErr)
+						log.Error("register error:", instanceErr)
 						break
 					}
 					if instanceResp.GetApplicationInstanceId() != 0 {
@@ -246,11 +260,10 @@ func (t *Agent) doRegister(r *register) {
 					InstanceId: appInsId,
 					Uuid:       agentUUID,
 				})
-				log.Info("register => Start register end...")
+				log.Infof("register pid %d appid %d insId %d", pid, appId, appInsId)
 			}
 		} else {
-			log.Info("register => ", err)
-			log.Info("register => Start register error...")
+			log.Error("register error:", err)
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"strings"
@@ -24,7 +23,6 @@ func NewConn(a *Agent, c net.Conn) *Conn {
 func (c *Conn) Handle() {
 
 	defer func() {
-		fmt.Println("Close conn..")
 		c.c.Close()
 	}()
 
@@ -35,7 +33,7 @@ func (c *Conn) Handle() {
 		n, err := c.c.Read(buf)
 		if err != nil {
 			if err != io.EOF {
-				fmt.Println("conn read error:", err)
+				log.Warn("conn read error:", err)
 			}
 			return
 		}
@@ -45,13 +43,11 @@ func (c *Conn) Handle() {
 			if endIndex >= 0 {
 				body := json[0:endIndex]
 				if body[:1] == "0" {
-					fmt.Println("Service register protocol")
 					c.agent.register <- &register{
 						c:    c.c,
 						body: body[1:],
 					}
 				} else if body[:1] == "1" {
-					fmt.Println("Service send trace protocol")
 					c.agent.trace <- body[1:]
 				}
 				json = json[endIndex+1:]

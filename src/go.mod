@@ -7,3 +7,5 @@ require (
 	github.com/urfave/cli v1.22.1
 	google.golang.org/grpc v1.21.1
 )
+
+go 1.13

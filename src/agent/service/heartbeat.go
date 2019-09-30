@@ -4,14 +4,13 @@ import (
 	"agent/agent/pb/agent"
 	"agent/agent/pb/register2"
 	"context"
-	"fmt"
 	"time"
 )
 
 func (t *Agent) heartbeat() {
 
 	t.registerCache.Range(func(key, value interface{}) bool {
-		fmt.Println("heartbeat => ...")
+		log.Infoln("heartbeat")
 		bind := value.(registerCache)
 
 		if bind.Version == 5 {
@@ -24,9 +23,9 @@ func (t *Agent) heartbeat() {
 			})
 
 			if err != nil {
-				fmt.Println("heartbeat =>", err)
+				log.Error("heartbeat:", err)
 			} else {
-				fmt.Printf("heartbeat => %d %d\n", bind.AppId, bind.InstanceId)
+				log.Infof("heartbeat appId %d appInsId %d", bind.AppId, bind.InstanceId)
 			}
 
 		} else if bind.Version == 6 {
@@ -39,9 +38,9 @@ func (t *Agent) heartbeat() {
 				ServiceInstanceUUID: bind.Uuid,
 			})
 			if err != nil {
-				fmt.Println("heartbeat =>", err)
+				log.Error("heartbeat:", err)
 			} else {
-				fmt.Printf("heartbeat => %d %d\n", bind.AppId, bind.InstanceId)
+				log.Infof("heartbeat appId %d appInsId %d", bind.AppId, bind.InstanceId)
 			}
 		}
 		return true

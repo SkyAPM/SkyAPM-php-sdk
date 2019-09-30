@@ -21,9 +21,9 @@ func main() {
 	app.Name = "sky_php_agent"
 	app.Usage = "the skywalking trace sending agent"
 	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "grpc", Usage: "--grpc", Value: "127.0.0.1:10800"},
-		cli.StringFlag{Name: "socket", Usage: "--socket", Value: "/tmp/sky_agent.sock"},
-		cli.IntFlag{Name: "queue", Usage: "--queue", Value: 100},
+		cli.StringFlag{Name: "grpc", Usage: "SkyWalking collector grpc address", Value: "127.0.0.1:11800"},
+		cli.StringFlag{Name: "socket", Usage: "Pipeline for communicating with PHP", Value: "/tmp/sky-agent.sock"},
+		cli.IntFlag{Name: "send-rate", Usage: "Send trace 1 second by default", Value: 1},
 	}
 
 	app.Action = func(c *cli.Context) error {
