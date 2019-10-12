@@ -1,3 +1,8 @@
+# 20191001
+## Agent 修改
+1. 修改文件权限为0777
+1. 执行`sky-php-agent -h` 查看可用参数
+
 # 20190722
 ## SkyWalking 扩展修改
 1. 支持对mysqli扩展的支持(目前暂时仅支持`mysqli::query()`)
@@ -5,7 +10,7 @@
 # 20190719
 ## Agent 修改
 1. agent创建的文件权限修改为0666, 文件的类型修改为sock类型。修复php与sock文件进行通信时提示"Permission Deny"的问题  
-2. agent的参数接收方式修改, 执行`sky_php_agent -h` 查看可用参数
+2. agent的参数接收方式修改, 执行`sky-php-agent -h` 查看可用参数
 3. agent支持在参数中指定sock文件的路径
 
 ## SkyWalking 扩展修改

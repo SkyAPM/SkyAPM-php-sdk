@@ -43,15 +43,15 @@ sudo make install
 5.新建php的skywalking扩展配置文件，写入配置
 
 ```shell
-# 扩展so
+; 扩展so
 extension=skywalking.so
-# 是否启用：0 关闭；1 启用 (默认值为0)
+; 是否启用：0 关闭；1 启用 (默认值为0)
 skywalking.enable=1
-# skywalking的版本：5或者6（默认值为6）
+; skywalking的版本：5或者6（默认值为6）
 skywalking.version=6
-# app_code代码，不要含特殊字符，请使用数字、字母、下换线。(默认为：hello_skywalking)
+; app_code代码，不要含特殊字符，请使用数字、字母、下换线。(默认为：hello_skywalking)
 skywalking.app_code=hello_skywalking
-# sock文件路径（默认值为/tmp/sky_agent.sock）
+; sock文件路径（默认值为/tmp/sky_agent.sock）
 skywalking.sock_path=/tmp/sky_agent.sock
 ```
 

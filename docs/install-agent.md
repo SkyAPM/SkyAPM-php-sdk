@@ -13,12 +13,12 @@ git clone https://github.com/SkyAPM/SkyAPM-php-sdk.git
 cd SkyAPM-php-sdk
 phpize && ./configure && make && make install
 
-// download sky_php_agent
-// e.g. 3.0.0
-wget https://github.com/SkyAPM/SkyAPM-php-sdk/releases/download/3.0.0/sky_php_agent_linux_x64
-mv sky_php_agent_linux_x64 sky_php_agent
-chmod +x sky_php_agent
-cp sky_php_agent /usr/bin
+// download sky-php-agent
+// e.g. 3.2.0
+wget https://github.com/SkyAPM/SkyAPM-php-sdk/releases/download/3.2.0/sky-php-agent-linux-x64
+mv sky-php-agent-linux-x64 sky-php-agent
+chmod +x sky-php-agent
+cp sky-php-agent /usr/bin
 ```
 
 # How to use
@@ -33,15 +33,21 @@ extension=skywalking.so
 skywalking.enable = 1
 
 ; Set skyWalking collector version (5 or 6)
-skywalking.version = 5
+skywalking.version = 6
 
 ; Set app code e.g. MyProjectName
 skywalking.app_code = MyProjectName
 ```
 
-Run `sky_php_agent` to send PHP generated log information to `SkyWalking collector`
+Run `sky-php-agent` to send PHP generated log information to `SkyWalking collector`
 ```shell
-// sky_php_agent [collector grpc address]
+// sky-php-agent [collector grpc address]
 // e.g.
-sky_php_agent 127.0.0.1:11800
+sky-php-agent --grpc 127.0.0.1:11800
+```
+
+Show help
+
+```bash
+sky-php-agent -h
 ```
