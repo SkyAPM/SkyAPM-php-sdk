@@ -6,12 +6,12 @@
     x64/x86分别指64位操作系统/32位操作系统
 
 ```
-sky_php_agent_darwin_x64
-sky_php_agent_darwin_x86
-sky_php_agent_linux_x64
-sky_php_agent_linux_x86
-sky_php_agent_linux_arm64
-sky_php_agent_linux_arm86
+sky-php-agent-darwin-x64
+sky-php-agent-darwin-x86
+sky-php-agent-linux-x64
+sky-php-agent-linux-x86
+sky-php-agent-linux-arm64
+sky-php-agent-linux-arm86
 ```
 
 
@@ -19,10 +19,10 @@ sky_php_agent_linux_arm86
 
 ```shell
 # 添加可执行权限
-sudo chmod +x ./sky_php_agent_linux_x64
+sudo chmod +x ./sky-php-agent-linux-x64
 
 # 启动
-./sky_php_agent_linux_x64 127.0.0.1:11800 /tmp/sky_agent.sock
+./sky-php-agent-linux-x64 127.0.0.1:11800 /tmp/sky_agent.sock
 ```
 
 
