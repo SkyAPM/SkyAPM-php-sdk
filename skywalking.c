@@ -70,6 +70,7 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 static int le_skywalking;
 static int application_instance = 0;
 static int application_id = 0;
+static char application_uuid[37] = {0};
 static int sky_increment_id = 0;
 static int cli_debug = 0;
 
@@ -85,7 +86,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky_agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky-agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -241,7 +242,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
 
             if (Z_TYPE_P(arguments) == IS_ARRAY) {
                 zend_ulong num_key;
-                zval *entry;
+                zval *entry, str_entry;
                 smart_str command = {0};
                 smart_str_appends(&command, Z_STRVAL_P(id));
                 smart_str_appends(&command, " ");
@@ -255,8 +256,9 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                                 case IS_ARRAY:
                                     break;
                                 default:
-                                    convert_to_string(entry);
-                                    smart_str_appends(&command, Z_STRVAL_P(entry));
+                                    ZVAL_COPY(&str_entry, entry);
+                                    convert_to_string(&str_entry);
+                                    smart_str_appends(&command, Z_STRVAL_P(&str_entry));
                                     smart_str_appends(&command, " ");
                                     break;
                             }
@@ -557,18 +559,21 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             int is_string_command = 1;
             int i;
             for (i = 1; i < arg_count + 1; ++i) {
+                zval str_p;
                 zval *p = ZEND_CALL_ARG(execute_data, i);
                 if (Z_TYPE_P(p) == IS_ARRAY) {
                     is_string_command = 0;
                     break;
                 }
-                if (Z_TYPE_P(p) != IS_STRING) {
-                    convert_to_string(p);
+
+                ZVAL_COPY(&str_p, p);
+                if (Z_TYPE_P(&str_p) != IS_STRING) {
+                    convert_to_string(&str_p);
                 }
                 if (i == 1) {
-                    add_assoc_string(&tags, "redis.key", Z_STRVAL_P(p));
+                    add_assoc_string(&tags, "redis.key", Z_STRVAL_P(&str_p));
                 }
-                smart_str_appends(&command, zend_str_tolower_dup(Z_STRVAL_P(p), Z_STRLEN_P(p)));
+                smart_str_appends(&command, zend_str_tolower_dup(Z_STRVAL_P(&str_p), Z_STRLEN_P(&str_p)));
                 smart_str_appends(&command, " ");
             }
             // store command to tags
@@ -1357,6 +1362,7 @@ static void request_init() {
     generate_context();
 
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_instance", application_instance);
+    add_assoc_stringl(&SKYWALKING_G(UpstreamSegment), "uuid", application_uuid, strlen(application_uuid));
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "pid", getppid());
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "application_id", application_id);
     add_assoc_long(&SKYWALKING_G(UpstreamSegment), "version", SKYWALKING_G(version));
@@ -1529,9 +1535,10 @@ static int sky_register() {
                     p = strtok(NULL, ",");
                 }
 
-                if (ids[0] != NULL && ids[1] != NULL) {
+                if (ids[0] != NULL && ids[1] != NULL && ids[2] != NULL) {
                     application_id = atoi(ids[0]);
                     application_instance = atoi(ids[1]);
+                    strncpy(application_uuid, ids[2], sizeof application_uuid - 1);
                 }
             }
 
