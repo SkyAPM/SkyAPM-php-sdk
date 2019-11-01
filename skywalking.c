@@ -991,8 +991,12 @@ static void write_log(char *text) {
             if (conn >= 0) {
                 sprintf(message, "1%s\n", text);
                 write(fd, message, strlen(message));
+            } else {
+                php_error_docref(NULL, E_WARNING, "[skywalking] failed to connect the sock.");
             }
             close(fd);
+        } else {
+            php_error_docref(NULL, E_WARNING, "[skywalking] failed to open the sock.");
         }
         efree(message);
         efree(text);
@@ -1540,9 +1544,13 @@ static int sky_register() {
                     application_instance = atoi(ids[1]);
                     strncpy(application_uuid, ids[2], sizeof application_uuid - 1);
                 }
+            } else {
+                php_error_docref(NULL, E_WARNING, "[skywalking] failed to connect the sock.");
             }
 
             close(fd);
+        } else {
+            php_error_docref(NULL, E_WARNING, "[skywalking] failed to open the sock.");
         }
     }
     return 0;
