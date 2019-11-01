@@ -22,14 +22,14 @@ sky-php-agent-linux-arm86
 sudo chmod +x ./sky-php-agent-linux-x64
 
 # 启动
-./sky-php-agent-linux-x64 127.0.0.1:11800 /tmp/sky_agent.sock
+./sky-php-agent-linux-x64 127.0.0.1:11800 /var/run/sky-agent.sock
 ```
 
 
 3.agent 参数说明
 
  * 第一个参数为SkyWalking服务端的GRPC地址
- * 第二个参数为sock文件的绝对路径，必须与php中skywalking.sock_path的路径一致。默认值为：`/tmp/sky_agent.sock`
+ * 第二个参数为sock文件的绝对路径，必须与php中skywalking.sock_path的路径一致。默认值为：`/var/run/sky-agent.sock`
  * `-h` 可查看帮助信息
 
 

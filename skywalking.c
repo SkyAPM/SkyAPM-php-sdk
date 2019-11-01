@@ -86,7 +86,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky-agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.sock_path", "/var/run/sky-agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -938,7 +938,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 	skywalking_globals->app_code = NULL;
 	skywalking_globals->enable = 0;
 	skywalking_globals->version = 6;
-	skywalking_globals->sock_path = "/tmp/sky_agent.sock";
+	skywalking_globals->sock_path = "/var/run/sky-agent.sock";
 }
 
 
