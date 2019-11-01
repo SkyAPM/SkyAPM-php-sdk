@@ -61,6 +61,7 @@ func (t *Agent) Run() {
 	t.connGRPC()
 	t.listenSocket()
 
+	log.Info("🍺 skywalking php agent started successfully, enjoy yourself")
 	defer func() {
 		var err error
 		err = t.socketListener.Close()

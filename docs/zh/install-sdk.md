@@ -51,8 +51,8 @@ skywalking.enable=1
 skywalking.version=6
 ; app_code代码，不要含特殊字符，请使用数字、字母、下换线。(默认为：hello_skywalking)
 skywalking.app_code=hello_skywalking
-; sock文件路径（默认值为/tmp/sky-agent.sock）
-skywalking.sock_path=/tmp/sky-agent.sock
+; sock文件路径（默认值为/var/run/sky-agent.sock）
+skywalking.sock_path=/var/run/sky-agent.sock
 ```
 
 
