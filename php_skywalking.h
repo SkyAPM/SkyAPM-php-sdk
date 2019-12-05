@@ -105,7 +105,11 @@ extern zend_module_entry skywalking_module_entry;
 #define REDIS_KEY_HLL "|pfadd|watch|"
 #define REDIS_KEY_GEO "|geoadd|geohash|geopos|geodist|georadius|georadiusbymember|"
 
-
+#ifdef ZEND_ENABLE_ZVAL_LONG64
+#define PRId3264 PRId64
+#else
+#define PRId3264 PRId32
+#endif
 
 #define RAND_RANGE(__n, __min, __max, __tmax) \
     (__n) = ((__min) + (zend_long) ((double) ( (double) (__max) - (__min) + 1.0) * ((__n) / ((__tmax) + 1.0))))
