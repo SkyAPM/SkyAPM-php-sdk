@@ -277,7 +277,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                             const char *host = ZSTR_VAL(Z_STR_P(predis_host));
                             peer = (char *) emalloc(strlen(host) + 10);
                             bzero(peer, strlen(host) + 10);
-                            sprintf(peer, "%s:%lld", host, Z_LVAL_P(predis_port));
+                            sprintf(peer, "%s:%lld", host, (long long)Z_LVAL_P(predis_port));
                         }
                     }
                 }
@@ -1062,13 +1062,13 @@ static char *generate_sw3(zend_long span_id, char *peer_host, char *operation_na
     zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId",
                                                   sizeof("distributedTraceId") - 1);
     ssize_t sw3_l = 0;
-    sw3_l = snprintf(NULL, 0, "sw3: %s|%lld|%d|%lld|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
-                     application_instance, Z_LVAL_P(entryApplicationInstance), peer_host,
+    sw3_l = snprintf(NULL, 0, "sw3: %s|%lld|%d|%lld|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), (long long)span_id,
+                     application_instance, (long long)Z_LVAL_P(entryApplicationInstance), peer_host,
                      Z_STRVAL_P(entryOperationName), operation_name, Z_STRVAL_P(distributedTraceId));
     char *sw3 = (char*)emalloc(sw3_l + 1);
     bzero(sw3, sw3_l + 1);
-    snprintf(sw3, sw3_l + 1, "sw3: %s|%lld|%d|%lld|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
-             application_instance, Z_LVAL_P(entryApplicationInstance), peer_host,
+    snprintf(sw3, sw3_l + 1, "sw3: %s|%lld|%d|%lld|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), (long long)span_id,
+             application_instance, (long long)Z_LVAL_P(entryApplicationInstance), peer_host,
              Z_STRVAL_P(entryOperationName), operation_name, Z_STRVAL_P(distributedTraceId));
     return sw3;
 }
@@ -1104,14 +1104,14 @@ static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_na
 
     ssize_t sw6_l = 0;
     sw6_l = snprintf(NULL, 0, "sw6: 1-%s-%s-%lld-%d-%lld-%s-%s-%s", Z_STRVAL(distributedTraceIdEncode),
-                     Z_STRVAL(traceSegmentIdEncode), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
+                     Z_STRVAL(traceSegmentIdEncode), (long long)span_id, application_instance, (long long)Z_LVAL_P(entryApplicationInstance),
                      Z_STRVAL(peerHostEncode), Z_STRVAL(entryEndpointNameEncode),
                      Z_STRVAL(parentEndpointNameEncode));
 
     char *sw6 = (char *) emalloc(sw6_l + 1);
     bzero(sw6, sw6_l + 1);
     snprintf(sw6, sw6_l + 1, "sw6: 1-%s-%s-%lld-%d-%lld-%s-%s-%s", Z_STRVAL(distributedTraceIdEncode),
-             Z_STRVAL(traceSegmentIdEncode), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
+             Z_STRVAL(traceSegmentIdEncode), (long long)span_id, application_instance, (long long)Z_LVAL_P(entryApplicationInstance),
              Z_STRVAL(peerHostEncode), Z_STRVAL(entryEndpointNameEncode),
              Z_STRVAL(parentEndpointNameEncode));
 
