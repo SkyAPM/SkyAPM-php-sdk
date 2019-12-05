@@ -134,7 +134,13 @@ static char *pcre_match(char *pattern, int len, char *subject) {
 
     zend_string *pattern_str = zend_string_init(pattern, len, 0);
     if ((cache = pcre_get_compiled_regex_cache(pattern_str)) != NULL) {
+#if PHP_VERSION_ID < 70400
         php_pcre_match_impl(cache, subject, strlen(subject), result, subpats, 0, 0, 0, 0);
+#else
+        zend_string *subject_str = zend_string_init(subject, sizeof(subject) - 1, 0);
+        php_pcre_match_impl(cache, subject_str, result, subpats, 0, 0, 0, 0);
+        zend_string_free(subject_str);
+#endif
         zval *match = NULL;
         if (Z_LVAL_P(result) > 0 && Z_TYPE_P(subpats) == IS_ARRAY) {
             zval *value = zend_hash_index_find(Z_ARRVAL_P(subpats), 1);
@@ -271,7 +277,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                             const char *host = ZSTR_VAL(Z_STR_P(predis_host));
                             peer = (char *) emalloc(strlen(host) + 10);
                             bzero(peer, strlen(host) + 10);
-                            sprintf(peer, "%s:%d", host, Z_LVAL_P(predis_port));
+                            sprintf(peer, "%s:%lld", host, Z_LVAL_P(predis_port));
                         }
                     }
                 }
@@ -1056,12 +1062,12 @@ static char *generate_sw3(zend_long span_id, char *peer_host, char *operation_na
     zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId",
                                                   sizeof("distributedTraceId") - 1);
     ssize_t sw3_l = 0;
-    sw3_l = snprintf(NULL, 0, "sw3: %s|%d|%d|%d|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
+    sw3_l = snprintf(NULL, 0, "sw3: %s|%lld|%d|%lld|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
                      application_instance, Z_LVAL_P(entryApplicationInstance), peer_host,
                      Z_STRVAL_P(entryOperationName), operation_name, Z_STRVAL_P(distributedTraceId));
     char *sw3 = (char*)emalloc(sw3_l + 1);
     bzero(sw3, sw3_l + 1);
-    snprintf(sw3, sw3_l + 1, "sw3: %s|%d|%d|%d|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
+    snprintf(sw3, sw3_l + 1, "sw3: %s|%lld|%d|%lld|#%s|#%s|#%s|%s", Z_STRVAL_P(traceId), span_id,
              application_instance, Z_LVAL_P(entryApplicationInstance), peer_host,
              Z_STRVAL_P(entryOperationName), operation_name, Z_STRVAL_P(distributedTraceId));
     return sw3;
@@ -1097,14 +1103,14 @@ static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_na
     zval_b64_encode(&parentEndpointNameEncode, sharpParentEndpointName);
 
     ssize_t sw6_l = 0;
-    sw6_l = snprintf(NULL, 0, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(distributedTraceIdEncode),
+    sw6_l = snprintf(NULL, 0, "sw6: 1-%s-%s-%lld-%d-%lld-%s-%s-%s", Z_STRVAL(distributedTraceIdEncode),
                      Z_STRVAL(traceSegmentIdEncode), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
                      Z_STRVAL(peerHostEncode), Z_STRVAL(entryEndpointNameEncode),
                      Z_STRVAL(parentEndpointNameEncode));
 
     char *sw6 = (char *) emalloc(sw6_l + 1);
     bzero(sw6, sw6_l + 1);
-    snprintf(sw6, sw6_l + 1, "sw6: 1-%s-%s-%d-%d-%d-%s-%s-%s", Z_STRVAL(distributedTraceIdEncode),
+    snprintf(sw6, sw6_l + 1, "sw6: 1-%s-%s-%lld-%d-%lld-%s-%s-%s", Z_STRVAL(distributedTraceIdEncode),
              Z_STRVAL(traceSegmentIdEncode), span_id, application_instance, Z_LVAL_P(entryApplicationInstance),
              Z_STRVAL(peerHostEncode), Z_STRVAL(entryEndpointNameEncode),
              Z_STRVAL(parentEndpointNameEncode));
@@ -1370,7 +1376,7 @@ static char *get_page_request_peer() {
 
 /**
  * ip
- * 
+ *
  * @since 2017年11月23日
  * @copyright
  * @return return_type
