@@ -151,6 +151,8 @@ static void write_log( char *text);
 static void request_init();
 static void zval_b64_encode(zval *out, char *in);
 static void zval_b64_decode(zval *out, char *in);
+static char *sky_get_class_name(zval *obj);
+static zval *sky_read_property(zval *obj, const char *property);
 static char *sky_redis_fnamewall(const char *function_name);
 static int sky_redis_opt_for_string_key(char *fnamewall);
 
