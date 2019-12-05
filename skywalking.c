@@ -1726,13 +1726,18 @@ PHP_GINIT_FUNCTION(skywalking)
 
 zend_module_dep skywalking_deps[] = {
         ZEND_MOD_REQUIRED("json")
-        {NULL, NULL, NULL}
+        ZEND_MOD_REQUIRED("pcre")
+        ZEND_MOD_REQUIRED("standard")
+        ZEND_MOD_REQUIRED("curl")
+        ZEND_MOD_END
 };
 
 /* {{{ skywalking_module_entry
  */
 zend_module_entry skywalking_module_entry = {
-	STANDARD_MODULE_HEADER,
+	STANDARD_MODULE_HEADER_EX,
+	NULL,
+	skywalking_deps,
 	"skywalking",
 	skywalking_functions,
 	PHP_MINIT(skywalking),
