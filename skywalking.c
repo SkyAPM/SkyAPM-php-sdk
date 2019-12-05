@@ -154,6 +154,22 @@ static char *pcre_match(char *pattern, int len, char *subject) {
 
 }
 
+static char *sky_get_class_name(zval *obj) {
+    if (Z_TYPE_P(obj) == IS_OBJECT) {
+        zend_object *object = obj->value.obj;
+        return ZSTR_VAL(object->ce->name);
+    }
+    return "";
+}
+
+static zval *sky_read_property(zval *obj, const char *property) {
+    if (Z_TYPE_P(obj) == IS_OBJECT) {
+        zend_object *object = obj->value.obj;
+        return zend_read_property(object->ce, obj, property, strlen(property), 0, NULL);
+    }
+    return NULL;
+}
+
 static char *sky_redis_fnamewall(const char *function_name) {
     char *fnamewall = (char *) emalloc(strlen(function_name) + 3);
     sprintf(fnamewall, "|%s|", function_name);
@@ -189,6 +205,7 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
     const char *function_name = zf->common.function_name == NULL ? NULL : ZSTR_VAL(zf->common.function_name);
 
     char *operationName = NULL;
+    char *peer = NULL;
     int componentId = 0;
     if (class_name != NULL) {
         if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "executeCommand") == 0) {
@@ -239,6 +256,27 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
             zval *arguments = (zval *) emalloc(sizeof(zval));
             zend_call_method(p, Z_OBJCE_P(p), NULL, ZEND_STRL("getid"), id, 0, NULL, NULL);
             zend_call_method(p, Z_OBJCE_P(p), NULL, ZEND_STRL("getarguments"), arguments, 0, NULL, NULL);
+
+            // peer
+            zval *connection = sky_read_property(&(execute_data->This),"connection");
+            if (connection != NULL && Z_TYPE_P(connection) == IS_OBJECT && strcmp(sky_get_class_name(connection), "Predis\\Connection\\StreamConnection") == 0) {
+                zval *parameters = sky_read_property(connection, "parameters");
+                if (parameters != NULL && Z_TYPE_P(parameters) == IS_OBJECT && strcmp(sky_get_class_name(parameters), "Predis\\Connection\\Parameters") == 0) {
+                    zval *parameters_arr = sky_read_property(parameters, "parameters");
+                    if (Z_TYPE_P(parameters_arr) == IS_ARRAY) {
+                        zval *predis_host = zend_hash_str_find(Z_ARRVAL_P(parameters_arr), "host", sizeof("host") - 1);
+                        zval *predis_port = zend_hash_str_find(Z_ARRVAL_P(parameters_arr), "port", sizeof("port") - 1);
+
+                        if (Z_TYPE_P(predis_host) == IS_STRING && Z_TYPE_P(predis_port) == IS_LONG) {
+                            const char *host = ZSTR_VAL(Z_STR_P(predis_host));
+                            peer = (char *) emalloc(strlen(host) + 10);
+                            bzero(peer, strlen(host) + 10);
+                            sprintf(peer, "%s:%d", host, Z_LVAL_P(predis_port));
+                        }
+                    }
+                }
+            }
+            // peer end
 
             if (Z_TYPE_P(arguments) == IS_ARRAY) {
                 zend_ulong num_key;
@@ -305,8 +343,11 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
         add_assoc_long(&temp, "spanLayer", 1);
         add_assoc_long(&temp, "componentId", componentId);
         add_assoc_string(&temp, "operationName", operationName);
-        add_assoc_string(&temp, "peer", "");
+        add_assoc_string(&temp, "peer", peer == NULL ? "" : peer);
         efree(operationName);
+        if (peer != NULL) {
+            efree(peer);
+        }
 
         ori_execute_ex(execute_data);
 
