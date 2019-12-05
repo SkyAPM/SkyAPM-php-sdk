@@ -33,11 +33,5 @@ Host in Beijing. Go to [demo](http://106.75.237.45:8080/).
 * Join `#skywalking` channel at [Apache Slack](https://join.slack.com/t/the-asf/shared_invite/enQtNDQ3OTEwNzE1MDg5LWY2NjkwMTEzMGI2ZTI1NzUzMDk0MzJmMWM1NWVmODg0MzBjNjAxYzUwMjIwNDI3MjlhZWRjNmNhOTM5NmIxNDk)
 * QQ Group: 392443393(2000/2000, not available), 901167865(available)
 
-## Who Uses SkyAPM-PHP ?
-
-A wide variety of companies and organizations use SkyAPM-PHP for research, production and commercial product. Here is the **User Wall** of SkyAPM-PHP.
-
-![Who Uses SkyAPM-PHP](./who-uses.jpg)
-
 ## License
 [Apache 2.0](LICENSE)
