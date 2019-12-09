@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.9.4" version="2.0"
+	xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+	<name>skywalking</name>
+	<channel>pecl.php.net</channel>
+	<summary>The PHP instrument agent for Apache SkyWalking.</summary>
+	<description>
+        The package is the PHP instrumentation agent, which is compatible with Apache SkyWalking backend and others compatible agents/SDKs.
+    </description>
+    <lead>
+        <name>Yanlong He</name>
+        <user>yanlong</user>
+        <email>yanlong@php.net</email>
+        <active>yes</active>
+    </lead>
+    <date>2019-12-09</date>
+    <version>
+        <release>3.2.4</release>
+        <api>3.2.4</api>
+    </version>
+    <stability>
+        <release>stable</release>
+        <api>stable</api>
+    </stability>
+    <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
+    <notes>
+        Support php7.4
+    </notes>
+    <contents>
+        <dir name="/">
+            <file role="doc" name="CREDITS" />
+            <file role="doc" name="EXPERIMENTAL" />
+            <file role="doc" name="LICENSE" />
+            <file role="doc" name="README.md" />
+            <file role="src" name="b64.h" />
+            <file role="src" name="bak/.gitignore" />
+            <file role="doc" name="bak/README.md" />
+            <file role="doc" name="bak/README_ZH.md" />
+            <file role="src" name="bak/SkyWalking.php" />
+            <file role="src" name="bak/demo.php" />
+            <file role="src" name="components.h" />
+            <file role="src" name="config.m4" />
+            <file role="src" name="config.w32" />
+            <file role="src" name="decode.c" />
+            <file role="doc" name="docs/README.md" />
+            <file role="doc" name="docs/README_ZH.md" />
+            <file role="doc" name="docs/install-agent.md" />
+            <file role="doc" name="docs/quick-start.md" />
+            <file role="doc" name="docs/zh/change-log.md" />
+            <file role="doc" name="docs/zh/install-sdk.md" />
+            <file role="doc" name="docs/zh/qa.md" />
+            <file role="doc" name="docs/zh/start-agent.md" />
+            <file role="src" name="encode.c" />
+            <file role="src" name="php.ini" />
+            <file role="src" name="php_skywalking.h" />
+            <file role="src" name="skywalking.c" />
+            <file role="src" name="skywalking.php" />
+            <file role="src" name="src/agent/.gitignore" />
+            <file role="src" name="src/agent/build.sh" />
+            <file role="src" name="src/agent/cmd/main.go" />
+            <file role="src" name="src/agent/logger/log.go" />
+            <file role="src" name="src/agent/pb/agent/ApplicationRegisterService.pb.go" />
+            <file role="src" name="src/agent/pb/agent/CLR.pb.go" />
+            <file role="src" name="src/agent/pb/agent/DiscoveryService.pb.go" />
+            <file role="src" name="src/agent/pb/agent/Downstream.pb.go" />
+            <file role="src" name="src/agent/pb/agent/JVM.pb.go" />
+            <file role="src" name="src/agent/pb/agent/JVMMetricsService.pb.go" />
+            <file role="src" name="src/agent/pb/agent/KeyWithIntegerValue.pb.go" />
+            <file role="src" name="src/agent/pb/agent/KeyWithStringValue.pb.go" />
+            <file role="src" name="src/agent/pb/agent/NetworkAddressRegisterService.pb.go" />
+            <file role="src" name="src/agent/pb/agent/TraceSegmentService.pb.go" />
+            <file role="src" name="src/agent/pb/agent/trace-common.pb.go" />
+            <file role="src" name="src/agent/pb/agent2/CLRMetric.pb.go" />
+            <file role="src" name="src/agent/pb/agent2/JVMMetric.pb.go" />
+            <file role="src" name="src/agent/pb/agent2/trace.pb.go" />
+            <file role="src" name="src/agent/pb/common/common.pb.go" />
+            <file role="src" name="src/agent/pb/register2/InstancePing.pb.go" />
+            <file role="src" name="src/agent/pb/register2/Register.pb.go" />
+            <file role="src" name="src/agent/pb/servicemesh/service-mesh.pb.go" />
+            <file role="src" name="src/agent/service/agent.go" />
+            <file role="src" name="src/agent/service/conn.go" />
+            <file role="src" name="src/agent/service/heartbeat.go" />
+            <file role="src" name="src/agent/service/register.go" />
+            <file role="src" name="src/agent/service/trace.go" />
+            <file role="src" name="src/go.mod" />
+            <file role="src" name="src/go.sum" />
+            <file role="doc" name="src/proto/README.md" />
+            <file role="src" name="src/proto/common/CLR.proto" />
+            <file role="src" name="src/proto/common/JVM.proto" />
+            <file role="src" name="src/proto/common/common.proto" />
+            <file role="src" name="src/proto/common/trace-common.proto" />
+            <file role="src" name="src/proto/language-agent-v2/CLRMetric.proto" />
+            <file role="src" name="src/proto/language-agent-v2/JVMMetric.proto" />
+            <file role="src" name="src/proto/language-agent-v2/trace.proto" />
+            <file role="src" name="src/proto/language-agent/ApplicationRegisterService.proto" />
+            <file role="src" name="src/proto/language-agent/DiscoveryService.proto" />
+            <file role="src" name="src/proto/language-agent/Downstream.proto" />
+            <file role="src" name="src/proto/language-agent/JVMMetricsService.proto" />
+            <file role="src" name="src/proto/language-agent/KeyWithIntegerValue.proto" />
+            <file role="src" name="src/proto/language-agent/KeyWithStringValue.proto" />
+            <file role="src" name="src/proto/language-agent/NetworkAddressRegisterService.proto" />
+            <file role="src" name="src/proto/language-agent/TraceSegmentService.proto" />
+            <file role="src" name="src/proto/register/InstancePing.proto" />
+            <file role="src" name="src/proto/register/Register.proto" />
+            <file role="src" name="src/proto/service-mesh-probe/istio/skywalking.config.pb.html" />
+            <file role="src" name="src/proto/service-mesh-probe/service-mesh.proto" />
+            <file role="test" name="tests/c.phpt" />
+            <file role="test" name="tests/curl_001.phpt" />
+            <file role="test" name="tests/curl_002.phpt" />
+            <file role="test" name="tests/curl_003.phpt" />
+            <file role="test" name="tests/curl_004.phpt" />
+            <file role="test" name="tests/curl_005.phpt" />
+            <file role="test" name="tests/curl_006.phpt" />
+            <file role="test" name="tests/curl_007.phpt" />
+            <file role="test" name="tests/curl_008.phpt" />
+            <file role="test" name="tests/curl_009.phpt" />
+            <file role="test" name="tests/curl_010.phpt" />
+            <file role="test" name="tests/curl_011.phpt" />
+            <file role="test" name="tests/curl_012.phpt" />
+            <file role="test" name="tests/curl_013.phpt" />
+            <file role="test" name="tests/curl_014.phpt" />
+            <file role="test" name="tests/curl_015.phpt" />
+            <file role="test" name="tests/curl_016.phpt" />
+            <file role="test" name="tests/curl_017.phpt" />
+            <file role="test" name="tests/curl_018.phpt" />
+            <file role="test" name="tests/curl_019.phpt" />
+            <file role="test" name="tests/curl_020.phpt" />
+            <file role="test" name="tests/curl_021.phpt" />
+            <file role="test" name="tests/curl_022.phpt" />
+            <file role="test" name="tests/curl_023.phpt" />
+            <file role="test" name="tests/curl_024.phpt" />
+            <file role="test" name="tests/curl_025.phpt" />
+            <file role="test" name="tests/curl_testdata1.txt" />
+            <file role="test" name="tests/curl_testdata2.txt" />
+            <file role="test" name="tests/d.phpt" />
+            <file role="test" name="tests/explain.txt" />
+            <file role="test" name="tests/server.inc" />
+            <file role="test" name="tests/skywalking.20171027.log" />
+            <file role="src" name="travis/route.sh" />
+            <file role="src" name="travis/simple-compile.sh" />
+            <file role="src" name="who-uses.jpg" />
+
+        </dir>
+    </contents>
+    <dependencies>
+        <required>
+            <php>
+                <min>7.1.0</min>
+            </php>
+            <pearinstaller>
+                <min>1.4.0</min>
+            </pearinstaller>
+        </required>
+    </dependencies>
+    <providesextension>skywalking</providesextension>
+</package>
