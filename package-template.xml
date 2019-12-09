@@ -44,4 +44,21 @@
         </required>
     </dependencies>
     <providesextension>skywalking</providesextension>
+    <providesextension>skywalking</providesextension>
+    <extsrcrelease />
+    <changelog>
+        <release>
+            <version>
+                <release>3.2.4</release>
+                <api>3.2.4</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+            Support php7.4
+            </notes>
+        </release>
+    </changelog>
 </package>
