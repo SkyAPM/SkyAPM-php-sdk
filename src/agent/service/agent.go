@@ -103,9 +103,15 @@ func (t *Agent) connGRPC() {
 
 func (t *Agent) listenSocket() {
 	var err error
-	if err = os.RemoveAll(t.socket); err != nil {
-		log.Panic(err)
+
+	fi, _ := os.Stat(t.socket)
+
+	if fi != nil && !fi.Mode().IsDir() {
+		if err = os.RemoveAll(t.socket); err != nil {
+			log.Panic(err)
+		}
 	}
+
 	t.socketListener, err = net.Listen("unix", t.socket)
 	if err != nil {
 		log.Panic(err)
