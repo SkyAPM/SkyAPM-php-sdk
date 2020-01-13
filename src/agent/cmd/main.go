@@ -3,7 +3,7 @@ package main
 import (
 	"agent/agent/logger"
 	"agent/agent/service"
-	"github.com/urfave/cli"
+	cli "github.com/urfave/cli/v2"
 	"os"
 )
 
@@ -21,9 +21,9 @@ func main() {
 	app.Name = "sky_php_agent"
 	app.Usage = "the skywalking trace sending agent"
 	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "grpc", Usage: "SkyWalking collector grpc address", Value: "127.0.0.1:11800"},
-		cli.StringFlag{Name: "socket", Usage: "Pipeline for communicating with PHP", Value: "/var/run/sky-agent.sock"},
-		cli.IntFlag{Name: "send-rate", Usage: "Send trace 1 second by default", Value: 1},
+		&cli.StringSliceFlag{Name: "grpc", Usage: "SkyWalking collector grpc address", Value: cli.NewStringSlice("127.0.0.1:11800", "127.0.0.2:11800")},
+		&cli.StringFlag{Name: "socket", Usage: "Pipeline for communicating with PHP", Value: "/var/run/sky-agent.sock"},
+		&cli.IntFlag{Name: "send-rate", Usage: "Send trace 1 second by default", Value: 1},
 	}
 
 	app.Action = func(c *cli.Context) error {

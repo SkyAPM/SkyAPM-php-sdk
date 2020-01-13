@@ -7,10 +7,12 @@ import (
 	"agent/agent/pb/register2"
 	"container/list"
 	"fmt"
-	"github.com/urfave/cli"
+	cli "github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
+	"math/rand"
 	"net"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -78,13 +80,21 @@ func (t *Agent) Run() {
 
 func (t *Agent) connGRPC() {
 	var err error
-	grpcAdd := t.flag.String("grpc")
-	t.grpcConn, err = grpc.Dial(grpcAdd, grpc.WithInsecure())
+	grpcAdd := t.flag.StringSlice("grpc")
+	var services []string
+	for _, item := range grpcAdd {
+		services = append(services, strings.Split(item, ",")...)
+	}
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	grpcAddress := services[r.Intn(len(services))]
+
+	t.grpcConn, err = grpc.Dial(grpcAddress, grpc.WithInsecure())
 	if err != nil {
 		log.Panic(err)
 	}
 
-	log.Infof("connection %s...", grpcAdd)
+	log.Infof("connection %s...", grpcAddress)
 	t.grpcClient.segmentClientV5 = agent.NewTraceSegmentServiceClient(t.grpcConn)
 	t.grpcClient.segmentClientV6 = agent2.NewTraceSegmentReportServiceClient(t.grpcConn)
 	t.grpcClient.pingClient5 = agent.NewInstanceDiscoveryServiceClient(t.grpcConn)
@@ -93,9 +103,15 @@ func (t *Agent) connGRPC() {
 
 func (t *Agent) listenSocket() {
 	var err error
-	if err = os.RemoveAll(t.socket); err != nil {
-		log.Panic(err)
+
+	fi, _ := os.Stat(t.socket)
+
+	if fi != nil && !fi.Mode().IsDir() {
+		if err = os.RemoveAll(t.socket); err != nil {
+			log.Panic(err)
+		}
 	}
+
 	t.socketListener, err = net.Listen("unix", t.socket)
 	if err != nil {
 		log.Panic(err)
