@@ -1,3 +1,3 @@
 # todo
 
-See [Install php agent](install-agent.md)
+See [Install agent](install-agent.md)

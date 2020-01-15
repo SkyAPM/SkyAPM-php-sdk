@@ -2,4 +2,4 @@
 
   * Quick Start
     * [Quick start](quick-start.md)
-    * [Install php agent](install-agent.md)
+    * [Install agent](install-agent.md)
