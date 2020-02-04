@@ -21,7 +21,7 @@ Go to [release](https://github.com/SkyAPM/SkyAPM-php-sdk/releases) page to downl
 
 ### Build
 ```shell script
-cd SkyAPM-php-sdk
+cd SkyAPM-php-sdk/src
 go build -o sky-php-agent agent/cmd/main.go
 chmod +x sky-php-agent
 cp sky-php-agent /usr/bin
