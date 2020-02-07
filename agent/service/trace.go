@@ -6,11 +6,12 @@ import (
 	"agent/agent/pb/common"
 	"context"
 	"encoding/json"
-	"github.com/golang/protobuf/proto"
 	"io"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/golang/protobuf/proto"
 )
 
 type upstreamSegment struct {
@@ -322,21 +323,21 @@ func buildRefs6(span *agent2.SpanObjectV2, refs []ref) {
 		}
 
 		if rev.NetworkAddress[0:1] == "#" {
-			reference.NetworkAddress = rev.NetworkAddress
+			reference.NetworkAddress = rev.NetworkAddress[1:]
 		} else {
 			i, _ := strconv.ParseInt(rev.NetworkAddress, 10, 64)
 			reference.NetworkAddressId = int32(i)
 		}
 
 		if rev.EntryServiceName[0:1] == "#" {
-			reference.EntryEndpoint = rev.EntryServiceName
+			reference.EntryEndpoint = rev.EntryServiceName[1:]
 		} else {
 			i, _ := strconv.ParseInt(rev.EntryServiceName, 10, 64)
 			reference.EntryEndpointId = int32(i)
 		}
 
 		if rev.ParentServiceName[0:1] == "#" {
-			reference.ParentEndpoint = rev.ParentServiceName
+			reference.ParentEndpoint = rev.ParentServiceName[1:]
 		} else {
 			i, _ := strconv.ParseInt(rev.ParentServiceName, 10, 64)
 			reference.ParentEndpointId = int32(i)

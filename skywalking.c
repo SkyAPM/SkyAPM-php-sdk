@@ -1257,7 +1257,7 @@ static void generate_context() {
                 add_assoc_long(&SKYWALKING_G(context), "parentSpanId", zend_atol(Z_STRVAL_P(sw6_3), sizeof(Z_STRVAL_P(sw6_3)) - 1));
                 add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", zend_atol(Z_STRVAL_P(sw6_4), sizeof(Z_STRVAL_P(sw6_4)) - 1));
                 add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", zend_atol(Z_STRVAL_P(sw6_5), sizeof(Z_STRVAL_P(sw6_5)) - 1));
-                add_assoc_str(&SKYWALKING_G(context), "networkAddress", trim_sharp(&sw6_6decode));
+                add_assoc_string(&SKYWALKING_G(context), "networkAddress", Z_STRVAL(sw6_6decode));
                 if (sw6_7 != NULL && sw6_8 != NULL) {
 
                     zval sw6_7decode;
@@ -1265,8 +1265,9 @@ static void generate_context() {
                     zval_b64_decode(&sw6_7decode, Z_STRVAL_P(sw6_7));
                     zval_b64_decode(&sw6_8decode, Z_STRVAL_P(sw6_8));
 
-                    add_assoc_str(&SKYWALKING_G(context), "entryOperationName", trim_sharp(&sw6_7decode));
-                    add_assoc_str(&SKYWALKING_G(context), "parentOperationName", trim_sharp(&sw6_8decode));
+                    add_assoc_string(&SKYWALKING_G(context), "entryOperationName", Z_STRVAL(sw6_7decode));
+                    add_assoc_string(&SKYWALKING_G(context), "parentOperationName", Z_STRVAL(sw6_8decode));
+
                     zval_dtor(&sw6_7decode);
                     zval_dtor(&sw6_8decode);
                 }
