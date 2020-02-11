@@ -26,7 +26,7 @@
     </stability>
     <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
     <notes>
-        Support php7.4
+        Fix the empty field bug in span refs for skywalking v6.
     </notes>
     <contents>
         <dir name="/">
@@ -44,9 +44,21 @@
         </required>
     </dependencies>
     <providesextension>skywalking</providesextension>
-    <providesextension>skywalking</providesextension>
     <extsrcrelease />
     <changelog>
+        <release>
+            <version>
+                <release>3.2.5</release>
+                <api>3.2.5</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+                Fix the empty field bug in span refs for SkyWalking v6.
+            </notes>
+        </release>
         <release>
             <version>
                 <release>3.2.4</release>
