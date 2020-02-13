@@ -15,10 +15,10 @@
         <email>yanlong@php.net</email>
         <active>yes</active>
     </lead>
-    <date>2020-02-11</date>
+    <date>2020-02-13</date>
     <version>
-        <release>3.2.5</release>
-        <api>3.2.5</api>
+        <release>3.2.6</release>
+        <api>3.2.6</api>
     </version>
     <stability>
         <release>stable</release>
@@ -26,7 +26,7 @@
     </stability>
     <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
     <notes>
-        Fix the empty field bug in span refs for skywalking v6.
+        Fix the mistake of field entryOperationName in sw6 header.
     </notes>
     <contents>
         <dir name="/">
@@ -158,6 +158,19 @@
     <providesextension>skywalking</providesextension>
     <extsrcrelease />
     <changelog>
+        <release>
+            <version>
+                <release>3.2.6</release>
+                <api>3.2.6</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+                Fix the mistake of field entryOperationName in sw6 header.
+            </notes>
+        </release>
         <release>
             <version>
                 <release>3.2.5</release>
