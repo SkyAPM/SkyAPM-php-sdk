@@ -1281,7 +1281,26 @@ static void generate_context() {
             add_assoc_long(&SKYWALKING_G(context), "parentApplicationInstance", application_instance);
             add_assoc_long(&SKYWALKING_G(context), "entryApplicationInstance", application_instance);
             char *uri = get_page_request_uri();
-            add_assoc_string(&SKYWALKING_G(context), "entryOperationName", (uri == NULL) ? "" : uri);
+            char *path = NULL;
+            if (uri != NULL) {
+                path = (char *)emalloc(strlen(uri) + 5);
+                bzero(path, strlen(uri) + 5);
+
+                int i;
+                for(i = 0; i < strlen(uri); i++) {
+                    if (uri[i] == '?') {
+                        break;
+                    }
+                    path[i] = uri[i];
+                }
+                path[i] = '\0';
+            }
+
+            add_assoc_string(&SKYWALKING_G(context), "entryOperationName", (path == NULL) ? "" : path);
+            if (path != NULL) {
+                efree(path);
+            }
+
             add_assoc_string(&SKYWALKING_G(context), "distributedTraceId", makeTraceId);
             if(uri != NULL) {
                 efree(uri);
