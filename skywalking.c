@@ -68,11 +68,17 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
 /* True global resources - no need for thread safety here */
 static int le_skywalking;
+#if SKY_DEBUG
+static int application_instance = 1;
+static int application_id = 1;
+static int cli_debug = 1;
+#else
 static int application_instance = 0;
 static int application_id = 0;
+static int cli_debug = 0;
+#endif
 static char application_uuid[37] = {0};
 static int sky_increment_id = 0;
-static int cli_debug = 0;
 
 static void (*ori_execute_ex)(zend_execute_data *execute_data);
 static void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value);
@@ -83,7 +89,11 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
  */
 /* Remove comments and fill if you need to have entries in php.ini*/
 PHP_INI_BEGIN()
+#if SKY_DEBUG
+	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"1", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
+#else
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
+#endif
 	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.sock_path", "/var/run/sky-agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
