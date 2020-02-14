@@ -117,7 +117,7 @@ func (t *Agent) send(segments []*upstreamSegment) {
 	if streamV5 != nil {
 		streamV5.CloseAndRecv()
 	}
-	if streamV6 == nil {
+	if streamV6 != nil {
 		streamV6.CloseAndRecv()
 	}
 	log.Info("sending success...")
