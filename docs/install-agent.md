@@ -1,6 +1,6 @@
 # Install SkyWalking PHP Agent
 
-## Recuriements
+## Requirements
 When building directly from Git sources or after custom modifications you might also need:
 * php 7+
 * golang 1.13
