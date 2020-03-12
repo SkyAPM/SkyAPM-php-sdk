@@ -17,6 +17,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        path: skywalking-php
 
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
@@ -38,7 +40,8 @@ jobs:
     - name: Checkout agent test tool
       uses: actions/checkout@v2
       with:
-        name: apache/skywalking-agent-test-tool
+        repository: apache/skywalking-agent-test-tool
+        path: skywalking-agent-test-tool
     
     - uses: actions/setup-java@v1
       with:
