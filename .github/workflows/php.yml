@@ -33,5 +33,5 @@ jobs:
       run: ./configure
       
     - name: Make
-      run: make && make install
+      run: make && sudo make install
       
