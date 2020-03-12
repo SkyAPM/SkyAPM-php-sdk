@@ -50,9 +50,9 @@ jobs:
         mvn package -DskipTests
         tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
         cd ./mock-collector/skywalking-mock-collector
-        nohup sudo bash -c './bin/collector-startup.sh' &
+        nohup bash -c './bin/collector-startup.sh' &
         cat nohup.out
-        cd ..
+        cd ../..
       
     - name: Check mock collector
       run: curl http://localhost:12800/status
