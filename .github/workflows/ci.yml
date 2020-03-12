@@ -54,5 +54,5 @@ jobs:
         cd ../..
       
     - name: Check mock collector
-      run: curl http://localhost:12800/status
+      run: bash -c 'curl -i http://localhost:12800/status'
       
