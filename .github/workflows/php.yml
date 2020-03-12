@@ -24,7 +24,7 @@ jobs:
         php-version: ${{ matrix.php-versions }}
         extensions: curl, json
     - name: Install library
-      run: sudo apt install -y curl libcurl4-openssl-dev
+      run: sudo apt-get install -y curl libcurl4-openssl-dev
     
     - name: PHPize
       run: phpize
