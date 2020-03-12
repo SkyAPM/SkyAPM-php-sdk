@@ -23,6 +23,12 @@ jobs:
       with:
         php-version: ${{ matrix.php-versions }}
     
-    - name: phpize
+    - name: PHPize
       run: phpize
+      
+    - name: Configure
+      run: ./configure
+      
+    - name: Make
+      run: make && make install
       
