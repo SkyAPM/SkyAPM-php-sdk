@@ -48,7 +48,7 @@ jobs:
       run: |
         cd skywalking-agent-test-tool
         mvn package -DskipTests
-        unzip ./dist/skywalking-mock-collector.tar.gz -d ./mock-collector
+        tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
         nohup bash -c './mock-collector/bin/collector-startup.sh' &
         cd ..
       
