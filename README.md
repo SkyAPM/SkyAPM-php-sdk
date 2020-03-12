@@ -1,9 +1,11 @@
 SkyAPM PHP
 ==========
+![CI](https://github.com/SkyAPM/SkyAPM-php-sdk/workflows/CI/badge.svg)
 
 <img src="https://skyapmtest.github.io/page-resources/SkyAPM/skyapm.png" alt="Sky Walking logo" height="90px" align="right" />
 
 **SkyAPM PHP** is the PHP instrumentation agent, which is compatible with [Apache SkyWalking](https://github.com/apache/skywalking) backend and others compatible agents/SDKs
+
 
 ## Documents
 * [Documents in English](docs/README.md)
