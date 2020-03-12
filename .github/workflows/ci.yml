@@ -50,6 +50,7 @@ jobs:
         mvn package -DskipTests
         tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
         nohup bash -c './mock-collector/bin/collector-startup.sh' &
+        cat nohup.out
         cd ..
       
     - name: Check mock collector
