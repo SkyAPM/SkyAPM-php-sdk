@@ -24,7 +24,7 @@ jobs:
         php-version: ${{ matrix.php-versions }}
         extensions: curl, json
     - name: Install library
-      run: apt install -y curl
+      run: sudo apt install -y curl
     
     - name: PHPize
       run: phpize
