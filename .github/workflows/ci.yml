@@ -1,4 +1,4 @@
-name: PHP CI
+name: CI
 
 on:
   push:
@@ -34,4 +34,22 @@ jobs:
       
     - name: Make
       run: make && sudo make install
+    
+    - name: Checkout agent test tool
+      uses: actions/checkout@v2
+      with:
+        name: apache/skywalking-agent-test-tool
+    
+    - uses: actions/setup-java@v1
+      with:
+        java-version: 8
+    - uses: aahmed-se/setup-maven@v3
+      with:
+        maven-version: 3.6.1
+    
+    - name: 'Start apache SkyWalking mock collector'
+      run: mvn package -DskipTests && unzip ./dist/mock-collector.tar.gz -d ./mock-collector && bash ./mock-collector/bin/collector-startup.sh
+      
+    - name: Check mock collector
+      run: curl http://localhost:12800/status
       
