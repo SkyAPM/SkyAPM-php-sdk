@@ -49,7 +49,7 @@ jobs:
         cd skywalking-agent-test-tool
         mvn package -DskipTests
         ls
-        unzip ./dist/mock-collector.tar.gz -d ./mock-collector
+        ls dist
         nohup bash -c './mock-collector/bin/collector-startup.sh' &
         cd ..
       
