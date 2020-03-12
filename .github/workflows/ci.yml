@@ -28,15 +28,9 @@ jobs:
     - name: Install library
       run: sudo apt-get update && sudo apt-get install -y curl libcurl4-openssl-dev
     
-    - name: PHPize
-      run: phpize
+    - name: Configure and make
+      run: cd skywalking-php && phpize && ./configure && make && sudo make install && cd ..
       
-    - name: Configure
-      run: ./configure
-      
-    - name: Make
-      run: make && sudo make install
-    
     - name: Checkout agent test tool
       uses: actions/checkout@v2
       with:
@@ -51,7 +45,7 @@ jobs:
         maven-version: 3.6.1
     
     - name: 'Start apache SkyWalking mock collector'
-      run: mvn package -DskipTests && unzip ./dist/mock-collector.tar.gz -d ./mock-collector && bash ./mock-collector/bin/collector-startup.sh
+      run: cd skywalking-agent-test-tool && mvn package -DskipTests && unzip ./dist/mock-collector.tar.gz -d ./mock-collector && nohup bash ./mock-collector/bin/collector-startup.sh & && cd ..
       
     - name: Check mock collector
       run: curl http://localhost:12800/status
