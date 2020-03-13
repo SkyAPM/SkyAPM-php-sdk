@@ -54,5 +54,5 @@ jobs:
         cd ../..
       
     - name: Check mock collector
-      run: bash -c 'bash -c 'response=0; while [ $response -ne 200 ]; do sleep 1; response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:12800/status);echo $response;done'
+      run: bash -c 'response=0; while [ $response -ne 200 ]; do sleep 1; response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:12800/status);echo $response;done'
       
