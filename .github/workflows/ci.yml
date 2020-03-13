@@ -34,8 +34,8 @@ jobs:
 
       - name: Setup java
         uses: actions/setup-java@v1
-          with:
-            java-version: 8
+        with:
+          java-version: 8
 
       - name: Setup maven
         uses: aahmed-se/setup-maven@v3
@@ -43,8 +43,8 @@ jobs:
           maven-version: 3.6.1
       - name: Setup GO
         uses: actions/setup-go@v2-beta
-          with:
-            go-version: '^1.13.1'
+        with:
+          go-version: '^1.13.1'
 
       - name: Install library
         run: sudo apt-get update && sudo apt-get install -y curl libcurl4-openssl-dev
@@ -59,7 +59,7 @@ jobs:
           cd ..
 
       - name: Build SkyWalking-PHP agent
-        runs: |
+        run: |
           cd skywalking-php
           bash -c './build-sky-php-agent.sh'
           cd ..
