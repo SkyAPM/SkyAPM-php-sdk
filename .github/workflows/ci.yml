@@ -15,44 +15,63 @@ jobs:
         php-versions: ['7.0', '7.1', '7.2', '7.3', '7.4']
     name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        path: skywalking-php
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: skywalking-php
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-versions }}
-        extensions: curl, json
-    - name: Install library
-      run: sudo apt-get update && sudo apt-get install -y curl libcurl4-openssl-dev
-    
-    - name: Configure and make
-      run: cd skywalking-php && phpize && ./configure && make && sudo make install && cd ..
-      
-    - name: Checkout agent test tool
-      uses: actions/checkout@v2
-      with:
-        repository: apache/skywalking-agent-test-tool
-        path: skywalking-agent-test-tool
-    
-    - uses: actions/setup-java@v1
-      with:
-        java-version: 8
-    - uses: aahmed-se/setup-maven@v3
-      with:
-        maven-version: 3.6.1
-    
-    - name: 'Start apache SkyWalking mock collector'
-      run: |
-        cd skywalking-agent-test-tool
-        mvn package -DskipTests
-        tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
-        cd ./mock-collector/skywalking-mock-collector
-        nohup bash -c './bin/collector-startup.sh' &
-        cd ../..
-      
-    - name: Check mock collector
-      run: bash -c 'response=0; while [ $response -ne 200 ]; do sleep 1; response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:12800/receiveData);echo $response;done'
-      
+      - name: Checkout agent test tool
+        uses: actions/checkout@v2
+        with:
+          repository: apache/skywalking-agent-test-tool
+          path: skywalking-agent-test-tool
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: curl, json
+
+      - name: Setup java
+        uses: actions/setup-java@v1
+          with:
+            java-version: 8
+
+      - name: Setup maven
+        uses: aahmed-se/setup-maven@v3
+        with:
+          maven-version: 3.6.1
+      - name: Setup GO
+        uses: actions/setup-go@v2-beta
+          with:
+            go-version: '^1.13.1'
+
+      - name: Install library
+        run: sudo apt-get update && sudo apt-get install -y curl libcurl4-openssl-dev
+
+      - name: Build SkyWalking-PHP
+        run: |
+          cd skywalking-php
+          phpize
+          ./configure
+          make
+          sudo make install
+          cd ..
+
+      - name: Build SkyWalking-PHP agent
+        runs: |
+          cd skywalking-php
+          bash -c './build-sky-php-agent.sh'
+          cd ..
+          
+      - name: Start apache SkyWalking mock collector
+        run: |
+          cd skywalking-agent-test-tool
+          mvn package -DskipTests
+          tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
+          cd ./mock-collector/skywalking-mock-collector
+          nohup bash -c './bin/collector-startup.sh' &
+          cd ../..
+
+      - name: Check mock collector
+        run: bash -c 'response=0; while [ $response -ne 200 ]; do sleep 1; response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:12800/receiveData);echo $response;done'
