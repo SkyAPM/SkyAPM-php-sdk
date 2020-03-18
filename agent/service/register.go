@@ -195,13 +195,6 @@ func (t *Agent) doRegister(r *register) {
 				var instances []*register2.ServiceInstance
 				var properties []*common.KeyStringValuePair
 
-				instances = append(instances, &register2.ServiceInstance{
-					ServiceId:    appId,
-					InstanceUUID: agentUUID,
-					Time:         time.Now().UnixNano() / 1000000,
-					Properties:   properties,
-				})
-
 				properties = append(properties, &common.KeyStringValuePair{
 					Key:   "os_name",
 					Value: runtime.GOOS,
@@ -214,7 +207,7 @@ func (t *Agent) doRegister(r *register) {
 
 				properties = append(properties, &common.KeyStringValuePair{
 					Key:   "process_no",
-					Value: string(pid),
+					Value: strconv.Itoa(pid),
 				})
 
 				properties = append(properties, &common.KeyStringValuePair{
@@ -228,6 +221,13 @@ func (t *Agent) doRegister(r *register) {
 						Value: ip,
 					})
 				}
+
+				instances = append(instances, &register2.ServiceInstance{
+					ServiceId:    appId,
+					InstanceUUID: agentUUID,
+					Time:         time.Now().UnixNano() / 1000000,
+					Properties:   properties,
+				})
 
 				instanceReq := &register2.ServiceInstances{
 					Instances: instances,
