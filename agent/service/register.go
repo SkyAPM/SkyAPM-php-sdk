@@ -42,18 +42,21 @@ func ip4s() []string {
 	return ips
 }
 
-func (t *Agent) recoverRegister(r string) {
-	var info trace
-	err := json.Unmarshal([]byte(r), &info)
-	if err == nil {
-		if _, ok := t.registerCache.Load(info.Pid); !ok {
-			t.registerCache.Store(info.Pid, registerCache{
-				Version:    info.Version,
-				AppId:      info.ApplicationId,
-				InstanceId: info.ApplicationInstance,
-				Uuid:       info.Uuid,
-			})
+func (t *Agent) recoverRegister(info trace) {
+
+	t.registerCacheLock.RLock()
+	_, ok := t.registerCache[info.Pid]
+	t.registerCacheLock.RUnlock()
+
+	if !ok {
+		t.registerCacheLock.Lock()
+		t.registerCache[info.Pid] = registerCache{
+			Version:    info.Version,
+			AppId:      info.ApplicationId,
+			InstanceId: info.ApplicationInstance,
+			Uuid:       info.Uuid,
 		}
+		t.registerCacheLock.Unlock()
 	}
 }
 
@@ -68,8 +71,10 @@ func (t *Agent) doRegister(r *register) {
 	}
 
 	pid := info.Pid
-	if value, ok := t.registerCache.Load(pid); ok {
-		bind := value.(registerCache)
+	t.registerCacheLock.RLock()
+	bind, ok := t.registerCache[pid]
+	t.registerCacheLock.RUnlock()
+	if ok {
 		log.Infof("register => pid %d appid %d insId %d", pid, bind.AppId, bind.InstanceId)
 		r.c.Write([]byte(strconv.FormatInt(int64(bind.AppId), 10) + "," + strconv.FormatInt(int64(bind.InstanceId), 10) + "," + bind.Uuid))
 		return
@@ -79,9 +84,8 @@ func (t *Agent) doRegister(r *register) {
 
 	t.registerCacheLock.Lock()
 	defer t.registerCacheLock.Unlock()
-
 	// if map not found pid.. start register
-	if _, ok := t.registerCache.Load(pid); !ok {
+	if !ok {
 		log.Infof("start register pid %d used SkyWalking v%d", pid, info.Version)
 		var regAppStatus = false
 		var appId int32 = 0
@@ -254,12 +258,12 @@ func (t *Agent) doRegister(r *register) {
 			}
 
 			if appInsId != 0 {
-				t.registerCache.Store(pid, registerCache{
+				t.registerCache[pid] = registerCache{
 					Version:    info.Version,
 					AppId:      appId,
 					InstanceId: appInsId,
 					Uuid:       agentUUID,
-				})
+				}
 				log.Infof("register pid %d appid %d insId %d", pid, appId, appInsId)
 			}
 		} else {

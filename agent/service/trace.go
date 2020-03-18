@@ -123,13 +123,13 @@ func (t *Agent) send(segments []*upstreamSegment) {
 	log.Info("sending success...")
 }
 
-func format(j string) *upstreamSegment {
+func format(j string) (trace, *upstreamSegment) {
 	info := trace{}
 	err := json.Unmarshal([]byte(j), &info)
 
 	if err != nil {
 		log.Error("trace json decode:", err)
-		return nil
+		return info, nil
 	}
 	if info.Version == 5 {
 		var globalTrace []*agent.UniqueId
@@ -190,14 +190,14 @@ func format(j string) *upstreamSegment {
 		//log.Info(seg)
 		if err != nil {
 			log.Error("trace json encode:", err)
-			return nil
+			return info, nil
 		}
 
 		segment := &agent.UpstreamSegment{
 			GlobalTraceIds: globalTrace,
 			Segment:        seg,
 		}
-		return &upstreamSegment{
+		return info, &upstreamSegment{
 			Version: info.Version,
 			segment: segment,
 		}
@@ -261,7 +261,7 @@ func format(j string) *upstreamSegment {
 		//log.Info(seg)
 		if err != nil {
 			log.Error("trace proto encode:", err)
-			return nil
+			return info, nil
 		}
 
 		segment := &agent.UpstreamSegment{
@@ -269,12 +269,12 @@ func format(j string) *upstreamSegment {
 			Segment:        seg,
 		}
 
-		return &upstreamSegment{
+		return info, &upstreamSegment{
 			Version: info.Version,
 			segment: segment,
 		}
 	}
-	return nil
+	return info, nil
 }
 
 func buildRefs(span *agent.SpanObject, refs []ref) {

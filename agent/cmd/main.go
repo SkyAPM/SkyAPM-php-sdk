@@ -20,7 +20,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "sky_php_agent"
 	app.Usage = "the skywalking trace sending agent"
-	app.Version = "3.2.6"
+	app.Version = "3.2.7"
 	app.Flags = []cli.Flag{
 		&cli.StringSliceFlag{Name: "grpc", Usage: "SkyWalking collector grpc address", Value: cli.NewStringSlice("127.0.0.1:11800")},
 		&cli.StringFlag{Name: "socket", Usage: "Pipeline for communicating with PHP", Value: "/var/run/sky-agent.sock"},

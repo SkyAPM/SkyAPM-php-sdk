@@ -5,8 +5,6 @@ import (
 	"agent/agent/pb/agent"
 	"agent/agent/pb/agent2"
 	"agent/agent/pb/register2"
-	"container/list"
-	"fmt"
 	cli "github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 	"math/rand"
@@ -38,19 +36,20 @@ type Agent struct {
 	socket            string
 	socketListener    net.Listener
 	register          chan *register
-	registerCache     sync.Map
-	registerCacheLock sync.Mutex
+	registerCache     map[int]registerCache
+	registerCacheLock sync.RWMutex
 	trace             chan string
-	queue             *list.List
+	queue             []string
+	queueLock         sync.Mutex
 }
 
 func NewAgent(cli *cli.Context) *Agent {
 	var agent = &Agent{
-		flag:     cli,
-		socket:   cli.String("socket"),
-		register: make(chan *register),
-		trace:    make(chan string),
-		queue:    list.New(),
+		flag:          cli,
+		socket:        cli.String("socket"),
+		register:      make(chan *register),
+		trace:         make(chan string),
+		registerCache: make(map[int]registerCache),
 	}
 
 	go agent.sub()
@@ -60,22 +59,25 @@ func NewAgent(cli *cli.Context) *Agent {
 
 func (t *Agent) Run() {
 	log.Info("hello skywalking")
-	t.connGRPC()
-	t.listenSocket()
 
-	log.Info("🍺 skywalking php agent started successfully, enjoy yourself")
 	defer func() {
 		var err error
-		err = t.socketListener.Close()
-		if err != nil {
-			log.Errorln(err)
+		if t.socketListener != nil {
+			err = t.socketListener.Close()
+			if err != nil {
+				log.Errorln(err)
+			}
 		}
 
-		err = t.grpcConn.Close()
-		if err != nil {
-			log.Errorln(err)
+		if t.grpcConn != nil {
+			err = t.grpcConn.Close()
+			if err != nil {
+				log.Errorln(err)
+			}
 		}
 	}()
+	t.connGRPC()
+	t.listenSocket()
 }
 
 func (t *Agent) connGRPC() {
@@ -99,6 +101,7 @@ func (t *Agent) connGRPC() {
 	t.grpcClient.segmentClientV6 = agent2.NewTraceSegmentReportServiceClient(t.grpcConn)
 	t.grpcClient.pingClient5 = agent.NewInstanceDiscoveryServiceClient(t.grpcConn)
 	t.grpcClient.pintClient6 = register2.NewServiceInstancePingClient(t.grpcConn)
+	log.Info("🍺 skywalking php agent started successfully, enjoy yourself")
 }
 
 func (t *Agent) listenSocket() {
@@ -144,17 +147,21 @@ func (t *Agent) sub() {
 	for {
 		select {
 		case <-traceSendTicker.C:
-			len := t.queue.Len()
+			len := len(t.queue)
 			if len > 0 {
 				var segments []*upstreamSegment
-				for i := 0; i < len; i++ {
-					// front top 100
-					e := t.queue.Front()
-					st := format(fmt.Sprintf("%v", e.Value))
+
+				t.queueLock.Lock()
+				list := t.queue[:]
+				t.queue = []string{}
+				t.queueLock.Unlock()
+
+				for _, trace := range list {
+					info, st := format(trace)
 					if st != nil {
+						t.recoverRegister(info)
 						segments = append(segments, st)
 					}
-					t.queue.Remove(e)
 				}
 				go t.send(segments)
 			}
@@ -163,8 +170,9 @@ func (t *Agent) sub() {
 		case register := <-t.register:
 			go t.doRegister(register)
 		case trace := <-t.trace:
-			t.queue.PushBack(trace)
-			go t.recoverRegister(trace)
+			t.queueLock.Lock()
+			t.queue = append(t.queue, trace)
+			t.queueLock.Unlock()
 		}
 	}
 }
