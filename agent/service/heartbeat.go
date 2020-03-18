@@ -9,9 +9,14 @@ import (
 
 func (t *Agent) heartbeat() {
 
-	t.registerCacheLock.Lock()
-	defer t.registerCacheLock.Unlock()
+	var heartList []registerCache
+	t.registerCacheLock.RLock()
 	for _, bind := range t.registerCache {
+		heartList = append(heartList, bind)
+	}
+	t.registerCacheLock.RUnlock()
+
+	for _, bind := range heartList {
 		log.Infoln("heartbeat")
 		if bind.Version == 5 {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
