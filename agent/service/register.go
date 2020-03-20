@@ -85,7 +85,7 @@ func (t *Agent) doRegister(r *register) {
 	t.registerCacheLock.Lock()
 	defer t.registerCacheLock.Unlock()
 	// if map not found pid.. start register
-	if !ok {
+	if _, ok := t.registerCache[pid]; !ok {
 		log.Infof("start register pid %d used SkyWalking v%d", pid, info.Version)
 		var regAppStatus = false
 		var appId int32 = 0
