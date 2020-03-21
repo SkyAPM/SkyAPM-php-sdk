@@ -17,8 +17,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          path: skywalking-php
 
       - name: Checkout agent test tool
         uses: actions/checkout@v2
@@ -51,31 +49,21 @@ jobs:
 
       - name: Build SkyWalking-PHP
         run: |
-          cd skywalking-php
           phpize
           ./configure
           make
           sudo make install
-          cd ..
-
-      - name: Build SkyWalking-PHP agent
-        run: |
-          cd skywalking-php
           bash -c './build-sky-php-agent.sh'
-          cd ..
           
-      - name: Start apache SkyWalking mock collector
+      - name: Build SkyWalking mock collector
         run: |
           cd skywalking-agent-test-tool
           mvn package -DskipTests
           tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
           cd ./mock-collector/skywalking-mock-collector
           nohup bash -c './bin/collector-startup.sh' &
-          cd ../..
+          bash -c 'response=0; while [ $response -ne 200 ]; do sleep 1; response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:12800/receiveData);echo $response;done'
 
-      - name: Check mock collector
-        run: bash -c 'response=0; while [ $response -ne 200 ]; do sleep 1; response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:12800/receiveData);echo $response;done'
-        
       - name: Publish Dokcer image
         if: matrix.php-versions == '7.4'
         uses: elgohr/Publish-Docker-Github-Action@2.13
