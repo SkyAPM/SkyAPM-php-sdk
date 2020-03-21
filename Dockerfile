@@ -1,13 +1,24 @@
 FROM php:7.4-fpm
 
-ARG SKYWALKING=3.2.7
-
 RUN set -ex \
-    && apt-get update && apt-get install -y curl libcurl4-openssl-dev golang git \
-    && mkdir -p /tmp/skywalking && cd /tmp/skywalking \
-    && curl -L -o skywalking.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/${SKYWALKING}.tar.gz \
-    && tar zxvf skywalking.tar.gz && cd SkyAPM-php-sdk-${SKYWALKING} \
+    && apt-get update -y && apt-get install --no-install-recommends -y \
+    curl \
+    libcurl4-openssl-dev \
+    golang \
+    git \
+    procps \
+    nginx \
+    && rm -rf /var/lib/apt/lists/*
+ADD . /tmp/skywalking
+RUN set -ex \
+    && cd /tmp/skywalking \
     && phpize && ./configure && make && make install \
-    && cp php.ini /usr/local/etc/php/conf.d/ext-skywalking.ini \
     && ./build-sky-php-agent.sh \
-    && cp sky-php-agent-* /usr/local/bin/
+    && cp sky-php-agent-* /usr/local/bin/ \
+    && cp php.ini /usr/local/etc/php/conf.d/ext-skywalking.ini \
+    && cp service.sh /opt/ \
+    && cp nginx.conf /etc/nginx/nginx.conf \
+    && cd /var/www/html \
+    && rm -fr /tmp/skywalking
+
+ENTRYPOINT ["/opt/service.sh"]

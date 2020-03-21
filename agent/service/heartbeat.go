@@ -9,10 +9,15 @@ import (
 
 func (t *Agent) heartbeat() {
 
-	t.registerCache.Range(func(key, value interface{}) bool {
-		log.Infoln("heartbeat")
-		bind := value.(registerCache)
+	var heartList []registerCache
+	t.registerCacheLock.RLock()
+	for _, bind := range t.registerCache {
+		heartList = append(heartList, bind)
+	}
+	t.registerCacheLock.RUnlock()
 
+	for _, bind := range heartList {
+		log.Infoln("heartbeat")
 		if bind.Version == 5 {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 			defer cancel()
@@ -43,6 +48,5 @@ func (t *Agent) heartbeat() {
 				log.Infof("heartbeat appId %d appInsId %d", bind.AppId, bind.InstanceId)
 			}
 		}
-		return true
-	})
+	}
 }
