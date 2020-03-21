@@ -69,10 +69,17 @@ jobs:
           nohup bash -c './bin/collector-startup.sh' &
           bash -c 'response=0; while [ $response -ne 200 ]; do sleep 1; response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:12800/receiveData);echo $response;done'
 
+  publish:
+    needs: [build]
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Publish Dokcer image
-        if: matrix.php-versions == '7.4' && github.event_name == 'push'
+        if: github.event_name == 'push'
         uses: elgohr/Publish-Docker-Github-Action@2.13
-        with: 
+        with:
           name: skyapm/skywalking-php
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
