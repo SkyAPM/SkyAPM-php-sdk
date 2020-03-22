@@ -15,6 +15,7 @@ RUN set -ex \
     && ./build-sky-php-agent.sh \
     && cp sky-php-agent-* /usr/local/bin/ \
     && cp php.ini /usr/local/etc/php/conf.d/ext-skywalking.ini \
+    && mkdir -p /opt/www \
     && cp service.sh /opt/ \
     && cp nginx.conf /etc/nginx/nginx.conf \
     && cp skywalking.php /opt/www/index.php \
