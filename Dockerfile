@@ -20,7 +20,7 @@ RUN set -ex \
     && cp nginx.conf /etc/nginx/nginx.conf \
     && cp skywalking.php /opt/www/index.php \
     && cd /var/www/html \
-    && apt-get remove golang git \
+    && apt-get remove -y golang git \
     && rm -fr /tmp/skywalking \
     && rm -fr /usr/lib/go-1.11 \
     && rm -fr /root/go \
