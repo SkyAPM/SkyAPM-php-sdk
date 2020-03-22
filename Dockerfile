@@ -6,7 +6,6 @@ RUN set -ex \
     libcurl4-openssl-dev \
     golang \
     git \
-    procps \
     nginx \
     && rm -rf /var/lib/apt/lists/*
 ADD . /tmp/skywalking
@@ -18,7 +17,12 @@ RUN set -ex \
     && cp php.ini /usr/local/etc/php/conf.d/ext-skywalking.ini \
     && cp service.sh /opt/ \
     && cp nginx.conf /etc/nginx/nginx.conf \
+    && cp skywalking.php /opt/www/index.php \
     && cd /var/www/html \
-    && rm -fr /tmp/skywalking
+    && apt-get remove golang git \
+    && rm -fr /tmp/skywalking \
+    && rm -fr /usr/lib/go-1.11 \
+    && rm -fr /root/go \
+    && rm -fr /root/.cache
 
 ENTRYPOINT ["/opt/service.sh"]
