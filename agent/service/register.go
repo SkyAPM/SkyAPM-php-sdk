@@ -221,7 +221,7 @@ func (t *Agent) doRegister(r *register) {
 
 				for _, ip := range ip4s() {
 					properties = append(properties, &common.KeyStringValuePair{
-						Key:   "ipv4s",
+						Key:   "ipv4",
 						Value: ip,
 					})
 				}
