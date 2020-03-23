@@ -15,10 +15,10 @@
         <email>yanlong@php.net</email>
         <active>yes</active>
     </lead>
-    <date>2020-02-13</date>
+    <date>2020-03-23</date>
     <version>
-        <release>3.2.6</release>
-        <api>3.2.6</api>
+        <release>3.2.8</release>
+        <api>3.2.8</api>
     </version>
     <stability>
         <release>stable</release>
@@ -31,6 +31,7 @@
     <contents>
         <dir name="/">
             <file role="doc" name="CREDITS" />
+            <file role="doc" name="Dockerfile" />
             <file role="doc" name="EXPERIMENTAL" />
             <file role="doc" name="LICENSE" />
             <file role="doc" name="README.md" />
@@ -82,6 +83,8 @@
             <file role="src" name="encode.c" />
             <file role="src" name="go.mod" />
             <file role="src" name="go.sum" />
+            <file role="src" name="nginx.conf" />
+            <file role="src" name="package-release-template.xml" />
             <file role="src" name="pecl-package.php" />
             <file role="src" name="php.ini" />
             <file role="src" name="php_skywalking.h" />
@@ -105,6 +108,7 @@
             <file role="src" name="proto/register/Register.proto" />
             <file role="src" name="proto/service-mesh-probe/istio/skywalking.config.pb.html" />
             <file role="src" name="proto/service-mesh-probe/service-mesh.proto" />
+            <file role="src" name="service.sh" />
             <file role="src" name="skywalking.c" />
             <file role="src" name="skywalking.php" />
             <file role="test" name="tests/c.phpt" />
@@ -158,6 +162,20 @@
     <providesextension>skywalking</providesextension>
     <extsrcrelease />
     <changelog>
+        
+        <release>
+            <version>
+                <release>3.2.8</release>
+                <api>3.2.8</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+                Fix bugs and add Dockerfile
+            </notes>
+        </release>
         <release>
             <version>
                 <release>3.2.6</release>

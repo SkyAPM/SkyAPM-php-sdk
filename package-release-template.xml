@@ -1,0 +1,14 @@
+{{release}}
+        <release>
+            <version>
+                <release>{{version}}</release>
+                <api>{{version}}</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+                {{notes}}
+            </notes>
+        </release>

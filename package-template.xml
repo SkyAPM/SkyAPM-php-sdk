@@ -46,6 +46,20 @@
     <providesextension>skywalking</providesextension>
     <extsrcrelease />
     <changelog>
+        {{release}}
+        <release>
+            <version>
+                <release>3.2.8</release>
+                <api>3.2.8</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+                Fix bugs and add Dockerfile
+            </notes>
+        </release>
         <release>
             <version>
                 <release>3.2.6</release>

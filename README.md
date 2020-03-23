@@ -12,7 +12,7 @@ SkyAPM PHP
 * [中文文档](docs/README_ZH.md)
 
 ## Docker image
-[SkyAPM PHP](https://hub.docker.com/r/skyapm/skywalking-php)
+Go to Docker hub -> [SkyAPM PHP](https://hub.docker.com/r/skyapm/skywalking-php)
 ```shell script
 docker run -d -e SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 skywalking-php
 ```
