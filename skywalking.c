@@ -291,6 +291,49 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                         }
                     }
                 }
+            } else if (connection != NULL && Z_TYPE_P(connection) == IS_OBJECT && strcmp(sky_get_class_name(connection), "Predis\\Connection\\Aggregate\\PredisCluster") == 0) {
+                zval *pool = sky_read_property(connection, "pool");
+                if (pool != NULL && Z_TYPE_P(pool) == IS_ARRAY) {
+                    uint32_t count = zend_array_count(Z_ARRVAL_P(pool));
+                    if (count > 0) {
+                        zend_ulong i = 0;
+                        zval *host_port_pairs[count * 2];
+                        bzero(host_port_pairs, sizeof(zval *) * count * 2);
+                        size_t len = 1;
+                        for (i = 0; i < count; i += 1)
+                        {
+                            zval *item = zend_hash_index_find(Z_ARRVAL_P(pool), i);
+                            if (item != NULL && Z_TYPE_P(item) == IS_OBJECT && strcmp(sky_get_class_name(item), "Predis\\Connection\\StreamConnection") == 0) {
+                                zval *parameters = sky_read_property(item, "parameters");
+                                if (parameters != NULL && Z_TYPE_P(parameters) == IS_OBJECT && strcmp(sky_get_class_name(parameters), "Predis\\Connection\\Parameters") == 0) {
+                                    zval *parameters_arr = sky_read_property(parameters, "parameters");
+                                    if (Z_TYPE_P(parameters_arr) == IS_ARRAY) {
+                                        zval *predis_host = zend_hash_str_find(Z_ARRVAL_P(parameters_arr), "host", sizeof("host") - 1);
+                                        zval *predis_port = zend_hash_str_find(Z_ARRVAL_P(parameters_arr), "port", sizeof("port") - 1);
+
+                                        if (Z_TYPE_P(predis_host) == IS_STRING && Z_TYPE_P(predis_port) == IS_LONG) {
+                                            host_port_pairs[i * 2] = predis_host;
+                                            host_port_pairs[i * 2 + 1] = predis_port;
+                                            len += strlen(Z_STRVAL_P(predis_host)) + 7;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        peer = emalloc(len);
+                        bzero(peer, len);
+                        for (i = 0; i < count; i += 1) {
+                            if (host_port_pairs[i * 2] != NULL && host_port_pairs[i * 2 + 1] != NULL) {
+                                char host_port[strlen(Z_STRVAL_P(host_port_pairs[i * 2])) + 8];
+                                sprintf(host_port, "%s:%" PRId3264 ";", Z_STRVAL_P(host_port_pairs[i * 2]), Z_LVAL_P(host_port_pairs[i * 2 + 1]));
+                                strcat(peer, host_port);
+                            }
+                        }
+                        if (strlen(peer) > 0) {
+                            peer[strlen(peer) - 1] = '\0';
+                        }
+                    }
+                }
             }
             // peer end
 
