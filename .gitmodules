@@ -1,0 +1,12 @@
+[submodule "agent/proto"]
+	path = agent/proto
+	url = https://github.com/apache/skywalking-data-collect-protocol.git
+[submodule "protocol/v3"]
+	path = protocol/v3
+	url = https://github.com/apache/skywalking-data-collect-protocol.git
+[submodule "agent/protocol/v3"]
+	path = agent/protocol/v3
+	url = https://github.com/apache/skywalking-data-collect-protocol.git
+[submodule "reporter/protocol/v3"]
+	path = reporter/protocol/v3
+	url = https://github.com/apache/skywalking-data-collect-protocol.git
