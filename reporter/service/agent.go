@@ -26,7 +26,6 @@ type register struct {
 
 type grpcClient struct {
 	tssc1  nla1.TraceSegmentServiceClient
-	arsc1  nla1.ApplicationRegisterServiceClient
 	idsc1  nla1.InstanceDiscoveryServiceClient
 	tsrsc2 nla2.TraceSegmentReportServiceClient
 	tsrsc3 nla3.TraceSegmentReportServiceClient
@@ -112,7 +111,6 @@ func (t *Agent) connGRPC() {
 
 	if t.version == 5 {
 		t.grpcClient.tssc1 = nla1.NewTraceSegmentServiceClient(t.grpcConn)
-		t.grpcClient.arsc1 = nla1.NewApplicationRegisterServiceClient(t.grpcConn)
 		t.grpcClient.idsc1 = nla1.NewInstanceDiscoveryServiceClient(t.grpcConn)
 	} else if t.version == 6 || t.version == 7 {
 		t.grpcClient.tsrsc2 = nla2.NewTraceSegmentReportServiceClient(t.grpcConn)
