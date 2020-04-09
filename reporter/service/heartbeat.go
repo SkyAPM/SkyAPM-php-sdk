@@ -4,6 +4,7 @@ import (
 	nla1 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/language/agent/v1"
 	v3 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/management/v3"
 	nr2 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/register/v2"
+	"syscall"
 	"time"
 )
 import "context"
@@ -11,11 +12,15 @@ import "context"
 func (t *Agent) heartbeat() {
 
 	var heartList []registerCache
-	t.registerCacheLock.RLock()
-	for _, bind := range t.registerCache {
+	t.registerCacheLock.Lock()
+	for pid, bind := range t.registerCache {
+		if err := syscall.Kill(pid, 0); err != nil {
+			delete(t.registerCache, pid)
+			continue
+		}
 		heartList = append(heartList, bind)
 	}
-	t.registerCacheLock.RUnlock()
+	t.registerCacheLock.Unlock()
 
 	for _, bind := range heartList {
 		if t.version == 5 {
