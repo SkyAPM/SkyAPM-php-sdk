@@ -168,7 +168,7 @@ class SkyWalking
     (
         self::TRACE_SEGMENT_ID          => array(),//请求的 id
         self::APPLICATION_ID            => null,//appid
-        self::APPLICATION_INSTANCE_ID   => null,//实力id
+        self::APPLICATION_INSTANCE_ID   => null,//实例id
         self::FATHER_NODE_DATA          => array(),//父节点数据
         self::SPANS_NODE_DATA           => array(),//span节点数据集合
     );
