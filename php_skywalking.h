@@ -106,7 +106,9 @@ extern zend_module_entry skywalking_module_entry;
 #define REDIS_KEY_HLL "|pfadd|watch|"
 #define REDIS_KEY_GEO "|geoadd|geohash|geopos|geodist|georadius|georadiusbymember|"
 
-#define MEMCACHED_KEY "|set|add|replace|append|prepend|cas|get|gets|delete|incr|decr|stats|flush_all|"
+#define MEMCACHED_KEY_STRING "|set|setbykey|setmulti|setmultibykey|add|addbykey|replace|replacebykey|append|appendbykey|prepend|prependbykey|cas|casbykey|get|getbykey|getmulti|getmultibykey|getallkeys|delete|deletebykey|deletemulti|deletemultibykey|increment|incrementbykey|decrement|decrementbykey|"
+#define MEMCACHED_KEY_STATS "|getstats|"
+#define MEMCACHED_KEY_OTHERS "|ispersistent|ispristine|flush|flushbuffers|getdelayed|getdelayedbykey|fetch|fetchall|addserver|addservers|getoption|getresultcode|setoption|setoptions|getserverbykey|getserverlist|resetserverlist|getversion|quit|setsaslauthdata|touch|touchbykey|"
 
 #ifdef ZEND_ENABLE_ZVAL_LONG64
 #define PRId3264 PRId64

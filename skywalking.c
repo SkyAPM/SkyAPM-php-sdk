@@ -216,7 +216,10 @@ static char *sky_memcached_fnamewall(const char *function_name) {
 }
 
 static int sky_memcached_opt_for_string_key(char *fnamewall) {
-    if (strstr(MEMCACHED_KEY, fnamewall)) {
+    if (strstr(MEMCACHED_KEY_STRING, fnamewall)
+        || strstr(MEMCACHED_KEY_STATS, fnamewall)
+        || strstr(MEMCACHED_KEY_OTHERS, fnamewall)
+            ) {
         return 1;
     }
     return 0;
@@ -675,32 +678,34 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             smart_str_appends(&command, zend_str_tolower_dup((char *) function_name, strlen((char *) function_name)));
             smart_str_appends(&command, " ");
 
-            int is_string_command = 1;
             int i;
             for (i = 1; i < arg_count + 1; ++i) {
+                char *str = NULL;
                 zval str_p;
                 zval *p = ZEND_CALL_ARG(execute_data, i);
                 if (Z_TYPE_P(p) == IS_ARRAY) {
-                    is_string_command = 0;
-                    break;
+                    str = sky_json_encode(p);
                 }
 
                 ZVAL_COPY(&str_p, p);
-                if (Z_TYPE_P(&str_p) != IS_STRING) {
+                if (Z_TYPE_P(&str_p) != IS_ARRAY && Z_TYPE_P(&str_p) != IS_STRING) {
                     convert_to_string(&str_p);
                 }
-                if (i == 1) {
-                    add_assoc_string(&tags, "memcached.key", Z_STRVAL_P(&str_p));
+
+                if (str == NULL) {
+                    str = Z_STRVAL_P(&str_p);
                 }
-                smart_str_appends(&command, zend_str_tolower_dup(Z_STRVAL_P(&str_p), Z_STRLEN_P(&str_p)));
+
+                if (i == 1) {
+                    add_assoc_string(&tags, "memcached.key", str);
+                }
+                smart_str_appends(&command, zend_str_tolower_dup(str, strlen(str)));
                 smart_str_appends(&command, " ");
             }
             // store command to tags
             if (command.s) {
                 smart_str_0(&command);
-                if (is_string_command) {
-                    add_assoc_string(&tags, "memcached.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
-                }
+                add_assoc_string(&tags, "memcached.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
                 smart_str_free(&command);
             }
         }
