@@ -927,7 +927,7 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
     zval *is_send = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header_send)), Z_RES_HANDLE_P(zid));
     //
     if (is_send != NULL &&  CURLOPT_HTTPHEADER == options && Z_TYPE_P(is_send) == IS_TRUE) {
-        add_index_bool(&SKYWALKING_G(curl_header_send), Z_RES_HANDLE_P(zid), IS_FALSE);
+        array_init(&SKYWALKING_G(curl_header_send));
         orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
     } else {
         if (CURLOPT_HTTPHEADER == options && Z_TYPE_P(zvalue) == IS_ARRAY) {
