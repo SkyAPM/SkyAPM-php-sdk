@@ -106,6 +106,10 @@ extern zend_module_entry skywalking_module_entry;
 #define REDIS_KEY_HLL "|pfadd|watch|"
 #define REDIS_KEY_GEO "|geoadd|geohash|geopos|geodist|georadius|georadiusbymember|"
 
+#define MEMCACHED_KEY_STRING "|set|setbykey|setmulti|setmultibykey|add|addbykey|replace|replacebykey|append|appendbykey|prepend|prependbykey|cas|casbykey|get|getbykey|getmulti|getmultibykey|getallkeys|delete|deletebykey|deletemulti|deletemultibykey|increment|incrementbykey|decrement|decrementbykey|"
+#define MEMCACHED_KEY_STATS "|getstats|"
+#define MEMCACHED_KEY_OTHERS "|ispersistent|ispristine|flush|flushbuffers|getdelayed|getdelayedbykey|fetch|fetchall|addserver|addservers|getoption|getresultcode|setoption|setoptions|getserverbykey|getserverlist|resetserverlist|getversion|quit|setsaslauthdata|touch|touchbykey|"
+
 #ifdef ZEND_ENABLE_ZVAL_LONG64
 #define PRId3264 PRId64
 #else
@@ -160,6 +164,9 @@ static char *sky_get_class_name(zval *obj);
 static zval *sky_read_property(zval *obj, const char *property);
 static char *sky_redis_fnamewall(const char *function_name);
 static int sky_redis_opt_for_string_key(char *fnamewall);
+
+static char *sky_memcached_fnamewall(const char *function_name);
+static int sky_memcached_opt_for_string_key(char *fnamewall);
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS);
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS);

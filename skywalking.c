@@ -208,6 +208,22 @@ static int sky_redis_opt_for_string_key(char *fnamewall) {
     return 0;
 }
 
+static char *sky_memcached_fnamewall(const char *function_name) {
+    char *fnamewall = (char *) emalloc(strlen(function_name) + 3);
+    sprintf(fnamewall, "|%s|", function_name);
+    fnamewall = zend_str_tolower_dup(fnamewall, strlen(fnamewall));
+    return fnamewall;
+}
+
+static int sky_memcached_opt_for_string_key(char *fnamewall) {
+    if (strstr(MEMCACHED_KEY_STRING, fnamewall)
+        || strstr(MEMCACHED_KEY_STATS, fnamewall)
+        || strstr(MEMCACHED_KEY_OTHERS, fnamewall)
+            ) {
+        return 1;
+    }
+    return 0;
+}
 
 ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
     if (application_instance == 0) {
@@ -467,6 +483,18 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 strcat(operationName, function_name);
             }
             efree(fnamewall);
+        } else if (strcmp(class_name, "Memcached") == 0) {
+            char *fnamewall = sky_memcached_fnamewall(function_name);
+            if (sky_memcached_opt_for_string_key(fnamewall) == 1) {
+                componentId = COMPONENT_XMEMCACHED;
+                component = (char *) emalloc(strlen("memcached") + 1);
+                strcpy(component, "memcached");
+                operationName = (char *) emalloc(strlen(class_name) + strlen(function_name) + 3);
+                strcpy(operationName, class_name);
+                strcat(operationName, "->");
+                strcat(operationName, function_name);
+            }
+            efree(fnamewall);
         }
     } else if (function_name != NULL) {
         if (strcmp(function_name, "mysqli_query") == 0) {
@@ -641,7 +669,47 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 }
                 smart_str_free(&command);
             }
+        } else if (strcmp(class_name, "Memcached") == 0) {
+
+            add_assoc_string(&tags, "db.type", "memcached");
+            uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+
+            smart_str command = {0};
+            smart_str_appends(&command, zend_str_tolower_dup((char *) function_name, strlen((char *) function_name)));
+            smart_str_appends(&command, " ");
+
+            int i;
+            for (i = 1; i < arg_count + 1; ++i) {
+                char *str = NULL;
+                zval str_p;
+                zval *p = ZEND_CALL_ARG(execute_data, i);
+                if (Z_TYPE_P(p) == IS_ARRAY) {
+                    str = sky_json_encode(p);
+                }
+
+                ZVAL_COPY(&str_p, p);
+                if (Z_TYPE_P(&str_p) != IS_ARRAY && Z_TYPE_P(&str_p) != IS_STRING) {
+                    convert_to_string(&str_p);
+                }
+
+                if (str == NULL) {
+                    str = Z_STRVAL_P(&str_p);
+                }
+
+                if (i == 1) {
+                    add_assoc_string(&tags, "memcached.key", str);
+                }
+                smart_str_appends(&command, zend_str_tolower_dup(str, strlen(str)));
+                smart_str_appends(&command, " ");
+            }
+            // store command to tags
+            if (command.s) {
+                smart_str_0(&command);
+                add_assoc_string(&tags, "memcached.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
+                smart_str_free(&command);
+            }
         }
+
 
         zval temp;
         zval *spans = NULL;
