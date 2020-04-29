@@ -29,11 +29,11 @@ import "common/common.proto";
 service BrowserPerfService {
 
     // report once per page
-    rpc collectPerfData (BrowserPerfData) returns (skywalking.network.protocol.common.Commands) {
+    rpc collectPerfData (BrowserPerfData) returns (CommandsV2) {
     }
 
     // report one or more error logs for pages, could report multiple times.
-    rpc collectErrorLogs (stream BrowserErrorLog) returns (skywalking.network.protocol.common.Commands) {
+    rpc collectErrorLogs (stream BrowserErrorLog) returns (CommandsV2) {
     }
 }
 
