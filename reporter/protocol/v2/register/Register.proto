@@ -39,7 +39,7 @@ service Register {
     rpc doNetworkAddressRegister (NetAddresses) returns (NetAddressMapping) {
     }
 
-    rpc doServiceAndNetworkAddressMappingRegister (ServiceAndNetworkAddressMappings) returns(Commands) {
+    rpc doServiceAndNetworkAddressMappingRegister (ServiceAndNetworkAddressMappings) returns(CommandsV2) {
     }
 }
 
@@ -50,12 +50,12 @@ message Services {
 
 message Service {
     string serviceName = 1;
-    repeated KeyStringValuePair tags = 3;
-    repeated KeyStringValuePair properties = 4;
+    repeated KeyStringValuePairV2 tags = 3;
+    repeated KeyStringValuePairV2 properties = 4;
 }
 
 message ServiceRegisterMapping {
-    repeated KeyIntValuePair services = 1;
+    repeated KeyIntValuePairV2 services = 1;
 }
 
 // Service Instance register
@@ -67,12 +67,12 @@ message ServiceInstance {
     int32 serviceId = 1;
     string instanceUUID = 2;
     int64 time = 3;
-    repeated KeyStringValuePair tags = 4;
-    repeated KeyStringValuePair properties = 5;
+    repeated KeyStringValuePairV2 tags = 4;
+    repeated KeyStringValuePairV2 properties = 5;
 }
 
 message ServiceInstanceRegisterMapping {
-    repeated KeyIntValuePair serviceInstances = 1;
+    repeated KeyIntValuePairV2 serviceInstances = 1;
 }
 
 // Network address register
@@ -84,7 +84,7 @@ message NetAddresses {
 }
 
 message NetAddressMapping {
-    repeated KeyIntValuePair addressIds = 1;
+    repeated KeyIntValuePairV2 addressIds = 1;
 }
 
 // Endpoints register
@@ -95,11 +95,11 @@ message Endpoints {
 message Endpoint {
     int32 serviceId = 1;
     string endpointName = 2;
-    repeated KeyStringValuePair tags = 3;
-    repeated KeyStringValuePair properties = 4;
+    repeated KeyStringValuePairV2 tags = 3;
+    repeated KeyStringValuePairV2 properties = 4;
     // For endpoint
-    // from DetectPoint is either `client` or `server`. No chance to be `proxy`.
-    DetectPoint from = 5;
+    // from DetectPointV2 is either `client` or `server`. No chance to be `proxy`.
+    DetectPointV2 from = 5;
 }
 
 message EndpointMapping {
@@ -110,7 +110,7 @@ message EndpointMappingElement {
     int32 serviceId = 1;
     string endpointName = 2;
     int32 endpointId = 3;
-    DetectPoint from = 4;
+    DetectPointV2 from = 4;
 }
 
 message ServiceAndNetworkAddressMappings {

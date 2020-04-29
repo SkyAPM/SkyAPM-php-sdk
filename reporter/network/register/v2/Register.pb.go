@@ -66,15 +66,12 @@ func (m *Services) GetServices() []*Service {
 }
 
 type Service struct {
-	ServiceName string                   `protobuf:"bytes,1,opt,name=serviceName,proto3" json:"serviceName,omitempty"`
-	Tags        []*v2.KeyStringValuePair `protobuf:"bytes,3,rep,name=tags,proto3" json:"tags,omitempty"`
-	Properties  []*v2.KeyStringValuePair `protobuf:"bytes,4,rep,name=properties,proto3" json:"properties,omitempty"`
-	// Type of this register service.
-	// NULL means type=normal, such as all services before the 7.0.0.
-	Type                 v2.ServiceType `protobuf:"varint,5,opt,name=type,proto3,enum=skywalking.network.protocol.common.ServiceType" json:"type,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	ServiceName          string                     `protobuf:"bytes,1,opt,name=serviceName,proto3" json:"serviceName,omitempty"`
+	Tags                 []*v2.KeyStringValuePairV2 `protobuf:"bytes,3,rep,name=tags,proto3" json:"tags,omitempty"`
+	Properties           []*v2.KeyStringValuePairV2 `protobuf:"bytes,4,rep,name=properties,proto3" json:"properties,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
 func (m *Service) Reset()         { *m = Service{} }
@@ -109,32 +106,25 @@ func (m *Service) GetServiceName() string {
 	return ""
 }
 
-func (m *Service) GetTags() []*v2.KeyStringValuePair {
+func (m *Service) GetTags() []*v2.KeyStringValuePairV2 {
 	if m != nil {
 		return m.Tags
 	}
 	return nil
 }
 
-func (m *Service) GetProperties() []*v2.KeyStringValuePair {
+func (m *Service) GetProperties() []*v2.KeyStringValuePairV2 {
 	if m != nil {
 		return m.Properties
 	}
 	return nil
 }
 
-func (m *Service) GetType() v2.ServiceType {
-	if m != nil {
-		return m.Type
-	}
-	return v2.ServiceType_normal
-}
-
 type ServiceRegisterMapping struct {
-	Services             []*v2.KeyIntValuePair `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	Services             []*v2.KeyIntValuePairV2 `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
 }
 
 func (m *ServiceRegisterMapping) Reset()         { *m = ServiceRegisterMapping{} }
@@ -162,7 +152,7 @@ func (m *ServiceRegisterMapping) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ServiceRegisterMapping proto.InternalMessageInfo
 
-func (m *ServiceRegisterMapping) GetServices() []*v2.KeyIntValuePair {
+func (m *ServiceRegisterMapping) GetServices() []*v2.KeyIntValuePairV2 {
 	if m != nil {
 		return m.Services
 	}
@@ -210,14 +200,14 @@ func (m *ServiceInstances) GetInstances() []*ServiceInstance {
 }
 
 type ServiceInstance struct {
-	ServiceId            int32                    `protobuf:"varint,1,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
-	InstanceUUID         string                   `protobuf:"bytes,2,opt,name=instanceUUID,proto3" json:"instanceUUID,omitempty"`
-	Time                 int64                    `protobuf:"varint,3,opt,name=time,proto3" json:"time,omitempty"`
-	Tags                 []*v2.KeyStringValuePair `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`
-	Properties           []*v2.KeyStringValuePair `protobuf:"bytes,5,rep,name=properties,proto3" json:"properties,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
-	XXX_unrecognized     []byte                   `json:"-"`
-	XXX_sizecache        int32                    `json:"-"`
+	ServiceId            int32                      `protobuf:"varint,1,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
+	InstanceUUID         string                     `protobuf:"bytes,2,opt,name=instanceUUID,proto3" json:"instanceUUID,omitempty"`
+	Time                 int64                      `protobuf:"varint,3,opt,name=time,proto3" json:"time,omitempty"`
+	Tags                 []*v2.KeyStringValuePairV2 `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`
+	Properties           []*v2.KeyStringValuePairV2 `protobuf:"bytes,5,rep,name=properties,proto3" json:"properties,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
 func (m *ServiceInstance) Reset()         { *m = ServiceInstance{} }
@@ -266,14 +256,14 @@ func (m *ServiceInstance) GetTime() int64 {
 	return 0
 }
 
-func (m *ServiceInstance) GetTags() []*v2.KeyStringValuePair {
+func (m *ServiceInstance) GetTags() []*v2.KeyStringValuePairV2 {
 	if m != nil {
 		return m.Tags
 	}
 	return nil
 }
 
-func (m *ServiceInstance) GetProperties() []*v2.KeyStringValuePair {
+func (m *ServiceInstance) GetProperties() []*v2.KeyStringValuePairV2 {
 	if m != nil {
 		return m.Properties
 	}
@@ -281,10 +271,10 @@ func (m *ServiceInstance) GetProperties() []*v2.KeyStringValuePair {
 }
 
 type ServiceInstanceRegisterMapping struct {
-	ServiceInstances     []*v2.KeyIntValuePair `protobuf:"bytes,1,rep,name=serviceInstances,proto3" json:"serviceInstances,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	ServiceInstances     []*v2.KeyIntValuePairV2 `protobuf:"bytes,1,rep,name=serviceInstances,proto3" json:"serviceInstances,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
 }
 
 func (m *ServiceInstanceRegisterMapping) Reset()         { *m = ServiceInstanceRegisterMapping{} }
@@ -312,7 +302,7 @@ func (m *ServiceInstanceRegisterMapping) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ServiceInstanceRegisterMapping proto.InternalMessageInfo
 
-func (m *ServiceInstanceRegisterMapping) GetServiceInstances() []*v2.KeyIntValuePair {
+func (m *ServiceInstanceRegisterMapping) GetServiceInstances() []*v2.KeyIntValuePairV2 {
 	if m != nil {
 		return m.ServiceInstances
 	}
@@ -361,10 +351,10 @@ func (m *NetAddresses) GetAddresses() []string {
 }
 
 type NetAddressMapping struct {
-	AddressIds           []*v2.KeyIntValuePair `protobuf:"bytes,1,rep,name=addressIds,proto3" json:"addressIds,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	AddressIds           []*v2.KeyIntValuePairV2 `protobuf:"bytes,1,rep,name=addressIds,proto3" json:"addressIds,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
 }
 
 func (m *NetAddressMapping) Reset()         { *m = NetAddressMapping{} }
@@ -392,7 +382,7 @@ func (m *NetAddressMapping) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_NetAddressMapping proto.InternalMessageInfo
 
-func (m *NetAddressMapping) GetAddressIds() []*v2.KeyIntValuePair {
+func (m *NetAddressMapping) GetAddressIds() []*v2.KeyIntValuePairV2 {
 	if m != nil {
 		return m.AddressIds
 	}
@@ -440,16 +430,16 @@ func (m *Endpoints) GetEndpoints() []*Endpoint {
 }
 
 type Endpoint struct {
-	ServiceId    int32                    `protobuf:"varint,1,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
-	EndpointName string                   `protobuf:"bytes,2,opt,name=endpointName,proto3" json:"endpointName,omitempty"`
-	Tags         []*v2.KeyStringValuePair `protobuf:"bytes,3,rep,name=tags,proto3" json:"tags,omitempty"`
-	Properties   []*v2.KeyStringValuePair `protobuf:"bytes,4,rep,name=properties,proto3" json:"properties,omitempty"`
+	ServiceId    int32                      `protobuf:"varint,1,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
+	EndpointName string                     `protobuf:"bytes,2,opt,name=endpointName,proto3" json:"endpointName,omitempty"`
+	Tags         []*v2.KeyStringValuePairV2 `protobuf:"bytes,3,rep,name=tags,proto3" json:"tags,omitempty"`
+	Properties   []*v2.KeyStringValuePairV2 `protobuf:"bytes,4,rep,name=properties,proto3" json:"properties,omitempty"`
 	// For endpoint
-	// from DetectPoint is either `client` or `server`. No chance to be `proxy`.
-	From                 v2.DetectPoint `protobuf:"varint,5,opt,name=from,proto3,enum=skywalking.network.protocol.common.DetectPoint" json:"from,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	// from DetectPointV2 is either `client` or `server`. No chance to be `proxy`.
+	From                 v2.DetectPointV2 `protobuf:"varint,5,opt,name=from,proto3,enum=DetectPointV2" json:"from,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *Endpoint) Reset()         { *m = Endpoint{} }
@@ -491,25 +481,25 @@ func (m *Endpoint) GetEndpointName() string {
 	return ""
 }
 
-func (m *Endpoint) GetTags() []*v2.KeyStringValuePair {
+func (m *Endpoint) GetTags() []*v2.KeyStringValuePairV2 {
 	if m != nil {
 		return m.Tags
 	}
 	return nil
 }
 
-func (m *Endpoint) GetProperties() []*v2.KeyStringValuePair {
+func (m *Endpoint) GetProperties() []*v2.KeyStringValuePairV2 {
 	if m != nil {
 		return m.Properties
 	}
 	return nil
 }
 
-func (m *Endpoint) GetFrom() v2.DetectPoint {
+func (m *Endpoint) GetFrom() v2.DetectPointV2 {
 	if m != nil {
 		return m.From
 	}
-	return v2.DetectPoint_client
+	return v2.DetectPointV2_client
 }
 
 type EndpointMapping struct {
@@ -552,13 +542,13 @@ func (m *EndpointMapping) GetElements() []*EndpointMappingElement {
 }
 
 type EndpointMappingElement struct {
-	ServiceId            int32          `protobuf:"varint,1,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
-	EndpointName         string         `protobuf:"bytes,2,opt,name=endpointName,proto3" json:"endpointName,omitempty"`
-	EndpointId           int32          `protobuf:"varint,3,opt,name=endpointId,proto3" json:"endpointId,omitempty"`
-	From                 v2.DetectPoint `protobuf:"varint,4,opt,name=from,proto3,enum=skywalking.network.protocol.common.DetectPoint" json:"from,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	ServiceId            int32            `protobuf:"varint,1,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
+	EndpointName         string           `protobuf:"bytes,2,opt,name=endpointName,proto3" json:"endpointName,omitempty"`
+	EndpointId           int32            `protobuf:"varint,3,opt,name=endpointId,proto3" json:"endpointId,omitempty"`
+	From                 v2.DetectPointV2 `protobuf:"varint,4,opt,name=from,proto3,enum=DetectPointV2" json:"from,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *EndpointMappingElement) Reset()         { *m = EndpointMappingElement{} }
@@ -607,11 +597,11 @@ func (m *EndpointMappingElement) GetEndpointId() int32 {
 	return 0
 }
 
-func (m *EndpointMappingElement) GetFrom() v2.DetectPoint {
+func (m *EndpointMappingElement) GetFrom() v2.DetectPointV2 {
 	if m != nil {
 		return m.From
 	}
-	return v2.DetectPoint_client
+	return v2.DetectPointV2_client
 }
 
 type ServiceAndNetworkAddressMappings struct {
@@ -717,76 +707,72 @@ func (m *ServiceAndNetworkAddressMapping) GetNetworkAddressId() int32 {
 }
 
 func init() {
-	proto.RegisterType((*Services)(nil), "skywalking.network.protocol.agent.register.v2.Services")
-	proto.RegisterType((*Service)(nil), "skywalking.network.protocol.agent.register.v2.Service")
-	proto.RegisterType((*ServiceRegisterMapping)(nil), "skywalking.network.protocol.agent.register.v2.ServiceRegisterMapping")
-	proto.RegisterType((*ServiceInstances)(nil), "skywalking.network.protocol.agent.register.v2.ServiceInstances")
-	proto.RegisterType((*ServiceInstance)(nil), "skywalking.network.protocol.agent.register.v2.ServiceInstance")
-	proto.RegisterType((*ServiceInstanceRegisterMapping)(nil), "skywalking.network.protocol.agent.register.v2.ServiceInstanceRegisterMapping")
-	proto.RegisterType((*NetAddresses)(nil), "skywalking.network.protocol.agent.register.v2.NetAddresses")
-	proto.RegisterType((*NetAddressMapping)(nil), "skywalking.network.protocol.agent.register.v2.NetAddressMapping")
-	proto.RegisterType((*Endpoints)(nil), "skywalking.network.protocol.agent.register.v2.Endpoints")
-	proto.RegisterType((*Endpoint)(nil), "skywalking.network.protocol.agent.register.v2.Endpoint")
-	proto.RegisterType((*EndpointMapping)(nil), "skywalking.network.protocol.agent.register.v2.EndpointMapping")
-	proto.RegisterType((*EndpointMappingElement)(nil), "skywalking.network.protocol.agent.register.v2.EndpointMappingElement")
-	proto.RegisterType((*ServiceAndNetworkAddressMappings)(nil), "skywalking.network.protocol.agent.register.v2.ServiceAndNetworkAddressMappings")
-	proto.RegisterType((*ServiceAndNetworkAddressMapping)(nil), "skywalking.network.protocol.agent.register.v2.ServiceAndNetworkAddressMapping")
+	proto.RegisterType((*Services)(nil), "Services")
+	proto.RegisterType((*Service)(nil), "Service")
+	proto.RegisterType((*ServiceRegisterMapping)(nil), "ServiceRegisterMapping")
+	proto.RegisterType((*ServiceInstances)(nil), "ServiceInstances")
+	proto.RegisterType((*ServiceInstance)(nil), "ServiceInstance")
+	proto.RegisterType((*ServiceInstanceRegisterMapping)(nil), "ServiceInstanceRegisterMapping")
+	proto.RegisterType((*NetAddresses)(nil), "NetAddresses")
+	proto.RegisterType((*NetAddressMapping)(nil), "NetAddressMapping")
+	proto.RegisterType((*Endpoints)(nil), "Endpoints")
+	proto.RegisterType((*Endpoint)(nil), "Endpoint")
+	proto.RegisterType((*EndpointMapping)(nil), "EndpointMapping")
+	proto.RegisterType((*EndpointMappingElement)(nil), "EndpointMappingElement")
+	proto.RegisterType((*ServiceAndNetworkAddressMappings)(nil), "ServiceAndNetworkAddressMappings")
+	proto.RegisterType((*ServiceAndNetworkAddressMapping)(nil), "ServiceAndNetworkAddressMapping")
 }
 
 func init() { proto.RegisterFile("register/Register.proto", fileDescriptor_c38a4def3f450915) }
 
 var fileDescriptor_c38a4def3f450915 = []byte{
-	// 796 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x57, 0xcd, 0x6b, 0xdb, 0x48,
-	0x14, 0x8f, 0xfc, 0x91, 0xb5, 0x5f, 0x42, 0x3e, 0x66, 0x21, 0xab, 0x35, 0x4b, 0xd6, 0xcc, 0x61,
-	0xf1, 0x2e, 0x89, 0x0c, 0x0e, 0x6c, 0x0a, 0x85, 0xb4, 0x69, 0xe2, 0x83, 0x5a, 0xe2, 0x98, 0x71,
-	0x93, 0x42, 0x29, 0x2d, 0x8a, 0x35, 0x75, 0x54, 0x5b, 0x23, 0xa1, 0x99, 0x26, 0xf8, 0xd8, 0x73,
-	0xa1, 0xf4, 0xd0, 0x9e, 0xfa, 0x1f, 0x94, 0xf6, 0x52, 0xe8, 0xb9, 0xf4, 0x3f, 0x2b, 0x91, 0x67,
-	0x24, 0x59, 0x6e, 0x88, 0xbf, 0x2e, 0x3d, 0x79, 0xe6, 0xcd, 0x7b, 0xbf, 0xf7, 0xf3, 0xef, 0xbd,
-	0x79, 0x63, 0xc3, 0x1f, 0x01, 0xed, 0x38, 0x5c, 0xd0, 0xa0, 0x4a, 0xe4, 0xc2, 0xf0, 0x03, 0x4f,
-	0x78, 0x68, 0x9b, 0x77, 0xfb, 0x97, 0x56, 0xaf, 0xeb, 0xb0, 0x8e, 0xc1, 0xa8, 0xb8, 0xf4, 0x82,
-	0xee, 0xe0, 0xa4, 0xed, 0xf5, 0x0c, 0xab, 0x43, 0x99, 0x30, 0x54, 0xa8, 0x71, 0x51, 0x2b, 0xfd,
-	0xde, 0xf6, 0x5c, 0xd7, 0x63, 0xd5, 0xc1, 0xc7, 0xc0, 0x13, 0x3f, 0x85, 0x42, 0x8b, 0x06, 0x17,
-	0x4e, 0x9b, 0x72, 0x44, 0xa0, 0xc0, 0xe5, 0x5a, 0xd7, 0xca, 0xd9, 0xca, 0x52, 0xed, 0x7f, 0x63,
-	0xa2, 0x14, 0x86, 0x84, 0x22, 0x11, 0x0e, 0x7e, 0x97, 0x81, 0xdf, 0xa4, 0x15, 0x95, 0x61, 0x49,
-	0xda, 0x1b, 0x96, 0x4b, 0x75, 0xad, 0xac, 0x55, 0x8a, 0x24, 0x69, 0x42, 0xf7, 0x21, 0x27, 0xac,
-	0x0e, 0xd7, 0xb3, 0x63, 0x64, 0x97, 0x5f, 0xe3, 0x01, 0xed, 0xb7, 0x44, 0xe0, 0xb0, 0xce, 0xa9,
-	0xd5, 0x7b, 0x49, 0x9b, 0x96, 0x13, 0x90, 0x10, 0x03, 0x9d, 0x02, 0xf8, 0x81, 0xe7, 0xd3, 0x40,
-	0x38, 0x94, 0xeb, 0xb9, 0x99, 0x10, 0x13, 0x48, 0xe8, 0x00, 0x72, 0xa2, 0xef, 0x53, 0x3d, 0x5f,
-	0xd6, 0x2a, 0x2b, 0xb5, 0xea, 0x38, 0x88, 0x52, 0x80, 0x87, 0x7d, 0x9f, 0x92, 0x30, 0x18, 0x3b,
-	0xb0, 0xa1, 0xb4, 0x92, 0xf2, 0x1d, 0x59, 0xbe, 0xef, 0xb0, 0x0e, 0x3a, 0x1e, 0x29, 0xc2, 0xce,
-	0x98, 0xa4, 0x4d, 0x26, 0x62, 0xc6, 0x71, 0x05, 0x7c, 0x58, 0x93, 0xa9, 0x4c, 0xc6, 0x85, 0xc5,
-	0xae, 0x2a, 0xfd, 0x04, 0x8a, 0x8e, 0xda, 0xc8, 0x2c, 0x7b, 0xd3, 0x95, 0x5a, 0x61, 0x92, 0x18,
-	0x10, 0xbf, 0xce, 0xc0, 0x6a, 0xea, 0x18, 0xfd, 0x05, 0x45, 0xc9, 0xc8, 0xb4, 0xc3, 0xca, 0xe7,
-	0x49, 0x6c, 0x40, 0x18, 0x96, 0x55, 0xf8, 0xc9, 0x89, 0x79, 0xa8, 0x67, 0xc2, 0xd6, 0x18, 0xb2,
-	0x21, 0x04, 0x39, 0xe1, 0xb8, 0x54, 0xcf, 0x96, 0xb5, 0x4a, 0x96, 0x84, 0xeb, 0xa8, 0x5f, 0x72,
-	0x73, 0xef, 0x97, 0xfc, 0xbc, 0xfa, 0x05, 0xbf, 0xd2, 0x60, 0x33, 0x2d, 0x56, 0xaa, 0xe6, 0xcf,
-	0x60, 0x8d, 0xa7, 0x4a, 0x34, 0x4b, 0xed, 0x47, 0xc0, 0xf0, 0x16, 0x2c, 0x37, 0xa8, 0xd8, 0xb7,
-	0xed, 0x80, 0x72, 0x4e, 0xf9, 0x55, 0x35, 0x2c, 0xb5, 0x09, 0x33, 0x15, 0x49, 0x6c, 0xc0, 0xe7,
-	0xb0, 0x1e, 0x7b, 0x2b, 0x8e, 0x2d, 0x00, 0xe9, 0x61, 0xda, 0x33, 0xb1, 0x4b, 0xc0, 0xe0, 0x33,
-	0x28, 0xd6, 0x99, 0xed, 0x7b, 0x0e, 0x13, 0x1c, 0x9d, 0x40, 0x91, 0xaa, 0x8d, 0x4c, 0xb0, 0x3b,
-	0x61, 0x53, 0x2a, 0x30, 0x12, 0x23, 0xe1, 0xaf, 0x19, 0x28, 0x28, 0xfb, 0xcd, 0x6d, 0xa8, 0xe2,
-	0xc2, 0x09, 0x25, 0xdb, 0x30, 0x69, 0xfb, 0x55, 0x46, 0xd4, 0xf3, 0xc0, 0x73, 0x27, 0x19, 0x51,
-	0x87, 0x54, 0xd0, 0xb6, 0x68, 0x86, 0xe2, 0x85, 0xc1, 0x58, 0xc0, 0xaa, 0x92, 0x4d, 0xf5, 0x80,
-	0x05, 0x05, 0xda, 0xa3, 0x2e, 0x8d, 0x0b, 0x54, 0x9f, 0xb2, 0x40, 0x12, 0xb1, 0x3e, 0x40, 0x23,
-	0x11, 0x2c, 0xfe, 0xa6, 0xc1, 0xc6, 0xcf, 0x9d, 0xe6, 0x50, 0xbb, 0x4d, 0x00, 0xb5, 0x37, 0xed,
-	0x70, 0x90, 0xe4, 0x49, 0xc2, 0x12, 0xe9, 0x96, 0x9b, 0x45, 0xb7, 0x37, 0x1a, 0x94, 0xe5, 0x7d,
-	0xdf, 0x67, 0x76, 0x63, 0x10, 0x37, 0x7c, 0x99, 0x38, 0x7a, 0x01, 0x05, 0x57, 0xae, 0xa5, 0x92,
-	0x8d, 0xe9, 0xe6, 0xef, 0x75, 0x29, 0x48, 0x84, 0x8f, 0xbf, 0x6b, 0xf0, 0xf7, 0x0d, 0xde, 0x37,
-	0x68, 0xbb, 0x05, 0xeb, 0xa9, 0x91, 0x62, 0xda, 0xa1, 0xc0, 0x79, 0x32, 0x7a, 0x80, 0xfe, 0x81,
-	0x15, 0x36, 0x94, 0x24, 0x54, 0xba, 0x48, 0x52, 0x56, 0xf4, 0x1f, 0xac, 0x0d, 0x5b, 0x4c, 0x3b,
-	0x54, 0x3e, 0x4f, 0x46, 0xec, 0xb5, 0x2f, 0x8b, 0x50, 0x50, 0x53, 0x13, 0xbd, 0xd7, 0x60, 0xdd,
-	0xf6, 0x52, 0xef, 0x27, 0xda, 0x9d, 0x4e, 0x40, 0x5e, 0xaa, 0x4f, 0xf9, 0x23, 0x67, 0x78, 0x88,
-	0xe3, 0x05, 0xf4, 0x59, 0x83, 0x3f, 0x23, 0x5e, 0xe9, 0x59, 0x8f, 0xee, 0xcc, 0xf6, 0xc0, 0xf2,
-	0xd2, 0xd1, 0x8c, 0x2f, 0xf4, 0x08, 0xdf, 0xb7, 0x1a, 0x20, 0xdb, 0x8b, 0x66, 0xa6, 0x22, 0x7a,
-	0x6b, 0xca, 0x3b, 0xcd, 0x4b, 0x7b, 0xb3, 0x4d, 0x03, 0xbc, 0x80, 0x3e, 0x68, 0xa0, 0xdb, 0xde,
-	0x70, 0x8f, 0x46, 0xc4, 0x6e, 0x4f, 0x08, 0x9f, 0x7c, 0xf2, 0x4a, 0x77, 0xa7, 0x0e, 0x8e, 0xd9,
-	0x7d, 0xd2, 0xe0, 0xdf, 0xa8, 0xc0, 0xd7, 0xde, 0x3c, 0x45, 0xf7, 0x78, 0xbe, 0x37, 0x9a, 0x97,
-	0xb6, 0xc6, 0x19, 0x48, 0x07, 0x9e, 0xeb, 0x5a, 0xcc, 0xe6, 0x78, 0xe1, 0x1e, 0x83, 0x6d, 0x2f,
-	0xe8, 0x18, 0x96, 0x6f, 0xb5, 0xcf, 0x69, 0x32, 0xd6, 0xf2, 0xdd, 0x28, 0x3e, 0xc1, 0xa0, 0xa9,
-	0x3d, 0xde, 0x8c, 0xbd, 0xaa, 0xd2, 0xa3, 0x1a, 0xfd, 0xfd, 0xb8, 0xa8, 0x7d, 0xcc, 0x94, 0x5a,
-	0xdd, 0xfe, 0x23, 0x09, 0x23, 0x69, 0x36, 0x25, 0x83, 0xb3, 0xc5, 0x90, 0xcb, 0xce, 0x8f, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0x21, 0x5d, 0x0b, 0xc0, 0xb1, 0x0c, 0x00, 0x00,
+	// 727 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xe1, 0x6e, 0xd3, 0x30,
+	0x10, 0x6e, 0xd6, 0x16, 0x9a, 0xdb, 0xd8, 0x5a, 0x23, 0xb6, 0x50, 0xa1, 0x2d, 0x58, 0x08, 0x3a,
+	0x34, 0x5c, 0x94, 0x8d, 0x1f, 0x48, 0x08, 0xb4, 0xb1, 0x01, 0x11, 0x62, 0x2a, 0x9e, 0x36, 0x24,
+	0x24, 0xa4, 0x85, 0xc6, 0x94, 0xa8, 0x4d, 0x1c, 0xc5, 0x61, 0xd3, 0x1e, 0x82, 0x57, 0xe0, 0x01,
+	0x78, 0x0b, 0x7e, 0xf2, 0x97, 0x07, 0xe1, 0x19, 0x50, 0x32, 0x3b, 0x49, 0xd3, 0xd1, 0x82, 0x04,
+	0xbf, 0x62, 0x7f, 0xf7, 0xdd, 0xc5, 0xf7, 0xf9, 0xee, 0x0c, 0x2b, 0x11, 0x1b, 0x78, 0x22, 0x66,
+	0x51, 0x97, 0xca, 0x05, 0x09, 0x23, 0x1e, 0xf3, 0xf6, 0xd5, 0x3e, 0xf7, 0x7d, 0x1e, 0x74, 0xcf,
+	0x3f, 0xe7, 0x20, 0xbe, 0x0f, 0x8d, 0x03, 0x16, 0x9d, 0x78, 0x7d, 0x26, 0xd0, 0x2d, 0x68, 0x08,
+	0xb9, 0x36, 0x34, 0xb3, 0xda, 0x99, 0xb7, 0x1a, 0x44, 0x1a, 0x69, 0x66, 0xc1, 0x9f, 0x35, 0xb8,
+	0x2c, 0x51, 0x64, 0xc2, 0xbc, 0xc4, 0xf7, 0x1d, 0x9f, 0x19, 0x9a, 0xa9, 0x75, 0x74, 0x5a, 0x84,
+	0xd0, 0x3a, 0xd4, 0x62, 0x67, 0x20, 0x8c, 0x6a, 0x1a, 0xef, 0x1a, 0x79, 0xc9, 0xce, 0x0e, 0xe2,
+	0xc8, 0x0b, 0x06, 0x47, 0xce, 0xe8, 0x13, 0xeb, 0x39, 0x5e, 0x74, 0x64, 0xd1, 0x94, 0x82, 0x1e,
+	0x00, 0x84, 0x11, 0x0f, 0x59, 0x14, 0x7b, 0x4c, 0x18, 0xb5, 0x69, 0x0e, 0x05, 0x22, 0x7e, 0x01,
+	0xcb, 0xea, 0x90, 0x32, 0xdf, 0x57, 0x4e, 0x18, 0x7a, 0xc1, 0x00, 0x91, 0x89, 0x7c, 0x50, 0x12,
+	0xce, 0x0e, 0xe2, 0x62, 0xac, 0x3c, 0xb3, 0x1d, 0x68, 0xca, 0x48, 0x76, 0x20, 0x62, 0x27, 0x48,
+	0x34, 0x21, 0xa0, 0x7b, 0x6a, 0x23, 0x83, 0x34, 0x49, 0x89, 0x45, 0x73, 0x0a, 0xfe, 0xae, 0xc1,
+	0x52, 0xc9, 0x8c, 0x6e, 0x80, 0x2e, 0xff, 0x61, 0xbb, 0xa9, 0x46, 0x75, 0x9a, 0x03, 0x08, 0xc3,
+	0x82, 0x72, 0x3f, 0x3c, 0xb4, 0x77, 0x8d, 0xb9, 0x54, 0xc4, 0x31, 0x0c, 0x21, 0xa8, 0xc5, 0x9e,
+	0xcf, 0x8c, 0xaa, 0xa9, 0x75, 0xaa, 0x34, 0x5d, 0x67, 0xca, 0xd6, 0xfe, 0x56, 0xd9, 0xfa, 0x9f,
+	0x2a, 0x7b, 0x0c, 0xab, 0xe5, 0x4c, 0x4b, 0x0a, 0x3f, 0x86, 0xa6, 0x28, 0x29, 0x36, 0x45, 0xe9,
+	0x09, 0x2e, 0xde, 0x80, 0x85, 0x7d, 0x16, 0x6f, 0xbb, 0x6e, 0xc4, 0x84, 0x60, 0x22, 0x51, 0xca,
+	0x51, 0x9b, 0x34, 0x90, 0x4e, 0x73, 0x00, 0x3f, 0x87, 0x56, 0xce, 0x56, 0x47, 0xb0, 0x00, 0x24,
+	0xc3, 0x76, 0xa7, 0xfd, 0xbc, 0xc0, 0xc2, 0x5b, 0xa0, 0xef, 0x05, 0x6e, 0xc8, 0xbd, 0x20, 0x16,
+	0xe8, 0x0e, 0xe8, 0x4c, 0x6d, 0xa4, 0xbf, 0x4e, 0x94, 0x99, 0xe6, 0x36, 0xfc, 0x43, 0x83, 0x86,
+	0xc2, 0x67, 0xdf, 0xa9, 0xf2, 0x4b, 0x1b, 0x43, 0xde, 0x69, 0x11, 0xfb, 0xff, 0x9d, 0x81, 0x30,
+	0xd4, 0x3e, 0x44, 0xdc, 0x37, 0xea, 0xa6, 0xd6, 0x59, 0xb4, 0x16, 0xc9, 0x2e, 0x8b, 0x59, 0x3f,
+	0xee, 0x25, 0x27, 0x48, 0x42, 0x27, 0x36, 0xfc, 0x0c, 0x96, 0x54, 0x4e, 0x4a, 0xd1, 0x4d, 0x68,
+	0xb0, 0x11, 0xf3, 0x59, 0xae, 0xc7, 0x0a, 0x29, 0x71, 0xf6, 0xce, 0xed, 0x34, 0x23, 0xe2, 0x2f,
+	0x1a, 0x2c, 0x5f, 0x4c, 0xfa, 0x07, 0x52, 0xad, 0x02, 0xa8, 0xbd, 0xed, 0xa6, 0x4d, 0x50, 0xa7,
+	0x05, 0x24, 0x4b, 0xb4, 0x36, 0x25, 0xd1, 0x63, 0x30, 0x65, 0x31, 0x6f, 0x07, 0xee, 0x3e, 0x8b,
+	0x4f, 0x79, 0x34, 0x1c, 0x2f, 0x25, 0x81, 0x1e, 0x41, 0xc3, 0x97, 0x6b, 0x99, 0xb9, 0x49, 0x66,
+	0x38, 0xd1, 0xcc, 0x03, 0x7f, 0xd3, 0x60, 0x6d, 0x06, 0x7b, 0x86, 0x16, 0x1b, 0xd0, 0x2a, 0xb5,
+	0x88, 0xed, 0xa6, 0x82, 0xd4, 0xe9, 0xa4, 0x01, 0xdd, 0x86, 0xc5, 0x60, 0xec, 0x27, 0xa9, 0x32,
+	0x3a, 0x2d, 0xa1, 0xe8, 0x2e, 0x34, 0xc7, 0x11, 0xdb, 0x4d, 0x95, 0xaa, 0xd3, 0x09, 0xdc, 0xfa,
+	0x39, 0x07, 0x0d, 0xd5, 0xe4, 0xe8, 0x21, 0xb4, 0x5c, 0x5e, 0x9a, 0xad, 0x48, 0x57, 0x8a, 0x88,
+	0xf6, 0x0a, 0xb9, 0x78, 0xf0, 0xe2, 0x0a, 0x7a, 0x0d, 0xd7, 0x33, 0xd7, 0xf2, 0xf0, 0x40, 0xad,
+	0xf2, 0x00, 0x15, 0xed, 0x35, 0x32, 0x7d, 0xd2, 0xe0, 0x0a, 0xda, 0x02, 0xe4, 0xf2, 0xac, 0x2f,
+	0x55, 0x2c, 0xc8, 0x4a, 0x53, 0xb4, 0x9b, 0xe5, 0x32, 0xc5, 0x15, 0xf4, 0x04, 0x0c, 0x97, 0x8f,
+	0xdf, 0x45, 0xe6, 0x7b, 0x85, 0x14, 0x87, 0x4f, 0x1b, 0x91, 0x89, 0xe9, 0x82, 0x2b, 0xe8, 0x1d,
+	0xac, 0x67, 0x99, 0xfc, 0xb6, 0x08, 0x54, 0xc4, 0x9b, 0xb3, 0xca, 0x45, 0xb4, 0xe7, 0xc9, 0x53,
+	0xee, 0xfb, 0x4e, 0xe0, 0x8a, 0x23, 0x0b, 0x57, 0x76, 0x02, 0xb8, 0xc7, 0xa3, 0x01, 0x71, 0x42,
+	0xa7, 0xff, 0x91, 0x11, 0x31, 0x3c, 0x3b, 0x75, 0x46, 0x43, 0x2f, 0x48, 0x10, 0x9f, 0xc8, 0xeb,
+	0x21, 0xea, 0x45, 0x27, 0x27, 0x56, 0x4f, 0x7b, 0xbb, 0x9a, 0xb3, 0xba, 0x92, 0xd1, 0xcd, 0xde,
+	0xfc, 0x13, 0xeb, 0xeb, 0x5c, 0xfb, 0x60, 0x78, 0xf6, 0x46, 0x86, 0x91, 0xa7, 0xe8, 0x25, 0x8f,
+	0x7d, 0x9f, 0x8f, 0xde, 0x5f, 0x4a, 0x9f, 0xfd, 0xcd, 0x5f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x85,
+	0x35, 0x1b, 0x2d, 0x26, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -805,7 +791,7 @@ type RegisterClient interface {
 	DoServiceInstanceRegister(ctx context.Context, in *ServiceInstances, opts ...grpc.CallOption) (*ServiceInstanceRegisterMapping, error)
 	DoEndpointRegister(ctx context.Context, in *Endpoints, opts ...grpc.CallOption) (*EndpointMapping, error)
 	DoNetworkAddressRegister(ctx context.Context, in *NetAddresses, opts ...grpc.CallOption) (*NetAddressMapping, error)
-	DoServiceAndNetworkAddressMappingRegister(ctx context.Context, in *ServiceAndNetworkAddressMappings, opts ...grpc.CallOption) (*v2.Commands, error)
+	DoServiceAndNetworkAddressMappingRegister(ctx context.Context, in *ServiceAndNetworkAddressMappings, opts ...grpc.CallOption) (*v2.CommandsV2, error)
 }
 
 type registerClient struct {
@@ -818,7 +804,7 @@ func NewRegisterClient(cc *grpc.ClientConn) RegisterClient {
 
 func (c *registerClient) DoServiceRegister(ctx context.Context, in *Services, opts ...grpc.CallOption) (*ServiceRegisterMapping, error) {
 	out := new(ServiceRegisterMapping)
-	err := c.cc.Invoke(ctx, "/skywalking.network.protocol.agent.register.v2.Register/doServiceRegister", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/Register/doServiceRegister", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -827,7 +813,7 @@ func (c *registerClient) DoServiceRegister(ctx context.Context, in *Services, op
 
 func (c *registerClient) DoServiceInstanceRegister(ctx context.Context, in *ServiceInstances, opts ...grpc.CallOption) (*ServiceInstanceRegisterMapping, error) {
 	out := new(ServiceInstanceRegisterMapping)
-	err := c.cc.Invoke(ctx, "/skywalking.network.protocol.agent.register.v2.Register/doServiceInstanceRegister", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/Register/doServiceInstanceRegister", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -836,7 +822,7 @@ func (c *registerClient) DoServiceInstanceRegister(ctx context.Context, in *Serv
 
 func (c *registerClient) DoEndpointRegister(ctx context.Context, in *Endpoints, opts ...grpc.CallOption) (*EndpointMapping, error) {
 	out := new(EndpointMapping)
-	err := c.cc.Invoke(ctx, "/skywalking.network.protocol.agent.register.v2.Register/doEndpointRegister", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/Register/doEndpointRegister", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -845,16 +831,16 @@ func (c *registerClient) DoEndpointRegister(ctx context.Context, in *Endpoints, 
 
 func (c *registerClient) DoNetworkAddressRegister(ctx context.Context, in *NetAddresses, opts ...grpc.CallOption) (*NetAddressMapping, error) {
 	out := new(NetAddressMapping)
-	err := c.cc.Invoke(ctx, "/skywalking.network.protocol.agent.register.v2.Register/doNetworkAddressRegister", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/Register/doNetworkAddressRegister", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *registerClient) DoServiceAndNetworkAddressMappingRegister(ctx context.Context, in *ServiceAndNetworkAddressMappings, opts ...grpc.CallOption) (*v2.Commands, error) {
-	out := new(v2.Commands)
-	err := c.cc.Invoke(ctx, "/skywalking.network.protocol.agent.register.v2.Register/doServiceAndNetworkAddressMappingRegister", in, out, opts...)
+func (c *registerClient) DoServiceAndNetworkAddressMappingRegister(ctx context.Context, in *ServiceAndNetworkAddressMappings, opts ...grpc.CallOption) (*v2.CommandsV2, error) {
+	out := new(v2.CommandsV2)
+	err := c.cc.Invoke(ctx, "/Register/doServiceAndNetworkAddressMappingRegister", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -867,7 +853,7 @@ type RegisterServer interface {
 	DoServiceInstanceRegister(context.Context, *ServiceInstances) (*ServiceInstanceRegisterMapping, error)
 	DoEndpointRegister(context.Context, *Endpoints) (*EndpointMapping, error)
 	DoNetworkAddressRegister(context.Context, *NetAddresses) (*NetAddressMapping, error)
-	DoServiceAndNetworkAddressMappingRegister(context.Context, *ServiceAndNetworkAddressMappings) (*v2.Commands, error)
+	DoServiceAndNetworkAddressMappingRegister(context.Context, *ServiceAndNetworkAddressMappings) (*v2.CommandsV2, error)
 }
 
 // UnimplementedRegisterServer can be embedded to have forward compatible implementations.
@@ -886,7 +872,7 @@ func (*UnimplementedRegisterServer) DoEndpointRegister(ctx context.Context, req 
 func (*UnimplementedRegisterServer) DoNetworkAddressRegister(ctx context.Context, req *NetAddresses) (*NetAddressMapping, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DoNetworkAddressRegister not implemented")
 }
-func (*UnimplementedRegisterServer) DoServiceAndNetworkAddressMappingRegister(ctx context.Context, req *ServiceAndNetworkAddressMappings) (*v2.Commands, error) {
+func (*UnimplementedRegisterServer) DoServiceAndNetworkAddressMappingRegister(ctx context.Context, req *ServiceAndNetworkAddressMappings) (*v2.CommandsV2, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DoServiceAndNetworkAddressMappingRegister not implemented")
 }
 
@@ -904,7 +890,7 @@ func _Register_DoServiceRegister_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/skywalking.network.protocol.agent.register.v2.Register/DoServiceRegister",
+		FullMethod: "/Register/DoServiceRegister",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RegisterServer).DoServiceRegister(ctx, req.(*Services))
@@ -922,7 +908,7 @@ func _Register_DoServiceInstanceRegister_Handler(srv interface{}, ctx context.Co
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/skywalking.network.protocol.agent.register.v2.Register/DoServiceInstanceRegister",
+		FullMethod: "/Register/DoServiceInstanceRegister",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RegisterServer).DoServiceInstanceRegister(ctx, req.(*ServiceInstances))
@@ -940,7 +926,7 @@ func _Register_DoEndpointRegister_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/skywalking.network.protocol.agent.register.v2.Register/DoEndpointRegister",
+		FullMethod: "/Register/DoEndpointRegister",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RegisterServer).DoEndpointRegister(ctx, req.(*Endpoints))
@@ -958,7 +944,7 @@ func _Register_DoNetworkAddressRegister_Handler(srv interface{}, ctx context.Con
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/skywalking.network.protocol.agent.register.v2.Register/DoNetworkAddressRegister",
+		FullMethod: "/Register/DoNetworkAddressRegister",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RegisterServer).DoNetworkAddressRegister(ctx, req.(*NetAddresses))
@@ -976,7 +962,7 @@ func _Register_DoServiceAndNetworkAddressMappingRegister_Handler(srv interface{}
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/skywalking.network.protocol.agent.register.v2.Register/DoServiceAndNetworkAddressMappingRegister",
+		FullMethod: "/Register/DoServiceAndNetworkAddressMappingRegister",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RegisterServer).DoServiceAndNetworkAddressMappingRegister(ctx, req.(*ServiceAndNetworkAddressMappings))
@@ -985,7 +971,7 @@ func _Register_DoServiceAndNetworkAddressMappingRegister_Handler(srv interface{}
 }
 
 var _Register_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "skywalking.network.protocol.agent.register.v2.Register",
+	ServiceName: "Register",
 	HandlerType: (*RegisterServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

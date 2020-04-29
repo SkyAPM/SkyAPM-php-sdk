@@ -25,8 +25,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type SegmentObject struct {
-	TraceSegmentId       *UniqueId       `protobuf:"bytes,1,opt,name=traceSegmentId,proto3" json:"traceSegmentId,omitempty"`
+type SegmentObjectV2 struct {
+	TraceSegmentId       *UniqueIdV2     `protobuf:"bytes,1,opt,name=traceSegmentId,proto3" json:"traceSegmentId,omitempty"`
 	Spans                []*SpanObjectV2 `protobuf:"bytes,2,rep,name=spans,proto3" json:"spans,omitempty"`
 	ServiceId            int32           `protobuf:"varint,3,opt,name=serviceId,proto3" json:"serviceId,omitempty"`
 	ServiceInstanceId    int32           `protobuf:"varint,4,opt,name=serviceInstanceId,proto3" json:"serviceInstanceId,omitempty"`
@@ -36,179 +36,179 @@ type SegmentObject struct {
 	XXX_sizecache        int32           `json:"-"`
 }
 
-func (m *SegmentObject) Reset()         { *m = SegmentObject{} }
-func (m *SegmentObject) String() string { return proto.CompactTextString(m) }
-func (*SegmentObject) ProtoMessage()    {}
-func (*SegmentObject) Descriptor() ([]byte, []int) {
+func (m *SegmentObjectV2) Reset()         { *m = SegmentObjectV2{} }
+func (m *SegmentObjectV2) String() string { return proto.CompactTextString(m) }
+func (*SegmentObjectV2) ProtoMessage()    {}
+func (*SegmentObjectV2) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8124ab206744863a, []int{0}
 }
 
-func (m *SegmentObject) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_SegmentObject.Unmarshal(m, b)
+func (m *SegmentObjectV2) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SegmentObjectV2.Unmarshal(m, b)
 }
-func (m *SegmentObject) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_SegmentObject.Marshal(b, m, deterministic)
+func (m *SegmentObjectV2) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SegmentObjectV2.Marshal(b, m, deterministic)
 }
-func (m *SegmentObject) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SegmentObject.Merge(m, src)
+func (m *SegmentObjectV2) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentObjectV2.Merge(m, src)
 }
-func (m *SegmentObject) XXX_Size() int {
-	return xxx_messageInfo_SegmentObject.Size(m)
+func (m *SegmentObjectV2) XXX_Size() int {
+	return xxx_messageInfo_SegmentObjectV2.Size(m)
 }
-func (m *SegmentObject) XXX_DiscardUnknown() {
-	xxx_messageInfo_SegmentObject.DiscardUnknown(m)
+func (m *SegmentObjectV2) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentObjectV2.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SegmentObject proto.InternalMessageInfo
+var xxx_messageInfo_SegmentObjectV2 proto.InternalMessageInfo
 
-func (m *SegmentObject) GetTraceSegmentId() *UniqueId {
+func (m *SegmentObjectV2) GetTraceSegmentId() *UniqueIdV2 {
 	if m != nil {
 		return m.TraceSegmentId
 	}
 	return nil
 }
 
-func (m *SegmentObject) GetSpans() []*SpanObjectV2 {
+func (m *SegmentObjectV2) GetSpans() []*SpanObjectV2 {
 	if m != nil {
 		return m.Spans
 	}
 	return nil
 }
 
-func (m *SegmentObject) GetServiceId() int32 {
+func (m *SegmentObjectV2) GetServiceId() int32 {
 	if m != nil {
 		return m.ServiceId
 	}
 	return 0
 }
 
-func (m *SegmentObject) GetServiceInstanceId() int32 {
+func (m *SegmentObjectV2) GetServiceInstanceId() int32 {
 	if m != nil {
 		return m.ServiceInstanceId
 	}
 	return 0
 }
 
-func (m *SegmentObject) GetIsSizeLimited() bool {
+func (m *SegmentObjectV2) GetIsSizeLimited() bool {
 	if m != nil {
 		return m.IsSizeLimited
 	}
 	return false
 }
 
-type SegmentReference struct {
-	RefType                 RefType   `protobuf:"varint,1,opt,name=refType,proto3,enum=skywalking.network.protocol.common.RefType" json:"refType,omitempty"`
-	ParentTraceSegmentId    *UniqueId `protobuf:"bytes,2,opt,name=parentTraceSegmentId,proto3" json:"parentTraceSegmentId,omitempty"`
-	ParentSpanId            int32     `protobuf:"varint,3,opt,name=parentSpanId,proto3" json:"parentSpanId,omitempty"`
-	ParentServiceInstanceId int32     `protobuf:"varint,4,opt,name=parentServiceInstanceId,proto3" json:"parentServiceInstanceId,omitempty"`
-	NetworkAddress          string    `protobuf:"bytes,5,opt,name=networkAddress,proto3" json:"networkAddress,omitempty"`
-	NetworkAddressId        int32     `protobuf:"varint,6,opt,name=networkAddressId,proto3" json:"networkAddressId,omitempty"`
-	EntryServiceInstanceId  int32     `protobuf:"varint,7,opt,name=entryServiceInstanceId,proto3" json:"entryServiceInstanceId,omitempty"`
-	EntryEndpoint           string    `protobuf:"bytes,8,opt,name=entryEndpoint,proto3" json:"entryEndpoint,omitempty"`
-	EntryEndpointId         int32     `protobuf:"varint,9,opt,name=entryEndpointId,proto3" json:"entryEndpointId,omitempty"`
-	ParentEndpoint          string    `protobuf:"bytes,10,opt,name=parentEndpoint,proto3" json:"parentEndpoint,omitempty"`
-	ParentEndpointId        int32     `protobuf:"varint,11,opt,name=parentEndpointId,proto3" json:"parentEndpointId,omitempty"`
-	XXX_NoUnkeyedLiteral    struct{}  `json:"-"`
-	XXX_unrecognized        []byte    `json:"-"`
-	XXX_sizecache           int32     `json:"-"`
+type SegmentReferenceV2 struct {
+	RefType                 RefTypeV2   `protobuf:"varint,1,opt,name=refType,proto3,enum=RefTypeV2" json:"refType,omitempty"`
+	ParentTraceSegmentId    *UniqueIdV2 `protobuf:"bytes,2,opt,name=parentTraceSegmentId,proto3" json:"parentTraceSegmentId,omitempty"`
+	ParentSpanId            int32       `protobuf:"varint,3,opt,name=parentSpanId,proto3" json:"parentSpanId,omitempty"`
+	ParentServiceInstanceId int32       `protobuf:"varint,4,opt,name=parentServiceInstanceId,proto3" json:"parentServiceInstanceId,omitempty"`
+	NetworkAddress          string      `protobuf:"bytes,5,opt,name=networkAddress,proto3" json:"networkAddress,omitempty"`
+	NetworkAddressId        int32       `protobuf:"varint,6,opt,name=networkAddressId,proto3" json:"networkAddressId,omitempty"`
+	EntryServiceInstanceId  int32       `protobuf:"varint,7,opt,name=entryServiceInstanceId,proto3" json:"entryServiceInstanceId,omitempty"`
+	EntryEndpoint           string      `protobuf:"bytes,8,opt,name=entryEndpoint,proto3" json:"entryEndpoint,omitempty"`
+	EntryEndpointId         int32       `protobuf:"varint,9,opt,name=entryEndpointId,proto3" json:"entryEndpointId,omitempty"`
+	ParentEndpoint          string      `protobuf:"bytes,10,opt,name=parentEndpoint,proto3" json:"parentEndpoint,omitempty"`
+	ParentEndpointId        int32       `protobuf:"varint,11,opt,name=parentEndpointId,proto3" json:"parentEndpointId,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}    `json:"-"`
+	XXX_unrecognized        []byte      `json:"-"`
+	XXX_sizecache           int32       `json:"-"`
 }
 
-func (m *SegmentReference) Reset()         { *m = SegmentReference{} }
-func (m *SegmentReference) String() string { return proto.CompactTextString(m) }
-func (*SegmentReference) ProtoMessage()    {}
-func (*SegmentReference) Descriptor() ([]byte, []int) {
+func (m *SegmentReferenceV2) Reset()         { *m = SegmentReferenceV2{} }
+func (m *SegmentReferenceV2) String() string { return proto.CompactTextString(m) }
+func (*SegmentReferenceV2) ProtoMessage()    {}
+func (*SegmentReferenceV2) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8124ab206744863a, []int{1}
 }
 
-func (m *SegmentReference) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_SegmentReference.Unmarshal(m, b)
+func (m *SegmentReferenceV2) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SegmentReferenceV2.Unmarshal(m, b)
 }
-func (m *SegmentReference) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_SegmentReference.Marshal(b, m, deterministic)
+func (m *SegmentReferenceV2) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SegmentReferenceV2.Marshal(b, m, deterministic)
 }
-func (m *SegmentReference) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SegmentReference.Merge(m, src)
+func (m *SegmentReferenceV2) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SegmentReferenceV2.Merge(m, src)
 }
-func (m *SegmentReference) XXX_Size() int {
-	return xxx_messageInfo_SegmentReference.Size(m)
+func (m *SegmentReferenceV2) XXX_Size() int {
+	return xxx_messageInfo_SegmentReferenceV2.Size(m)
 }
-func (m *SegmentReference) XXX_DiscardUnknown() {
-	xxx_messageInfo_SegmentReference.DiscardUnknown(m)
+func (m *SegmentReferenceV2) XXX_DiscardUnknown() {
+	xxx_messageInfo_SegmentReferenceV2.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SegmentReference proto.InternalMessageInfo
+var xxx_messageInfo_SegmentReferenceV2 proto.InternalMessageInfo
 
-func (m *SegmentReference) GetRefType() RefType {
+func (m *SegmentReferenceV2) GetRefType() RefTypeV2 {
 	if m != nil {
 		return m.RefType
 	}
-	return RefType_CrossProcess
+	return RefTypeV2_CrossProcess
 }
 
-func (m *SegmentReference) GetParentTraceSegmentId() *UniqueId {
+func (m *SegmentReferenceV2) GetParentTraceSegmentId() *UniqueIdV2 {
 	if m != nil {
 		return m.ParentTraceSegmentId
 	}
 	return nil
 }
 
-func (m *SegmentReference) GetParentSpanId() int32 {
+func (m *SegmentReferenceV2) GetParentSpanId() int32 {
 	if m != nil {
 		return m.ParentSpanId
 	}
 	return 0
 }
 
-func (m *SegmentReference) GetParentServiceInstanceId() int32 {
+func (m *SegmentReferenceV2) GetParentServiceInstanceId() int32 {
 	if m != nil {
 		return m.ParentServiceInstanceId
 	}
 	return 0
 }
 
-func (m *SegmentReference) GetNetworkAddress() string {
+func (m *SegmentReferenceV2) GetNetworkAddress() string {
 	if m != nil {
 		return m.NetworkAddress
 	}
 	return ""
 }
 
-func (m *SegmentReference) GetNetworkAddressId() int32 {
+func (m *SegmentReferenceV2) GetNetworkAddressId() int32 {
 	if m != nil {
 		return m.NetworkAddressId
 	}
 	return 0
 }
 
-func (m *SegmentReference) GetEntryServiceInstanceId() int32 {
+func (m *SegmentReferenceV2) GetEntryServiceInstanceId() int32 {
 	if m != nil {
 		return m.EntryServiceInstanceId
 	}
 	return 0
 }
 
-func (m *SegmentReference) GetEntryEndpoint() string {
+func (m *SegmentReferenceV2) GetEntryEndpoint() string {
 	if m != nil {
 		return m.EntryEndpoint
 	}
 	return ""
 }
 
-func (m *SegmentReference) GetEntryEndpointId() int32 {
+func (m *SegmentReferenceV2) GetEntryEndpointId() int32 {
 	if m != nil {
 		return m.EntryEndpointId
 	}
 	return 0
 }
 
-func (m *SegmentReference) GetParentEndpoint() string {
+func (m *SegmentReferenceV2) GetParentEndpoint() string {
 	if m != nil {
 		return m.ParentEndpoint
 	}
 	return ""
 }
 
-func (m *SegmentReference) GetParentEndpointId() int32 {
+func (m *SegmentReferenceV2) GetParentEndpointId() int32 {
 	if m != nil {
 		return m.ParentEndpointId
 	}
@@ -216,25 +216,25 @@ func (m *SegmentReference) GetParentEndpointId() int32 {
 }
 
 type SpanObjectV2 struct {
-	SpanId               int32                    `protobuf:"varint,1,opt,name=spanId,proto3" json:"spanId,omitempty"`
-	ParentSpanId         int32                    `protobuf:"varint,2,opt,name=parentSpanId,proto3" json:"parentSpanId,omitempty"`
-	StartTime            int64                    `protobuf:"varint,3,opt,name=startTime,proto3" json:"startTime,omitempty"`
-	EndTime              int64                    `protobuf:"varint,4,opt,name=endTime,proto3" json:"endTime,omitempty"`
-	Refs                 []*SegmentReference      `protobuf:"bytes,5,rep,name=refs,proto3" json:"refs,omitempty"`
-	OperationNameId      int32                    `protobuf:"varint,6,opt,name=operationNameId,proto3" json:"operationNameId,omitempty"`
-	OperationName        string                   `protobuf:"bytes,7,opt,name=operationName,proto3" json:"operationName,omitempty"`
-	PeerId               int32                    `protobuf:"varint,8,opt,name=peerId,proto3" json:"peerId,omitempty"`
-	Peer                 string                   `protobuf:"bytes,9,opt,name=peer,proto3" json:"peer,omitempty"`
-	SpanType             SpanType                 `protobuf:"varint,10,opt,name=spanType,proto3,enum=skywalking.network.protocol.common.SpanType" json:"spanType,omitempty"`
-	SpanLayer            SpanLayer                `protobuf:"varint,11,opt,name=spanLayer,proto3,enum=skywalking.network.protocol.common.SpanLayer" json:"spanLayer,omitempty"`
-	ComponentId          int32                    `protobuf:"varint,12,opt,name=componentId,proto3" json:"componentId,omitempty"`
-	Component            string                   `protobuf:"bytes,13,opt,name=component,proto3" json:"component,omitempty"`
-	IsError              bool                     `protobuf:"varint,14,opt,name=isError,proto3" json:"isError,omitempty"`
-	Tags                 []*v2.KeyStringValuePair `protobuf:"bytes,15,rep,name=tags,proto3" json:"tags,omitempty"`
-	Logs                 []*Log                   `protobuf:"bytes,16,rep,name=logs,proto3" json:"logs,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
-	XXX_unrecognized     []byte                   `json:"-"`
-	XXX_sizecache        int32                    `json:"-"`
+	SpanId               int32                      `protobuf:"varint,1,opt,name=spanId,proto3" json:"spanId,omitempty"`
+	ParentSpanId         int32                      `protobuf:"varint,2,opt,name=parentSpanId,proto3" json:"parentSpanId,omitempty"`
+	StartTime            int64                      `protobuf:"varint,3,opt,name=startTime,proto3" json:"startTime,omitempty"`
+	EndTime              int64                      `protobuf:"varint,4,opt,name=endTime,proto3" json:"endTime,omitempty"`
+	Refs                 []*SegmentReferenceV2      `protobuf:"bytes,5,rep,name=refs,proto3" json:"refs,omitempty"`
+	OperationNameId      int32                      `protobuf:"varint,6,opt,name=operationNameId,proto3" json:"operationNameId,omitempty"`
+	OperationName        string                     `protobuf:"bytes,7,opt,name=operationName,proto3" json:"operationName,omitempty"`
+	PeerId               int32                      `protobuf:"varint,8,opt,name=peerId,proto3" json:"peerId,omitempty"`
+	Peer                 string                     `protobuf:"bytes,9,opt,name=peer,proto3" json:"peer,omitempty"`
+	SpanType             SpanTypeV2                 `protobuf:"varint,10,opt,name=spanType,proto3,enum=SpanTypeV2" json:"spanType,omitempty"`
+	SpanLayer            SpanLayerV2                `protobuf:"varint,11,opt,name=spanLayer,proto3,enum=SpanLayerV2" json:"spanLayer,omitempty"`
+	ComponentId          int32                      `protobuf:"varint,12,opt,name=componentId,proto3" json:"componentId,omitempty"`
+	Component            string                     `protobuf:"bytes,13,opt,name=component,proto3" json:"component,omitempty"`
+	IsError              bool                       `protobuf:"varint,14,opt,name=isError,proto3" json:"isError,omitempty"`
+	Tags                 []*v2.KeyStringValuePairV2 `protobuf:"bytes,15,rep,name=tags,proto3" json:"tags,omitempty"`
+	Logs                 []*LogV2                   `protobuf:"bytes,16,rep,name=logs,proto3" json:"logs,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
 func (m *SpanObjectV2) Reset()         { *m = SpanObjectV2{} }
@@ -290,7 +290,7 @@ func (m *SpanObjectV2) GetEndTime() int64 {
 	return 0
 }
 
-func (m *SpanObjectV2) GetRefs() []*SegmentReference {
+func (m *SpanObjectV2) GetRefs() []*SegmentReferenceV2 {
 	if m != nil {
 		return m.Refs
 	}
@@ -325,18 +325,18 @@ func (m *SpanObjectV2) GetPeer() string {
 	return ""
 }
 
-func (m *SpanObjectV2) GetSpanType() SpanType {
+func (m *SpanObjectV2) GetSpanType() SpanTypeV2 {
 	if m != nil {
 		return m.SpanType
 	}
-	return SpanType_Entry
+	return SpanTypeV2_Entry
 }
 
-func (m *SpanObjectV2) GetSpanLayer() SpanLayer {
+func (m *SpanObjectV2) GetSpanLayer() SpanLayerV2 {
 	if m != nil {
 		return m.SpanLayer
 	}
-	return SpanLayer_Unknown
+	return SpanLayerV2_Unknown
 }
 
 func (m *SpanObjectV2) GetComponentId() int32 {
@@ -360,61 +360,61 @@ func (m *SpanObjectV2) GetIsError() bool {
 	return false
 }
 
-func (m *SpanObjectV2) GetTags() []*v2.KeyStringValuePair {
+func (m *SpanObjectV2) GetTags() []*v2.KeyStringValuePairV2 {
 	if m != nil {
 		return m.Tags
 	}
 	return nil
 }
 
-func (m *SpanObjectV2) GetLogs() []*Log {
+func (m *SpanObjectV2) GetLogs() []*LogV2 {
 	if m != nil {
 		return m.Logs
 	}
 	return nil
 }
 
-type Log struct {
-	Time                 int64                    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	Data                 []*v2.KeyStringValuePair `protobuf:"bytes,2,rep,name=data,proto3" json:"data,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
-	XXX_unrecognized     []byte                   `json:"-"`
-	XXX_sizecache        int32                    `json:"-"`
+type LogV2 struct {
+	Time                 int64                      `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	Data                 []*v2.KeyStringValuePairV2 `protobuf:"bytes,2,rep,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
-func (m *Log) Reset()         { *m = Log{} }
-func (m *Log) String() string { return proto.CompactTextString(m) }
-func (*Log) ProtoMessage()    {}
-func (*Log) Descriptor() ([]byte, []int) {
+func (m *LogV2) Reset()         { *m = LogV2{} }
+func (m *LogV2) String() string { return proto.CompactTextString(m) }
+func (*LogV2) ProtoMessage()    {}
+func (*LogV2) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8124ab206744863a, []int{3}
 }
 
-func (m *Log) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Log.Unmarshal(m, b)
+func (m *LogV2) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LogV2.Unmarshal(m, b)
 }
-func (m *Log) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Log.Marshal(b, m, deterministic)
+func (m *LogV2) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LogV2.Marshal(b, m, deterministic)
 }
-func (m *Log) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Log.Merge(m, src)
+func (m *LogV2) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LogV2.Merge(m, src)
 }
-func (m *Log) XXX_Size() int {
-	return xxx_messageInfo_Log.Size(m)
+func (m *LogV2) XXX_Size() int {
+	return xxx_messageInfo_LogV2.Size(m)
 }
-func (m *Log) XXX_DiscardUnknown() {
-	xxx_messageInfo_Log.DiscardUnknown(m)
+func (m *LogV2) XXX_DiscardUnknown() {
+	xxx_messageInfo_LogV2.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Log proto.InternalMessageInfo
+var xxx_messageInfo_LogV2 proto.InternalMessageInfo
 
-func (m *Log) GetTime() int64 {
+func (m *LogV2) GetTime() int64 {
 	if m != nil {
 		return m.Time
 	}
 	return 0
 }
 
-func (m *Log) GetData() []*v2.KeyStringValuePair {
+func (m *LogV2) GetData() []*v2.KeyStringValuePairV2 {
 	if m != nil {
 		return m.Data
 	}
@@ -422,66 +422,64 @@ func (m *Log) GetData() []*v2.KeyStringValuePair {
 }
 
 func init() {
-	proto.RegisterType((*SegmentObject)(nil), "skywalking.network.protocol.agent.v2.SegmentObject")
-	proto.RegisterType((*SegmentReference)(nil), "skywalking.network.protocol.agent.v2.SegmentReference")
-	proto.RegisterType((*SpanObjectV2)(nil), "skywalking.network.protocol.agent.v2.SpanObjectV2")
-	proto.RegisterType((*Log)(nil), "skywalking.network.protocol.agent.v2.Log")
+	proto.RegisterType((*SegmentObjectV2)(nil), "SegmentObjectV2")
+	proto.RegisterType((*SegmentReferenceV2)(nil), "SegmentReferenceV2")
+	proto.RegisterType((*SpanObjectV2)(nil), "SpanObjectV2")
+	proto.RegisterType((*LogV2)(nil), "LogV2")
 }
 
 func init() { proto.RegisterFile("language-agent-v2/trace.proto", fileDescriptor_8124ab206744863a) }
 
 var fileDescriptor_8124ab206744863a = []byte{
-	// 792 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0xdd, 0x6a, 0xeb, 0x46,
-	0x10, 0xae, 0xfc, 0x13, 0xc7, 0xeb, 0xc4, 0x49, 0xb7, 0x25, 0x55, 0x4c, 0x0b, 0xc6, 0x84, 0xe2,
-	0xb6, 0xb1, 0x0c, 0x0a, 0x84, 0xde, 0xf4, 0xa2, 0x2d, 0x81, 0xb8, 0x31, 0x69, 0x58, 0xbb, 0x29,
-	0xf4, 0xaa, 0x1b, 0x69, 0xa2, 0xaa, 0xb6, 0x76, 0x75, 0x56, 0x1b, 0x07, 0xe7, 0x1d, 0xce, 0x43,
-	0x9c, 0xdb, 0xf3, 0x20, 0x07, 0xce, 0x5b, 0x1d, 0x76, 0x24, 0xff, 0xc8, 0x4e, 0x0e, 0x22, 0x57,
-	0xda, 0xf9, 0x66, 0xe6, 0x63, 0x66, 0xbe, 0x9d, 0x15, 0xf9, 0x6e, 0xca, 0x45, 0xf0, 0xc0, 0x03,
-	0xe8, 0xf1, 0x00, 0x84, 0xee, 0xcd, 0xdc, 0xbe, 0x56, 0xdc, 0x03, 0x27, 0x56, 0x52, 0x4b, 0x7a,
-	0x92, 0x4c, 0xe6, 0x8f, 0x7c, 0x3a, 0x09, 0x45, 0xe0, 0x08, 0xd0, 0x8f, 0x52, 0x4d, 0x52, 0x8f,
-	0x27, 0xa7, 0x0e, 0x66, 0x38, 0x33, 0xb7, 0xf5, 0x95, 0x27, 0xa3, 0x48, 0x8a, 0x7e, 0xfa, 0x49,
-	0x03, 0x5a, 0xc7, 0x19, 0x88, 0x74, 0xbd, 0x75, 0x57, 0xe7, 0x5d, 0x89, 0xec, 0x8f, 0x20, 0x88,
-	0x40, 0xe8, 0x3f, 0xef, 0xfe, 0x07, 0x4f, 0xd3, 0x31, 0x69, 0x62, 0x5c, 0x86, 0x0e, 0x7c, 0xdb,
-	0x6a, 0x5b, 0xdd, 0x86, 0x7b, 0xea, 0x7c, 0xae, 0x80, 0x8c, 0xf4, 0x2f, 0x11, 0xbe, 0x79, 0x80,
-	0x81, 0xcf, 0x36, 0x38, 0xe8, 0x25, 0xa9, 0x26, 0x31, 0x17, 0x89, 0x5d, 0x6a, 0x97, 0xbb, 0x0d,
-	0xd7, 0x75, 0x8a, 0x74, 0xe3, 0x8c, 0x62, 0x2e, 0xd2, 0xb2, 0x6e, 0x5d, 0x96, 0x12, 0xd0, 0x6f,
-	0x49, 0x3d, 0x01, 0x35, 0x0b, 0x3d, 0x18, 0xf8, 0x76, 0xb9, 0x6d, 0x75, 0xab, 0x6c, 0x05, 0xd0,
-	0x53, 0xf2, 0xe5, 0xc2, 0x10, 0x89, 0xe6, 0x02, 0xa3, 0x2a, 0x18, 0xb5, 0xed, 0xa0, 0x27, 0x64,
-	0x3f, 0x4c, 0x46, 0xe1, 0x13, 0x0c, 0xc3, 0x28, 0xd4, 0xe0, 0xdb, 0xd5, 0xb6, 0xd5, 0xdd, 0x65,
-	0x79, 0xb0, 0xf3, 0xb1, 0x42, 0x0e, 0xb3, 0x4e, 0x18, 0xdc, 0x83, 0x02, 0xe1, 0x01, 0xbd, 0x20,
-	0x35, 0x05, 0xf7, 0xe3, 0x79, 0x0c, 0x38, 0x9f, 0xa6, 0xfb, 0x53, 0x91, 0xf9, 0xb0, 0x34, 0x85,
-	0x2d, 0x72, 0xe9, 0xbf, 0xe4, 0xeb, 0x98, 0x2b, 0x10, 0x7a, 0x9c, 0x9f, 0x79, 0xe9, 0x15, 0x33,
-	0x7f, 0x96, 0x89, 0x76, 0xc8, 0x5e, 0x8a, 0x9b, 0x61, 0x2e, 0x47, 0x96, 0xc3, 0xe8, 0xcf, 0xe4,
-	0x9b, 0xcc, 0x7e, 0x61, 0x76, 0x2f, 0xb9, 0xe9, 0xf7, 0xa4, 0x99, 0xd5, 0xf5, 0xab, 0xef, 0x2b,
-	0x48, 0x12, 0x1c, 0x61, 0x9d, 0x6d, 0xa0, 0xf4, 0x47, 0x72, 0x98, 0x47, 0x06, 0xbe, 0xbd, 0x83,
-	0xd4, 0x5b, 0x38, 0x3d, 0x27, 0x47, 0x20, 0xb4, 0x9a, 0x6f, 0x17, 0x53, 0xc3, 0x8c, 0x17, 0xbc,
-	0x46, 0x4d, 0xf4, 0x5c, 0x08, 0x3f, 0x96, 0xa1, 0xd0, 0xf6, 0x2e, 0x96, 0x92, 0x07, 0x69, 0x97,
-	0x1c, 0xe4, 0x80, 0x81, 0x6f, 0xd7, 0x91, 0x76, 0x13, 0x36, 0xbd, 0xa5, 0x6d, 0x2f, 0x09, 0x49,
-	0xda, 0x5b, 0x1e, 0x35, 0xbd, 0xe5, 0x91, 0x81, 0x6f, 0x37, 0xd2, 0xde, 0x36, 0xf1, 0xce, 0x87,
-	0x2a, 0xd9, 0x5b, 0xbf, 0xd5, 0xf4, 0x88, 0xec, 0x24, 0xa9, 0x30, 0x16, 0xa6, 0x64, 0xd6, 0x96,
-	0x6c, 0xa5, 0x67, 0x64, 0x33, 0xab, 0xa0, 0xb9, 0xd2, 0xe3, 0x30, 0x02, 0xd4, 0xb5, 0xcc, 0x56,
-	0x00, 0xb5, 0x49, 0x0d, 0x84, 0x8f, 0xbe, 0x0a, 0xfa, 0x16, 0x26, 0xfd, 0x83, 0x54, 0x14, 0xdc,
-	0x1b, 0xa9, 0xcc, 0x2e, 0x9e, 0x17, 0xdc, 0xc5, 0x8d, 0x0d, 0x60, 0xc8, 0x61, 0xc6, 0x29, 0x63,
-	0x50, 0x5c, 0x87, 0x52, 0x5c, 0xf3, 0x08, 0x96, 0xba, 0x6e, 0xc2, 0x46, 0x9e, 0x1c, 0x84, 0x6a,
-	0xd6, 0x59, 0x1e, 0x34, 0xf3, 0x88, 0x01, 0xd4, 0xc0, 0x47, 0xf5, 0xaa, 0x2c, 0xb3, 0x28, 0x25,
-	0x15, 0x73, 0x42, 0xad, 0xea, 0x0c, 0xcf, 0xf4, 0x92, 0xec, 0x9a, 0x69, 0xe1, 0x12, 0x12, 0x5c,
-	0xc2, 0x42, 0x0b, 0x33, 0xca, 0x72, 0xd8, 0x32, 0x9b, 0x5e, 0x91, 0xba, 0x39, 0x0f, 0xf9, 0x1c,
-	0x14, 0x6a, 0xd7, 0x74, 0x7b, 0x45, 0xa9, 0x30, 0x89, 0xad, 0xf2, 0x69, 0x9b, 0x34, 0x3c, 0x19,
-	0xc5, 0x52, 0xa4, 0xab, 0xbc, 0x87, 0x7d, 0xac, 0x43, 0x46, 0xb8, 0xa5, 0x69, 0xef, 0x63, 0x47,
-	0x2b, 0xc0, 0x08, 0x17, 0x26, 0x17, 0x4a, 0x49, 0x65, 0x37, 0xf1, 0x3d, 0x5a, 0x98, 0x46, 0x38,
-	0xcd, 0x83, 0xc4, 0x3e, 0x28, 0x20, 0x5c, 0x56, 0xe1, 0x15, 0xcc, 0x47, 0x5a, 0x85, 0x22, 0xb8,
-	0xe5, 0xd3, 0x07, 0xb8, 0xe1, 0xa1, 0x62, 0xc8, 0x41, 0x7f, 0x21, 0x95, 0xa9, 0x0c, 0x12, 0xfb,
-	0x10, 0xb9, 0x7e, 0x28, 0x76, 0x09, 0x86, 0x32, 0x60, 0x98, 0xd6, 0x01, 0x52, 0x1e, 0xca, 0xc0,
-	0xc8, 0xa2, 0xcd, 0x0d, 0xb3, 0xf0, 0x86, 0xe1, 0xd9, 0x54, 0xe9, 0x73, 0xcd, 0xb3, 0xa7, 0xfe,
-	0xd5, 0x55, 0x1a, 0x0e, 0xf7, 0xad, 0x45, 0x8e, 0xd7, 0x1f, 0x34, 0x06, 0xb1, 0x54, 0x8b, 0x77,
-	0x88, 0xc6, 0xa4, 0xe6, 0xc9, 0xe9, 0xd4, 0xfc, 0xb6, 0xce, 0x0a, 0x3d, 0x95, 0x71, 0xa2, 0x15,
-	0xf0, 0x28, 0x23, 0x6b, 0x15, 0xba, 0x2e, 0xbf, 0xcb, 0x28, 0xe2, 0xc2, 0x4f, 0x3a, 0x5f, 0x74,
-	0xad, 0xdf, 0x9e, 0xc8, 0x99, 0x54, 0x81, 0xc3, 0x63, 0xee, 0xfd, 0x07, 0xeb, 0xd9, 0x3c, 0x8e,
-	0x96, 0x0c, 0x8b, 0x1f, 0xf9, 0x72, 0x6e, 0x37, 0xd6, 0x3f, 0x6b, 0xbf, 0xef, 0x7e, 0x16, 0xd7,
-	0x5f, 0xc4, 0xf5, 0x31, 0xae, 0x3f, 0x73, 0xdf, 0x97, 0x5a, 0xa3, 0xc9, 0xfc, 0xef, 0x8c, 0xf2,
-	0x3a, 0x0d, 0xbb, 0xc9, 0xea, 0xb9, 0xdb, 0xc1, 0xca, 0xce, 0x3e, 0x05, 0x00, 0x00, 0xff, 0xff,
-	0x47, 0xa9, 0x0e, 0x2f, 0x29, 0x08, 0x00, 0x00,
+	// 767 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x95, 0xe1, 0x8e, 0xdb, 0x44,
+	0x10, 0xc7, 0xf1, 0x9d, 0x93, 0x5c, 0x26, 0xb9, 0x5c, 0xd9, 0x42, 0x71, 0x23, 0x90, 0xa2, 0x70,
+	0xa2, 0xa1, 0xe2, 0x36, 0x92, 0x4f, 0x42, 0x7c, 0x43, 0x80, 0x8a, 0x14, 0xf5, 0x54, 0x4e, 0xce,
+	0xd5, 0x48, 0x7c, 0xdb, 0xda, 0x73, 0xc6, 0x24, 0xde, 0x35, 0xeb, 0xbd, 0x54, 0xe9, 0x1b, 0xf0,
+	0x10, 0xbc, 0x00, 0xef, 0xc4, 0xbb, 0x54, 0x3b, 0xb6, 0x93, 0x38, 0xb9, 0x7c, 0xca, 0xce, 0x6f,
+	0xfe, 0x59, 0xef, 0xcc, 0xdf, 0xe3, 0x85, 0xaf, 0x96, 0x42, 0x26, 0x0f, 0x22, 0xc1, 0x2b, 0x91,
+	0xa0, 0x34, 0x57, 0x2b, 0x7f, 0x6a, 0xb4, 0x88, 0x90, 0xe7, 0x5a, 0x19, 0x35, 0x7c, 0x1a, 0xa9,
+	0x2c, 0x53, 0x72, 0x5a, 0xfe, 0x54, 0xf0, 0x79, 0x05, 0x49, 0x78, 0xb5, 0x9b, 0x1a, 0xff, 0xef,
+	0xc0, 0xc5, 0x1c, 0x93, 0x0c, 0xa5, 0xf9, 0xed, 0xdd, 0x5f, 0x18, 0x99, 0xd0, 0x67, 0xd7, 0x30,
+	0x20, 0x65, 0xc5, 0x67, 0xb1, 0xe7, 0x8c, 0x9c, 0x49, 0xcf, 0xef, 0xf1, 0xb7, 0x32, 0xfd, 0xfb,
+	0x01, 0x67, 0x71, 0xe8, 0x07, 0x7b, 0x12, 0xf6, 0x35, 0xb4, 0x8a, 0x5c, 0xc8, 0xc2, 0x3b, 0x19,
+	0x9d, 0x4e, 0x7a, 0xfe, 0x39, 0x9f, 0xe7, 0x42, 0xd6, 0x5b, 0x06, 0x65, 0x8e, 0x7d, 0x09, 0xdd,
+	0x02, 0xf5, 0x2a, 0x8d, 0x70, 0x16, 0x7b, 0xa7, 0x23, 0x67, 0xd2, 0x0a, 0xb6, 0x80, 0x7d, 0x07,
+	0x9f, 0xd6, 0x81, 0x2c, 0x8c, 0x90, 0xa4, 0x72, 0x49, 0x75, 0x98, 0x60, 0x97, 0x70, 0x9e, 0x16,
+	0xf3, 0xf4, 0x03, 0xde, 0xa4, 0x59, 0x6a, 0x30, 0xf6, 0x5a, 0x23, 0x67, 0x72, 0x16, 0x34, 0xe1,
+	0xf8, 0x1f, 0x17, 0x58, 0x75, 0xc8, 0x00, 0xef, 0x51, 0xa3, 0x8c, 0x30, 0xf4, 0xd9, 0x25, 0x74,
+	0x34, 0xde, 0xdf, 0xad, 0x73, 0xa4, 0xda, 0x06, 0x3e, 0xf0, 0xa0, 0x8c, 0x43, 0x3f, 0xa8, 0x53,
+	0xec, 0x47, 0xf8, 0x2c, 0x17, 0x1a, 0xa5, 0xb9, 0x6b, 0xb6, 0xe3, 0xe4, 0xb0, 0x1d, 0x8f, 0x0a,
+	0xd9, 0x18, 0xfa, 0x25, 0xb7, 0xcd, 0xd8, 0x94, 0xdc, 0x60, 0xec, 0x07, 0xf8, 0xa2, 0x8a, 0x8f,
+	0xd4, 0x7e, 0x2c, 0xcd, 0xbe, 0x81, 0x81, 0x44, 0xf3, 0x5e, 0xe9, 0xc5, 0x4f, 0x71, 0xac, 0xb1,
+	0x28, 0xa8, 0x05, 0xdd, 0x60, 0x8f, 0xb2, 0x97, 0xf0, 0xa4, 0x49, 0x66, 0xb1, 0xd7, 0xa6, 0xad,
+	0x0f, 0x38, 0xfb, 0x1e, 0x9e, 0xa1, 0x34, 0x7a, 0x7d, 0x78, 0x98, 0x0e, 0xfd, 0xe3, 0x48, 0xd6,
+	0xba, 0x41, 0x99, 0x57, 0x32, 0xce, 0x55, 0x2a, 0x8d, 0x77, 0x46, 0x47, 0x69, 0x42, 0x36, 0x81,
+	0x8b, 0x06, 0x98, 0xc5, 0x5e, 0x97, 0xb6, 0xdd, 0xc7, 0xb6, 0xb6, 0xb2, 0xec, 0xcd, 0x86, 0x50,
+	0xd6, 0xd6, 0xa4, 0xb6, 0xb6, 0x26, 0x99, 0xc5, 0x5e, 0xaf, 0xac, 0x6d, 0x9f, 0x8f, 0xff, 0x75,
+	0xa1, 0xbf, 0xfb, 0x56, 0xb2, 0x67, 0xd0, 0x2e, 0x4a, 0x63, 0x1c, 0xfa, 0x4b, 0x15, 0x1d, 0xd8,
+	0x76, 0xf2, 0x88, 0x6d, 0xf6, 0x55, 0x36, 0x42, 0x9b, 0xbb, 0x34, 0x43, 0xf2, 0xf5, 0x34, 0xd8,
+	0x02, 0xe6, 0x41, 0x07, 0x65, 0x4c, 0x39, 0x97, 0x72, 0x75, 0xc8, 0x5e, 0x80, 0xab, 0xf1, 0xde,
+	0x5a, 0x65, 0xc7, 0xe4, 0x29, 0x3f, 0x7c, 0x39, 0x03, 0x12, 0xd8, 0x5e, 0xa9, 0x1c, 0xb5, 0x30,
+	0xa9, 0x92, 0x6f, 0x44, 0x86, 0x1b, 0xd3, 0xf6, 0xb1, 0xed, 0x7d, 0x03, 0x91, 0x55, 0xdd, 0xa0,
+	0x09, 0x6d, 0xb1, 0x39, 0xa2, 0x9e, 0xc5, 0x64, 0x4d, 0x2b, 0xa8, 0x22, 0xc6, 0xc0, 0xb5, 0x2b,
+	0x32, 0xa2, 0x1b, 0xd0, 0x9a, 0xbd, 0x80, 0x33, 0xdb, 0x0a, 0x9a, 0x0f, 0xa0, 0xf9, 0xe8, 0xd1,
+	0x3c, 0x57, 0x03, 0xb2, 0x49, 0xb2, 0x97, 0xd0, 0xb5, 0xeb, 0x1b, 0xb1, 0x46, 0x4d, 0x7d, 0x1f,
+	0xf8, 0x7d, 0x52, 0x12, 0x09, 0xfd, 0x60, 0x9b, 0x66, 0x23, 0xe8, 0x45, 0x2a, 0xcb, 0x95, 0x2c,
+	0x87, 0xa8, 0x4f, 0xa7, 0xd8, 0x45, 0xb6, 0xa7, 0x9b, 0xd0, 0x3b, 0xa7, 0xf3, 0x6c, 0x81, 0xed,
+	0x69, 0x5a, 0xbc, 0xd2, 0x5a, 0x69, 0x6f, 0x40, 0xa3, 0x5e, 0x87, 0xec, 0x5b, 0x70, 0x8d, 0x48,
+	0x0a, 0xef, 0x82, 0x7a, 0xfa, 0x39, 0x7f, 0x8d, 0xeb, 0xb9, 0xd1, 0xa9, 0x4c, 0x42, 0xb1, 0x7c,
+	0xc0, 0x5b, 0x91, 0xda, 0x93, 0x90, 0x84, 0x0d, 0xc1, 0x5d, 0xaa, 0xa4, 0xf0, 0x9e, 0x90, 0xb4,
+	0xcd, 0x6f, 0x54, 0x62, 0x73, 0x96, 0x8d, 0x7f, 0x85, 0x16, 0x85, 0xb6, 0x25, 0xc6, 0x5a, 0xe7,
+	0x90, 0x75, 0xb4, 0xb6, 0xcf, 0x88, 0x85, 0x11, 0xd5, 0xe7, 0xed, 0xd8, 0x33, 0xac, 0xc4, 0x7f,
+	0x0d, 0xcf, 0x77, 0xbf, 0x03, 0x01, 0xe6, 0x4a, 0xd7, 0xe3, 0xcb, 0x38, 0x74, 0x22, 0xb5, 0x5c,
+	0x62, 0x64, 0x18, 0xe3, 0x6f, 0xf3, 0xc2, 0x68, 0x14, 0x59, 0xa5, 0x0c, 0xfd, 0x61, 0x8f, 0xff,
+	0xa2, 0xb2, 0x4c, 0xc8, 0xb8, 0x08, 0xfd, 0xf1, 0x27, 0x13, 0xe7, 0xe7, 0x0f, 0x70, 0xad, 0x74,
+	0xc2, 0x45, 0x2e, 0xa2, 0x3f, 0x91, 0x17, 0x8b, 0xf5, 0x7b, 0xb1, 0x5c, 0xa4, 0xd2, 0x92, 0x8c,
+	0x57, 0xe3, 0xcb, 0xeb, 0x3b, 0x81, 0xd3, 0x9d, 0xc0, 0x57, 0xfe, 0xad, 0xf3, 0xc7, 0xe5, 0x56,
+	0x3b, 0xad, 0x74, 0xd3, 0x5a, 0x37, 0x25, 0xdd, 0x74, 0xe5, 0xff, 0x77, 0x32, 0x9c, 0x2f, 0xd6,
+	0xbf, 0x57, 0x5b, 0xbe, 0x29, 0x65, 0xb7, 0xf6, 0x66, 0x88, 0xd4, 0xf2, 0x5d, 0x9b, 0xee, 0x88,
+	0xeb, 0x8f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xfc, 0xc8, 0x20, 0x0f, 0x74, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -508,7 +506,7 @@ func NewTraceSegmentReportServiceClient(cc *grpc.ClientConn) TraceSegmentReportS
 }
 
 func (c *traceSegmentReportServiceClient) Collect(ctx context.Context, opts ...grpc.CallOption) (TraceSegmentReportService_CollectClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_TraceSegmentReportService_serviceDesc.Streams[0], "/skywalking.network.protocol.agent.v2.TraceSegmentReportService/collect", opts...)
+	stream, err := c.cc.NewStream(ctx, &_TraceSegmentReportService_serviceDesc.Streams[0], "/TraceSegmentReportService/collect", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -517,8 +515,8 @@ func (c *traceSegmentReportServiceClient) Collect(ctx context.Context, opts ...g
 }
 
 type TraceSegmentReportService_CollectClient interface {
-	Send(*UpstreamSegment) error
-	CloseAndRecv() (*v2.Commands, error)
+	Send(*UpstreamSegmentV2) error
+	CloseAndRecv() (*v2.CommandsV2, error)
 	grpc.ClientStream
 }
 
@@ -526,15 +524,15 @@ type traceSegmentReportServiceCollectClient struct {
 	grpc.ClientStream
 }
 
-func (x *traceSegmentReportServiceCollectClient) Send(m *UpstreamSegment) error {
+func (x *traceSegmentReportServiceCollectClient) Send(m *UpstreamSegmentV2) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *traceSegmentReportServiceCollectClient) CloseAndRecv() (*v2.Commands, error) {
+func (x *traceSegmentReportServiceCollectClient) CloseAndRecv() (*v2.CommandsV2, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(v2.Commands)
+	m := new(v2.CommandsV2)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -563,8 +561,8 @@ func _TraceSegmentReportService_Collect_Handler(srv interface{}, stream grpc.Ser
 }
 
 type TraceSegmentReportService_CollectServer interface {
-	SendAndClose(*v2.Commands) error
-	Recv() (*UpstreamSegment, error)
+	SendAndClose(*v2.CommandsV2) error
+	Recv() (*UpstreamSegmentV2, error)
 	grpc.ServerStream
 }
 
@@ -572,12 +570,12 @@ type traceSegmentReportServiceCollectServer struct {
 	grpc.ServerStream
 }
 
-func (x *traceSegmentReportServiceCollectServer) SendAndClose(m *v2.Commands) error {
+func (x *traceSegmentReportServiceCollectServer) SendAndClose(m *v2.CommandsV2) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *traceSegmentReportServiceCollectServer) Recv() (*UpstreamSegment, error) {
-	m := new(UpstreamSegment)
+func (x *traceSegmentReportServiceCollectServer) Recv() (*UpstreamSegmentV2, error) {
+	m := new(UpstreamSegmentV2)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -585,7 +583,7 @@ func (x *traceSegmentReportServiceCollectServer) Recv() (*UpstreamSegment, error
 }
 
 var _TraceSegmentReportService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "skywalking.network.protocol.agent.v2.TraceSegmentReportService",
+	ServiceName: "TraceSegmentReportService",
 	HandlerType: (*TraceSegmentReportServiceServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{

@@ -27,11 +27,11 @@ import "common/common.proto";
 import "common/JVM.proto";
 
 service JVMMetricReportService {
-    rpc collect (JVMMetricCollection) returns (Commands) {
+    rpc collect (JVMMetricCollectionV2) returns (CommandsV2) {
     }
 }
 
-message JVMMetricCollection {
-    repeated JVMMetric metrics = 1;
+message JVMMetricCollectionV2 {
+    repeated JVMMetricV2 metrics = 1;
     int32 serviceInstanceId = 2;
 }

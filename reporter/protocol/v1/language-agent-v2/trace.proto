@@ -32,7 +32,7 @@ service TraceSegmentReportService {
 
 message SegmentObject {
     UniqueId traceSegmentId = 1;
-    repeated SpanObjectV2 spans = 2;
+    repeated SpanObjectV1 spans = 2;
     int32 serviceId = 3;
     int32 serviceInstanceId = 4;
     bool isSizeLimited = 5;
@@ -52,7 +52,7 @@ message SegmentReference {
     int32 parentEndpointId = 11;
 }
 
-message SpanObjectV2 {
+message SpanObjectV1 {
     int32 spanId = 1;
     int32 parentSpanId = 2;
     int64 startTime = 3;
@@ -68,10 +68,10 @@ message SpanObjectV2 {
     string component = 13;
     bool isError = 14;
     repeated KeyStringValuePairV1 tags = 15;
-    repeated Log logs = 16;
+    repeated LogV1 logs = 16;
 }
 
-message Log {
+message LogV1 {
     int64 time = 1;
     repeated KeyStringValuePairV1 data = 2;
 }

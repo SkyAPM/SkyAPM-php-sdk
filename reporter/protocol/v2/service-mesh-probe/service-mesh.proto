@@ -44,7 +44,7 @@ message ServiceMeshMetric {
     int32 responseCode = 13;
     bool status = 14;
     Protocol protocol = 15;
-    DetectPoint detectPoint = 16;
+    DetectPointV2 detectPoint = 16;
 }
 
 enum Protocol {

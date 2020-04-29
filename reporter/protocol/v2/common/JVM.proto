@@ -25,15 +25,15 @@ option go_package = "skywalking/network/language/agent/v2";
 
 import "common/common.proto";
 
-message JVMMetric {
+message JVMMetricV2 {
     int64 time = 1;
-    CPU cpu = 2;
-    repeated Memory memory = 3;
-    repeated MemoryPool memoryPool = 4;
-    repeated GC gc = 5;
+    CPUV2 cpu = 2;
+    repeated MemoryV2 memory = 3;
+    repeated MemoryPoolV2 memoryPool = 4;
+    repeated GCV2 gc = 5;
 }
 
-message Memory {
+message MemoryV2 {
     bool isHeap = 1;
     int64 init = 2;
     int64 max = 3;
@@ -41,15 +41,15 @@ message Memory {
     int64 committed = 5;
 }
 
-message MemoryPool {
-    PoolType type = 1;
+message MemoryPoolV2 {
+    PoolTypeV2 type = 1;
     int64 init = 2;
     int64 max = 3;
     int64 used = 4;
     int64 commited = 5;
 }
 
-enum PoolType {
+enum PoolTypeV2 {
     CODE_CACHE_USAGE = 0;
     NEWGEN_USAGE = 1;
     OLDGEN_USAGE = 2;
@@ -58,13 +58,13 @@ enum PoolType {
     METASPACE_USAGE = 5;
 }
 
-message GC {
-    GCPhrase phrase = 1;
+message GCV2 {
+    GCPhraseV2 phrase = 1;
     int64 count = 2;
     int64 time = 3;
 }
 
-enum GCPhrase {
+enum GCPhraseV2 {
     NEW = 0;
     OLD = 1;
 }

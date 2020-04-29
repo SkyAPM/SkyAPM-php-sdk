@@ -34,7 +34,7 @@ service TraceSegmentService {
 
 message TraceSegmentObject {
     UniqueId traceSegmentId = 1;
-    repeated SpanObject spans = 2;
+    repeated SpanObjectV1 spans = 2;
     int32 applicationId = 3;
     int32 applicationInstanceId = 4;
     bool isSizeLimited = 5;
@@ -54,7 +54,7 @@ message TraceSegmentReference {
     int32 parentServiceId = 11;
 }
 
-message SpanObject {
+message SpanObjectV1 {
     int32 spanId = 1;
     int32 parentSpanId = 2;
     int64 startTime = 3;

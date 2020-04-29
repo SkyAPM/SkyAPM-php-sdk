@@ -23,27 +23,27 @@ option java_package = "org.apache.skywalking.apm.network.language.agent";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
 option go_package = "skywalking/network/language/agent/v2";
 
-message UpstreamSegment {
-    repeated UniqueId globalTraceIds = 1;
+message UpstreamSegmentV2 {
+    repeated UniqueIdV2 globalTraceIds = 1;
     bytes segment = 2; // the byte array of TraceSegmentObject
 }
 
-enum SpanType {
+enum SpanTypeV2 {
     Entry = 0;
     Exit = 1;
     Local = 2;
 }
 
-message UniqueId {
+message UniqueIdV2 {
     repeated int64 idParts = 1;
 }
 
-enum RefType {
+enum RefTypeV2 {
     CrossProcess = 0;
     CrossThread = 1;
 }
 
-enum SpanLayer {
+enum SpanLayerV2 {
     Unknown = 0;
     Database = 1;
     RPCFramework = 2;

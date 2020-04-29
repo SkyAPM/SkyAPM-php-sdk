@@ -27,11 +27,11 @@ import "common/common.proto";
 import "common/CLR.proto";
 
 service CLRMetricReportService {
-    rpc collect (CLRMetricCollection) returns (Commands) {
+    rpc collect (CLRMetricCollectionV2) returns (CommandsV2) {
     }
 }
 
-message CLRMetricCollection {
-    repeated CLRMetric metrics = 1;
+message CLRMetricCollectionV2 {
+    repeated CLRMetricV2 metrics = 1;
     int32 serviceInstanceId = 2;
 }
