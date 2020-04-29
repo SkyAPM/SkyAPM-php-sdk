@@ -18,8 +18,6 @@
 
 syntax = "proto3";
 
-package skywalking.network.protocol.agent.v1;
-
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.language.agent";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
@@ -90,5 +88,5 @@ message ServiceNameMappingElement {
 message ServiceNameElement {
     string serviceName = 1;
     int32 applicationId = 2;
-    skywalking.network.protocol.common.v1.SpanType srcSpanType = 3;
+    SpanType srcSpanType = 3;
 }
