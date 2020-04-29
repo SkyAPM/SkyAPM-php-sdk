@@ -72,10 +72,14 @@ static int le_skywalking;
 static int application_instance = 1;
 static int application_id = 1;
 static int cli_debug = 1;
+static char service[512] = {'a'};
+static char service_instance[512] = {'a', 'i'};
 #else
 static int application_instance = 0;
 static int application_id = 0;
 static int cli_debug = 0;
+static char service[512] = {0};
+static char service_instance[512] = {0};
 #endif
 static char application_uuid[37] = {0};
 static int sky_increment_id = 0;
@@ -94,9 +98,9 @@ PHP_INI_BEGIN()
 #else
 	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 #endif
-	STD_PHP_INI_ENTRY("skywalking.version",   	"6", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.version",   	"8", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.sock_path", "/var/run/sky-agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky-agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -872,6 +876,9 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         } else if (SKYWALKING_G(version) == 6) { // skywalking 6.x
             spprintf(&peer, 0, "%s:%d", php_url_host, peer_port);
             sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
+        } else if (SKYWALKING_G(version) == 8) {
+            spprintf(&peer, 0, "%s:%d", php_url_host, peer_port);
+            sw = generate_sw8(Z_LVAL_P(span_id) + 1);
         }
     }
 
@@ -1204,6 +1211,56 @@ static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_na
     return sw6;
 }
 
+static char *generate_sw8(zend_long span_id) {
+    zval *traceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "traceId",sizeof("traceId") - 1);
+    zval *currentTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentTraceId", sizeof("currentTraceId") - 1);
+    zval *currentEndpoint = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentEndpoint", sizeof("currentEndpoint") - 1);
+    zval *currentNetworkAddress = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentNetworkAddress", sizeof("currentNetworkAddress") - 1);
+
+    zval traceIdEncode;
+    zval currentTraceIdEncode;
+    zval serviceEncode;
+    zval serviceInstanceEncode;
+    zval parentEndpointEncode;
+    zval targetAddressEncode;
+
+    zval_b64_encode(&traceIdEncode, Z_STRVAL_P(traceId));
+    zval_b64_encode(&currentTraceIdEncode, Z_STRVAL_P(currentTraceId));
+    zval_b64_encode(&serviceEncode, service);
+    zval_b64_encode(&serviceInstanceEncode, service_instance);
+    zval_b64_encode(&parentEndpointEncode, Z_STRVAL_P(currentEndpoint));
+    zval_b64_encode(&targetAddressEncode, Z_STRVAL_P(currentNetworkAddress));
+
+    ssize_t sw6_l = 0;
+    sw6_l = snprintf(NULL, 0, "sw8: 1-%s-%s-%" PRId3264 "-%s-%s-%s-%s",
+            Z_STRVAL(traceIdEncode),
+            Z_STRVAL(currentTraceIdEncode),
+            span_id,
+            Z_STRVAL(serviceEncode),
+            Z_STRVAL(serviceInstanceEncode),
+            Z_STRVAL(parentEndpointEncode),
+            Z_STRVAL(targetAddressEncode));
+
+    char *sw6 = (char *) emalloc(sw6_l + 1);
+    bzero(sw6, sw6_l + 1);
+    snprintf(sw6, sw6_l + 1, "sw8: 1-%s-%s-%" PRId3264 "-%s-%s-%s-%s",
+            Z_STRVAL(traceIdEncode),
+            Z_STRVAL(currentTraceIdEncode),
+            span_id,
+            Z_STRVAL(serviceEncode),
+            Z_STRVAL(serviceInstanceEncode),
+            Z_STRVAL(parentEndpointEncode),
+            Z_STRVAL(targetAddressEncode));
+
+    zval_dtor(&traceIdEncode);
+    zval_dtor(&currentTraceIdEncode);
+    zval_dtor(&serviceEncode);
+    zval_dtor(&serviceInstanceEncode);
+    zval_dtor(&parentEndpointEncode);
+    zval_dtor(&targetAddressEncode);
+    return sw6;
+}
+
 static zend_string *trim_sharp(zval *tmp) {
     return php_trim(Z_STR_P(tmp), "#", sizeof("#") - 1, 1);
 }
@@ -1384,6 +1441,91 @@ static void generate_context() {
                 efree(uri);
             }
         }
+    } else if (SKYWALKING_G(version) == 8) {
+        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW8", sizeof("HTTP_SW8") - 1);
+//        zval *sw;
+//        array_init(&sw);
+//        ZVAL_STRING(sw, "1-My40LjU=-MS4yLjM=-4-c2VydmljZQ==-aW5zdGFuY2U=-L2FwcA==-MTI3LjAuMC4xOjgwODA=");
+        if (sw != NULL && Z_TYPE_P(sw) == IS_STRING && Z_STRLEN_P(sw) > 10) {
+            add_assoc_string(&SKYWALKING_G(context), "sw8", Z_STRVAL_P(sw));
+
+            zval temp;
+            array_init(&temp);
+
+            php_explode(zend_string_init(ZEND_STRL("-"), 0), Z_STR_P(sw), &temp, 10);
+
+            if(zend_array_count(Z_ARRVAL_P(&temp)) >= 7) {
+                zval *sw8_0 = zend_hash_index_find(Z_ARRVAL(temp), 0);
+                zval *sw8_1 = zend_hash_index_find(Z_ARRVAL(temp), 1); // Trace Id base64
+                zval *sw8_2 = zend_hash_index_find(Z_ARRVAL(temp), 2); // Parent trace segment Id
+                zval *sw8_3 = zend_hash_index_find(Z_ARRVAL(temp), 3); // Parent span Id
+                zval *sw8_4 = zend_hash_index_find(Z_ARRVAL(temp), 4); // Parent service
+                zval *sw8_5 = zend_hash_index_find(Z_ARRVAL(temp), 5); // Parent service instance
+                zval *sw8_6 = zend_hash_index_find(Z_ARRVAL(temp), 6); // Parent endpoint
+                zval *sw8_7 = zend_hash_index_find(Z_ARRVAL(temp), 7); // Target address used at client side of this request
+
+                zval child;
+                array_init(&child);
+                ZVAL_LONG(&child, 1)
+                zend_hash_str_update(Z_ARRVAL_P(&SKYWALKING_G(context)), "isChild", sizeof("isChild") - 1, &child);
+
+                zval sw8_1decode;
+                zval sw8_2decode;
+                zval sw8_4decode;
+                zval sw8_5decode;
+                zval sw8_6decode;
+                zval sw8_7decode;
+                zval_b64_decode(&sw8_1decode, Z_STRVAL_P(sw8_1));
+                zval_b64_decode(&sw8_2decode, Z_STRVAL_P(sw8_2));
+                zval_b64_decode(&sw8_4decode, Z_STRVAL_P(sw8_4));
+                zval_b64_decode(&sw8_5decode, Z_STRVAL_P(sw8_5));
+                zval_b64_decode(&sw8_6decode, Z_STRVAL_P(sw8_6));
+                zval_b64_decode(&sw8_7decode, Z_STRVAL_P(sw8_7));
+
+                add_assoc_string(&SKYWALKING_G(context), "traceId", Z_STRVAL(sw8_1decode));
+                add_assoc_string(&SKYWALKING_G(context), "parentTraceSegmentId", Z_STRVAL(sw8_2decode));
+                add_assoc_long(&SKYWALKING_G(context), "parentSpanId", zend_atol(Z_STRVAL_P(sw8_3), sizeof(Z_STRVAL_P(sw8_3)) - 1));
+                add_assoc_string(&SKYWALKING_G(context), "parentService", Z_STRVAL(sw8_4decode));
+                add_assoc_string(&SKYWALKING_G(context), "parentServiceInstance", Z_STRVAL(sw8_5decode));
+                add_assoc_string(&SKYWALKING_G(context), "parentEndpoint", Z_STRVAL(sw8_6decode));
+                add_assoc_string(&SKYWALKING_G(context), "targetAddress", Z_STRVAL(sw8_7decode));
+
+                zval_dtor(&sw8_1decode);
+                zval_dtor(&sw8_2decode);
+                zval_dtor(&sw8_4decode);
+                zval_dtor(&sw8_5decode);
+                zval_dtor(&sw8_6decode);
+                zval_dtor(&sw8_7decode);
+            }
+        } else {
+            add_assoc_string(&SKYWALKING_G(context), "parentService", service);
+            add_assoc_string(&SKYWALKING_G(context), "parentServiceInstance", service_instance);
+            char *uri = get_page_request_uri();
+            char *path = NULL;
+            if (uri != NULL) {
+                path = (char *)emalloc(strlen(uri) + 5);
+                bzero(path, strlen(uri) + 5);
+
+                int i;
+                for(i = 0; i < strlen(uri); i++) {
+                    if (uri[i] == '?') {
+                        break;
+                    }
+                    path[i] = uri[i];
+                }
+                path[i] = '\0';
+            }
+
+            add_assoc_string(&SKYWALKING_G(context), "parentEndpoint", (path == NULL) ? "" : path);
+            if (path != NULL) {
+                efree(path);
+            }
+
+            add_assoc_string(&SKYWALKING_G(context), "traceId", makeTraceId);
+            if(uri != NULL) {
+                efree(uri);
+            }
+        }
     }
 
     efree(makeTraceId);
@@ -1518,6 +1660,9 @@ static void request_init() {
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "segment");
 	SKY_ADD_ASSOC_ZVAL(&SKYWALKING_G(UpstreamSegment), "globalTraceIds");
 
+    add_assoc_stringl(&SKYWALKING_G(UpstreamSegment), "service", service, strlen(service));
+    add_assoc_stringl(&SKYWALKING_G(UpstreamSegment), "serviceInstance", service_instance, strlen(service_instance));
+
 	zval *traceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentTraceId", sizeof("currentTraceId") - 1);
 
 	zval traceSegmentObject;
@@ -1559,12 +1704,16 @@ static void request_init() {
     efree(l_millisecond);
     add_assoc_long(&temp, "startTime", millisecond);
     add_assoc_string(&temp, "operationName", path);
-    efree(path);
     add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
     add_assoc_long(&temp, "componentId", COMPONENT_HTTPCLIENT);
 
+    // sw8
+    add_assoc_string(&SKYWALKING_G(context), "currentEndpoint", path);
+    add_assoc_string(&SKYWALKING_G(context), "currentNetworkAddress", (peer == NULL) ? "127.0.0.1:8080" : peer);
+
+    efree(path);
     if (peer != NULL) {
         efree(peer);
     }
@@ -1581,6 +1730,8 @@ static void request_init() {
     array_init(&globalTraceIds);
     zval tmpGlobalTraceIds;
 
+    zend_hash_str_update(Z_ARRVAL(SKYWALKING_G(UpstreamSegment)), "traceId", sizeof("traceId") - 1, traceId);
+
     if(Z_LVAL_P(isChild) == 1) {
         zval ref;
         array_init(&ref);
@@ -1595,16 +1746,32 @@ static void request_init() {
         add_assoc_long(&ref, "type", 0);
         add_assoc_string(&ref, "parentTraceSegmentId", Z_STRVAL_P(parentTraceSegmentId));
         add_assoc_long(&ref, "parentSpanId", Z_LVAL_P(parentSpanId));
-        add_assoc_long(&ref, "parentApplicationInstanceId", Z_LVAL_P(parentApplicationInstance));
-        add_assoc_string(&ref, "networkAddress", Z_STRVAL_P(networkAddress));
-        add_assoc_long(&ref, "entryApplicationInstanceId", Z_LVAL_P(entryApplicationInstance));
-        add_assoc_string(&ref, "entryServiceName", Z_STRVAL_P(entryOperationName));
-        add_assoc_string(&ref, "parentServiceName", Z_STRVAL_P(parentOperationName));
+
+        if (SKYWALKING_G(version) == 8) {
+            zval *traceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "traceId", sizeof("traceId") - 1);
+            zval *parentService = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "parentService", sizeof("parentService") - 1);
+            zval *parentServiceInstance = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "parentServiceInstance", sizeof("parentServiceInstance") - 1);
+            zval *parentEndpoint = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "parentEndpoint", sizeof("parentEndpoint") - 1);
+            zval *targetAddress = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "targetAddress", sizeof("targetAddress") - 1);
+
+            add_assoc_string(&ref, "traceId", Z_STRVAL_P(traceId));
+            add_assoc_string(&ref, "parentService", Z_STRVAL_P(parentService));
+            add_assoc_string(&ref, "parentServiceInstance", Z_STRVAL_P(parentServiceInstance));
+            add_assoc_string(&ref, "parentEndpoint", Z_STRVAL_P(parentEndpoint));
+            add_assoc_string(&ref, "targetAddress", Z_STRVAL_P(targetAddress));
+            zend_hash_str_update(Z_ARRVAL(SKYWALKING_G(UpstreamSegment)), "traceId", sizeof("traceId") - 1, traceId);
+        } else {
+            add_assoc_long(&ref, "parentApplicationInstanceId", Z_LVAL_P(parentApplicationInstance));
+            add_assoc_long(&ref, "entryApplicationInstanceId", Z_LVAL_P(entryApplicationInstance));
+            add_assoc_string(&ref, "networkAddress", Z_STRVAL_P(networkAddress));
+            add_assoc_string(&ref, "entryServiceName", Z_STRVAL_P(entryOperationName));
+            add_assoc_string(&ref, "parentServiceName", Z_STRVAL_P(parentOperationName));
+            ZVAL_STRING(&tmpGlobalTraceIds, Z_STRVAL_P(distributedTraceId));
+        }
+
         zend_hash_next_index_insert(Z_ARRVAL(refs), &ref);
-        ZVAL_STRING(&tmpGlobalTraceIds, Z_STRVAL_P(distributedTraceId));
     } else {
         ZVAL_STRING(&tmpGlobalTraceIds, Z_STRVAL_P(traceId));
-
     }
 
     zend_hash_str_add(Z_ARRVAL(temp), "refs", sizeof("refs") - 1, &refs);
@@ -1685,10 +1852,19 @@ static int sky_register() {
                 }
 
                 if (ids[0] != NULL && ids[1] != NULL && ids[2] != NULL) {
-                    application_id = atoi(ids[0]);
-                    application_instance = atoi(ids[1]);
-                    strncpy(application_uuid, ids[2], sizeof application_uuid - 1);
+                    if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) {
+                        application_id = atoi(ids[0]);
+                        application_instance = atoi(ids[1]);
+                        strncpy(application_uuid, ids[2], sizeof application_uuid - 1);
+                    } else if (SKYWALKING_G(version) == 8) {
+                        application_id = 1;
+                        application_instance = 1;
+                        strncpy(service, ids[0], sizeof service - 1);
+                        strncpy(service_instance, ids[1], sizeof service_instance - 1);
+                        strncpy(application_uuid, ids[2], sizeof application_uuid - 1);
+                    }
                 }
+
             } else {
                 php_error_docref(NULL, E_WARNING, "[skywalking] failed to connect the sock.");
             }

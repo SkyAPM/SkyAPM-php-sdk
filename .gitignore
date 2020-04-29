@@ -47,3 +47,4 @@ CMakeLists.txt
 /tests/*/*.exp
 /tests/*/*.log
 /tests/*/*.sh
+sky_php*

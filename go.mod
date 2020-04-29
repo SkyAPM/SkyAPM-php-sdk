@@ -1,4 +1,4 @@
-module agent
+module github.com/SkyAPM/SkyAPM-php-sdk
 
 require (
 	github.com/golang/protobuf v1.3.1
