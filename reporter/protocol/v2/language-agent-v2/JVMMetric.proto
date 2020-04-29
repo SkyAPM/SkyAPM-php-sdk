@@ -18,8 +18,6 @@
 
 syntax = "proto3";
 
-package skywalking.network.protocol.agent.v2;
-
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.language.agent.v2";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
@@ -29,11 +27,11 @@ import "common/common.proto";
 import "common/JVM.proto";
 
 service JVMMetricReportService {
-    rpc collect (JVMMetricCollection) returns (skywalking.network.protocol.common.Commands) {
+    rpc collect (JVMMetricCollection) returns (Commands) {
     }
 }
 
 message JVMMetricCollection {
-    repeated skywalking.network.protocol.common.JVMMetric metrics = 1;
+    repeated JVMMetric metrics = 1;
     int32 serviceInstanceId = 2;
 }
