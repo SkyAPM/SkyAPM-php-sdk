@@ -32,6 +32,6 @@ service JVMMetricsService {
 }
 
 message JVMMetrics {
-    repeated JVMMetric metrics = 1;
+    repeated JVMMetricV1 metrics = 1;
     int32 applicationInstanceId = 2;
 }

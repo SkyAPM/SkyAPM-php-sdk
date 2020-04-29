@@ -41,7 +41,7 @@ message TraceSegmentObject {
 }
 
 message TraceSegmentReference {
-    RefType refType = 1;
+    RefTypeV1 refType = 1;
     UniqueId parentTraceSegmentId = 2;
     int32 parentSpanId = 3;
     int32 parentApplicationInstanceId = 4;
@@ -64,8 +64,8 @@ message SpanObject {
     string operationName = 7;
     int32 peerId = 8;
     string peer = 9;
-    SpanType spanType = 10;
-    SpanLayer spanLayer = 11;
+    SpanTypeV1 spanType = 10;
+    SpanLayerV1 spanLayer = 11;
     int32 componentId = 12;
     string component = 13;
     bool isError = 14;

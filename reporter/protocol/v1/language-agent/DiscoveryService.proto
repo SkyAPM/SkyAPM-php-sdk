@@ -88,5 +88,5 @@ message ServiceNameMappingElement {
 message ServiceNameElement {
     string serviceName = 1;
     int32 applicationId = 2;
-    SpanType srcSpanType = 3;
+    SpanTypeV1 srcSpanType = 3;
 }

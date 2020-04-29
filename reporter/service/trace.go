@@ -169,17 +169,17 @@ func format(version int, j string) (trace, *upstreamSegment) {
 			}
 
 			if v.SpanType == 0 {
-				span.SpanType = nla1.SpanType_Entry
+				span.SpanType = nla1.SpanTypeV1_Entry
 			} else if v.SpanType == 1 {
-				span.SpanType = nla1.SpanType_Exit
+				span.SpanType = nla1.SpanTypeV1_Exit
 			} else if v.SpanType == 2 {
-				span.SpanType = nla1.SpanType_Local
+				span.SpanType = nla1.SpanTypeV1_Local
 			}
 
 			if v.SpanLayer == 3 {
-				span.SpanLayer = nla1.SpanLayer_Http
+				span.SpanLayer = nla1.SpanLayerV1_Http
 			} else if v.SpanLayer == 1 {
-				span.SpanLayer = nla1.SpanLayer_Database
+				span.SpanLayer = nla1.SpanLayerV1_Database
 			}
 
 			buildTags(span, v.Tags)
@@ -391,9 +391,9 @@ func buildRefs(span *nla1.SpanObject, refs []ref) {
 	var spanRefs []*nla1.TraceSegmentReference
 
 	for _, rev := range refs {
-		var refType nla1.RefType
+		var refType nla1.RefTypeV1
 		if rev.Type == 0 {
-			refType = nla1.RefType_CrossProcess
+			refType = nla1.RefTypeV1_CrossProcess
 		}
 
 		spanRefs = append(spanRefs, &nla1.TraceSegmentReference{

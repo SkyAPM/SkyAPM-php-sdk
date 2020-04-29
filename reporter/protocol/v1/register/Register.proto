@@ -39,7 +39,7 @@ service Register {
     rpc doNetworkAddressRegister (NetAddresses) returns (NetAddressMapping) {
     }
 
-    rpc doServiceAndNetworkAddressMappingRegister (ServiceAndNetworkAddressMappings) returns(Commands) {
+    rpc doServiceAndNetworkAddressMappingRegister (ServiceAndNetworkAddressMappings) returns(Commands1) {
     }
 }
 
@@ -50,8 +50,8 @@ message Services {
 
 message Service {
     string serviceName = 1;
-    repeated KeyStringValuePair tags = 3;
-    repeated KeyStringValuePair properties = 4;
+    repeated KeyStringValuePairV1 tags = 3;
+    repeated KeyStringValuePairV1 properties = 4;
 }
 
 message ServiceRegisterMapping {
@@ -67,8 +67,8 @@ message ServiceInstance {
     int32 serviceId = 1;
     string instanceUUID = 2;
     int64 time = 3;
-    repeated KeyStringValuePair tags = 4;
-    repeated KeyStringValuePair properties = 5;
+    repeated KeyStringValuePairV1 tags = 4;
+    repeated KeyStringValuePairV1 properties = 5;
 }
 
 message ServiceInstanceRegisterMapping {
@@ -95,11 +95,11 @@ message Endpoints {
 message Endpoint {
     int32 serviceId = 1;
     string endpointName = 2;
-    repeated KeyStringValuePair tags = 3;
-    repeated KeyStringValuePair properties = 4;
+    repeated KeyStringValuePairV1 tags = 3;
+    repeated KeyStringValuePairV1 properties = 4;
     // For endpoint
     // from DetectPoint is either `client` or `server`. No chance to be `proxy`.
-    DetectPoint from = 5;
+    DetectPointV1 from = 5;
 }
 
 message EndpointMapping {
@@ -110,7 +110,7 @@ message EndpointMappingElement {
     int32 serviceId = 1;
     string endpointName = 2;
     int32 endpointId = 3;
-    DetectPoint from = 4;
+    DetectPointV1 from = 4;
 }
 
 message ServiceAndNetworkAddressMappings {

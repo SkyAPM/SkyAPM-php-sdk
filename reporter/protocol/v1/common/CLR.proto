@@ -25,21 +25,21 @@ option go_package = "skywalking/network/language/agent/v1";
 
 import "common/common.proto";
 
-message CLRMetric {
+message CLRMetricV1 {
     int64 time = 1;
-    CPU cpu = 2;
-    ClrGC gc = 3;
-    ClrThread thread = 4;
+    CPUV1 cpu = 2;
+    ClrGCV1 gc = 3;
+    ClrThreadV1 thread = 4;
 }
 
-message ClrGC {
+message ClrGCV1 {
     int64 Gen0CollectCount = 1;
     int64 Gen1CollectCount = 2;
     int64 Gen2CollectCount = 3;
     int64 HeapMemory = 4;
 }
 
-message ClrThread {
+message ClrThreadV1 {
     int32 AvailableCompletionPortThreads = 1;
     int32 AvailableWorkerThreads = 2;
     int32 MaxCompletionPortThreads = 3;

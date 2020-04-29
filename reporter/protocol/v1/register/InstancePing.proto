@@ -26,7 +26,7 @@ option go_package = "skywalking/network/language/register/v1";
 import "common/common.proto";
 
 service ServiceInstancePing {
-    rpc doPing (ServiceInstancePingPkg) returns (Commands) {
+    rpc doPing (ServiceInstancePingPkg) returns (Commands1) {
     }
 }
 
