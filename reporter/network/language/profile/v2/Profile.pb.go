@@ -6,13 +6,13 @@ package v2
 import (
 	context "context"
 	fmt "fmt"
-	v21 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/common/v2"
-	v2 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/language/agent/v2"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	math "math"
+	v21 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/common/v2"
+	v2 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/language/agent/v2"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

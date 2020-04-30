@@ -5,9 +5,9 @@ package v2
 
 import (
 	fmt "fmt"
-	v2 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/common/v2"
 	proto "github.com/golang/protobuf/proto"
 	math "math"
+	v2 "github.com/SkyAPM/SkyAPM-php-sdk/reporter/network/common/v2"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
