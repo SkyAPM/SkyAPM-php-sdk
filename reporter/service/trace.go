@@ -109,7 +109,7 @@ func (t *Agent) send(segments []*upstreamSegment) {
 		if t.version == 5 {
 			err = tsrsc1.Send(segment.segment.(*nla1.UpstreamSegment))
 		} else if t.version == 6 || t.version == 7 {
-			err = tsrsc2.Send(segment.segment.(*nla2.UpstreamSegment))
+			err = tsrsc2.Send(segment.segment.(*nla2.UpstreamSegmentV2))
 		} else if t.version == 8 {
 			err = tsrsc3.Send(segment.segment.(*nla3.SegmentObject))
 		}
@@ -150,10 +150,10 @@ func format(version int, j string) (trace, *upstreamSegment) {
 			globalTrace = append(globalTrace, buildUniqueId1(v))
 		}
 
-		var spans []*nla1.SpanObject
+		var spans []*nla1.SpanObjectV1
 
 		for _, v := range info.Segment.Spans {
-			span := &nla1.SpanObject{
+			span := &nla1.SpanObjectV1{
 				SpanId:        v.SpanId,
 				ParentSpanId:  v.ParentSpanId,
 				StartTime:     v.StartTime,
@@ -169,17 +169,17 @@ func format(version int, j string) (trace, *upstreamSegment) {
 			}
 
 			if v.SpanType == 0 {
-				span.SpanType = nla1.SpanType_Entry
+				span.SpanType = nla1.SpanTypeV1_Entry
 			} else if v.SpanType == 1 {
-				span.SpanType = nla1.SpanType_Exit
+				span.SpanType = nla1.SpanTypeV1_Exit
 			} else if v.SpanType == 2 {
-				span.SpanType = nla1.SpanType_Local
+				span.SpanType = nla1.SpanTypeV1_Local
 			}
 
 			if v.SpanLayer == 3 {
-				span.SpanLayer = nla1.SpanLayer_Http
+				span.SpanLayer = nla1.SpanLayerV1_Http
 			} else if v.SpanLayer == 1 {
-				span.SpanLayer = nla1.SpanLayer_Database
+				span.SpanLayer = nla1.SpanLayerV1_Database
 			}
 
 			buildTags(span, v.Tags)
@@ -216,7 +216,7 @@ func format(version int, j string) (trace, *upstreamSegment) {
 		}
 	} else if version == 6 || version == 7 {
 
-		var globalTrace []*nla2.UniqueId
+		var globalTrace []*nla2.UniqueIdV2
 
 		for _, v := range info.GlobalTraceIds {
 			globalTrace = append(globalTrace, buildUniqueId(v))
@@ -241,17 +241,17 @@ func format(version int, j string) (trace, *upstreamSegment) {
 			}
 
 			if v.SpanType == 0 {
-				span.SpanType = nla2.SpanType_Entry
+				span.SpanType = nla2.SpanTypeV2_Entry
 			} else if v.SpanType == 1 {
-				span.SpanType = nla2.SpanType_Exit
+				span.SpanType = nla2.SpanTypeV2_Exit
 			} else if v.SpanType == 2 {
-				span.SpanType = nla2.SpanType_Local
+				span.SpanType = nla2.SpanTypeV2_Local
 			}
 
 			if v.SpanLayer == 3 {
-				span.SpanLayer = nla2.SpanLayer_Http
+				span.SpanLayer = nla2.SpanLayerV2_Http
 			} else if v.SpanLayer == 1 {
-				span.SpanLayer = nla2.SpanLayer_Database
+				span.SpanLayer = nla2.SpanLayerV2_Database
 			}
 
 			buildTags2(span, v.Tags)
@@ -260,7 +260,7 @@ func format(version int, j string) (trace, *upstreamSegment) {
 			spans = append(spans, span)
 		}
 
-		segmentObject := &nla2.SegmentObject{
+		segmentObject := &nla2.SegmentObjectV2{
 			TraceSegmentId:    buildUniqueId(info.Segment.TraceSegmentId),
 			Spans:             spans,
 			ServiceId:         info.ApplicationId,
@@ -277,7 +277,7 @@ func format(version int, j string) (trace, *upstreamSegment) {
 			return info, nil
 		}
 
-		segment := &nla2.UpstreamSegment{
+		segment := &nla2.UpstreamSegmentV2{
 			GlobalTraceIds: globalTrace,
 			Segment:        seg,
 		}
@@ -341,15 +341,15 @@ func format(version int, j string) (trace, *upstreamSegment) {
 
 func buildRefs2(span *nla2.SpanObjectV2, refs []ref) {
 	// refs
-	var spanRefs []*nla2.SegmentReference
+	var spanRefs []*nla2.SegmentReferenceV2
 
 	for _, rev := range refs {
-		var refType nla2.RefType
+		var refType nla2.RefTypeV2
 		if rev.Type == 0 {
-			refType = nla2.RefType_CrossProcess
+			refType = nla2.RefTypeV2_CrossProcess
 		}
 
-		var reference = &nla2.SegmentReference{
+		var reference = &nla2.SegmentReferenceV2{
 			RefType:                 refType,
 			ParentTraceSegmentId:    buildUniqueId(rev.ParentTraceSegmentId),
 			ParentSpanId:            rev.ParentSpanId,
@@ -386,14 +386,14 @@ func buildRefs2(span *nla2.SpanObjectV2, refs []ref) {
 	}
 }
 
-func buildRefs(span *nla1.SpanObject, refs []ref) {
+func buildRefs(span *nla1.SpanObjectV1, refs []ref) {
 	// refs
 	var spanRefs []*nla1.TraceSegmentReference
 
 	for _, rev := range refs {
-		var refType nla1.RefType
+		var refType nla1.RefTypeV1
 		if rev.Type == 0 {
-			refType = nla1.RefType_CrossProcess
+			refType = nla1.RefTypeV1_CrossProcess
 		}
 
 		spanRefs = append(spanRefs, &nla1.TraceSegmentReference{
@@ -413,7 +413,7 @@ func buildRefs(span *nla1.SpanObject, refs []ref) {
 	}
 }
 
-func buildTags(span *nla1.SpanObject, t map[string]string) {
+func buildTags(span *nla1.SpanObjectV1, t map[string]string) {
 	// tags
 	var tags []*nla1.KeyWithStringValue
 
@@ -475,8 +475,8 @@ func buildUniqueId1(str string) *nla1.UniqueId {
 	return uniqueId
 }
 
-func buildUniqueId(str string) *nla2.UniqueId {
-	uniqueId := &nla2.UniqueId{}
+func buildUniqueId(str string) *nla2.UniqueIdV2 {
+	uniqueId := &nla2.UniqueIdV2{}
 	var ids []int64
 	for _, idStr := range strings.Split(str, ".") {
 		id, err := strconv.ParseInt(idStr, 10, 64)
@@ -493,10 +493,10 @@ func buildUniqueId(str string) *nla2.UniqueId {
 
 func buildTags2(span *nla2.SpanObjectV2, t map[string]string) {
 	// tags
-	var tags []*nc2.KeyStringValuePair
+	var tags []*nc2.KeyStringValuePairV2
 
 	for k, v := range t {
-		kv := &nc2.KeyStringValuePair{
+		kv := &nc2.KeyStringValuePairV2{
 			Key:   k,
 			Value: v,
 		}

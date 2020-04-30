@@ -18,8 +18,6 @@
 
 syntax = "proto3";
 
-package skywalking.network.protocol.agent.register.v2;
-
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.register.v2";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
@@ -28,7 +26,7 @@ option go_package = "skywalking/network/register/v2";
 import "common/common.proto";
 
 service ServiceInstancePing {
-    rpc doPing (ServiceInstancePingPkg) returns (skywalking.network.protocol.common.Commands) {
+    rpc doPing (ServiceInstancePingPkg) returns (CommandsV2) {
     }
 }
 

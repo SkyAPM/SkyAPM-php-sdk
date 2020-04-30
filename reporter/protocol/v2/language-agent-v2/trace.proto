@@ -18,8 +18,6 @@
 
 syntax = "proto3";
 
-package skywalking.network.protocol.agent.v2;
-
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.language.agent.v2";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
@@ -29,21 +27,21 @@ import "common/common.proto";
 import "common/trace-common.proto";
 
 service TraceSegmentReportService {
-    rpc collect (stream skywalking.network.protocol.common.UpstreamSegment) returns (skywalking.network.protocol.common.Commands) {
+    rpc collect (stream UpstreamSegmentV2) returns (CommandsV2) {
     }
 }
 
-message SegmentObject {
-    skywalking.network.protocol.common.UniqueId traceSegmentId = 1;
+message SegmentObjectV2 {
+    UniqueIdV2 traceSegmentId = 1;
     repeated SpanObjectV2 spans = 2;
     int32 serviceId = 3;
     int32 serviceInstanceId = 4;
     bool isSizeLimited = 5;
 }
 
-message SegmentReference {
-    skywalking.network.protocol.common.RefType refType = 1;
-    skywalking.network.protocol.common.UniqueId parentTraceSegmentId = 2;
+message SegmentReferenceV2 {
+    RefTypeV2 refType = 1;
+    UniqueIdV2 parentTraceSegmentId = 2;
     int32 parentSpanId = 3;
     int32 parentServiceInstanceId = 4;
     string networkAddress = 5;
@@ -60,21 +58,21 @@ message SpanObjectV2 {
     int32 parentSpanId = 2;
     int64 startTime = 3;
     int64 endTime = 4;
-    repeated SegmentReference refs = 5;
+    repeated SegmentReferenceV2 refs = 5;
     int32 operationNameId = 6;
     string operationName = 7;
     int32 peerId = 8;
     string peer = 9;
-    skywalking.network.protocol.common.SpanType spanType = 10;
-    skywalking.network.protocol.common.SpanLayer spanLayer = 11;
+    SpanTypeV2 spanType = 10;
+    SpanLayerV2 spanLayer = 11;
     int32 componentId = 12;
     string component = 13;
     bool isError = 14;
-    repeated skywalking.network.protocol.common.KeyStringValuePair tags = 15;
-    repeated Log logs = 16;
+    repeated KeyStringValuePairV2 tags = 15;
+    repeated LogV2 logs = 16;
 }
 
-message Log {
+message LogV2 {
     int64 time = 1;
-    repeated skywalking.network.protocol.common.KeyStringValuePair data = 2;
+    repeated KeyStringValuePairV2 data = 2;
 }

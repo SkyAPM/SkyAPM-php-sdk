@@ -18,14 +18,12 @@
 
 syntax = "proto3";
 
-package skywalking.network.protocol.common.v1;
-
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.common";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
 option go_package = "skywalking/network/common/v1";
 
-message KeyStringValuePair {
+message KeyStringValuePairV1 {
     string key = 1;
     string value = 2;
 }
@@ -35,24 +33,24 @@ message KeyIntValuePair {
     int32 value = 2;
 }
 
-message CPU {
+message CPUV1 {
     double usagePercent = 2;
 }
 
 // In most cases, detect point should be `server` or `client`.
 // Even in service mesh, this means `server`/`client` side sidecar
 // `proxy` is reserved only.
-enum DetectPoint {
+enum DetectPointV1 {
     client = 0;
     server = 1;
     proxy = 2;
 }
 
-message Commands {
-    repeated Command commands = 1;
+message CommandsV1 {
+    repeated CommandV1 commands = 1;
 }
 
-message Command {
+message CommandV1 {
     string command = 1;
-    repeated KeyStringValuePair args = 2;
+    repeated KeyStringValuePairV1 args = 2;
 }

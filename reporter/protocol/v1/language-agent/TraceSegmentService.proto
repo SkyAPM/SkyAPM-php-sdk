@@ -18,8 +18,6 @@
 
 syntax = "proto3";
 
-package skywalking.network.protocol.agent.v1;
-
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.language.agent";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
@@ -30,21 +28,21 @@ import "language-agent/KeyWithStringValue.proto";
 import "common/trace-common.proto";
 
 service TraceSegmentService {
-    rpc collect (stream skywalking.network.protocol.common.v1.UpstreamSegment) returns (Downstream) {
+    rpc collect (stream UpstreamSegment) returns (Downstream) {
     }
 }
 
 message TraceSegmentObject {
-    skywalking.network.protocol.common.v1.UniqueId traceSegmentId = 1;
-    repeated SpanObject spans = 2;
+    UniqueId traceSegmentId = 1;
+    repeated SpanObjectV1 spans = 2;
     int32 applicationId = 3;
     int32 applicationInstanceId = 4;
     bool isSizeLimited = 5;
 }
 
 message TraceSegmentReference {
-    skywalking.network.protocol.common.v1.RefType refType = 1;
-    skywalking.network.protocol.common.v1.UniqueId parentTraceSegmentId = 2;
+    RefTypeV1 refType = 1;
+    UniqueId parentTraceSegmentId = 2;
     int32 parentSpanId = 3;
     int32 parentApplicationInstanceId = 4;
     string networkAddress = 5;
@@ -56,7 +54,7 @@ message TraceSegmentReference {
     int32 parentServiceId = 11;
 }
 
-message SpanObject {
+message SpanObjectV1 {
     int32 spanId = 1;
     int32 parentSpanId = 2;
     int64 startTime = 3;
@@ -66,8 +64,8 @@ message SpanObject {
     string operationName = 7;
     int32 peerId = 8;
     string peer = 9;
-    skywalking.network.protocol.common.v1.SpanType spanType = 10;
-    skywalking.network.protocol.common.v1.SpanLayer spanLayer = 11;
+    SpanTypeV1 spanType = 10;
+    SpanLayerV1 spanLayer = 11;
     int32 componentId = 12;
     string component = 13;
     bool isError = 14;

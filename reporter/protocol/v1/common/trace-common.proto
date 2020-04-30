@@ -18,8 +18,6 @@
 
 syntax = "proto3";
 
-package skywalking.network.protocol.common.v1;
-
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.language.agent";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
@@ -30,7 +28,7 @@ message UpstreamSegment {
     bytes segment = 2; // the byte array of TraceSegmentObject
 }
 
-enum SpanType {
+enum SpanTypeV1 {
     Entry = 0;
     Exit = 1;
     Local = 2;
@@ -40,12 +38,12 @@ message UniqueId {
     repeated int64 idParts = 1;
 }
 
-enum RefType {
+enum RefTypeV1 {
     CrossProcess = 0;
     CrossThread = 1;
 }
 
-enum SpanLayer {
+enum SpanLayerV1 {
     Unknown = 0;
     Database = 1;
     RPCFramework = 2;

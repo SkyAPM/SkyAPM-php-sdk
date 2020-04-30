@@ -261,30 +261,30 @@ func (t *Agent) doRegister(r *register) {
 				hostName, _ := os.Hostname()
 
 				var instances []*nr2.ServiceInstance
-				var properties []*nc2.KeyStringValuePair
+				var properties []*nc2.KeyStringValuePairV2
 
-				properties = append(properties, &nc2.KeyStringValuePair{
+				properties = append(properties, &nc2.KeyStringValuePairV2{
 					Key:   "os_name",
 					Value: runtime.GOOS,
 				})
 
-				properties = append(properties, &nc2.KeyStringValuePair{
+				properties = append(properties, &nc2.KeyStringValuePairV2{
 					Key:   "host_name",
 					Value: hostName,
 				})
 
-				properties = append(properties, &nc2.KeyStringValuePair{
+				properties = append(properties, &nc2.KeyStringValuePairV2{
 					Key:   "process_no",
 					Value: strconv.Itoa(pid),
 				})
 
-				properties = append(properties, &nc2.KeyStringValuePair{
+				properties = append(properties, &nc2.KeyStringValuePairV2{
 					Key:   "language",
 					Value: "php",
 				})
 
 				for _, ip := range ip4s() {
-					properties = append(properties, &nc2.KeyStringValuePair{
+					properties = append(properties, &nc2.KeyStringValuePairV2{
 						Key:   "ipv4",
 						Value: ip,
 					})

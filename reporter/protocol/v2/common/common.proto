@@ -18,54 +18,39 @@
 
 syntax = "proto3";
 
-package skywalking.network.protocol.common;
-
 option java_multiple_files = true;
 option java_package = "org.apache.skywalking.apm.network.common";
 option csharp_namespace = "SkyWalking.NetworkProtocol";
 option go_package = "skywalking/network/common/v2";
 
-message KeyStringValuePair {
+message KeyStringValuePairV2 {
     string key = 1;
     string value = 2;
 }
 
-message KeyIntValuePair {
+message KeyIntValuePairV2 {
     string key = 1;
     int32 value = 2;
 }
 
-message CPU {
+message CPUV2 {
     double usagePercent = 2;
 }
 
 // In most cases, detect point should be `server` or `client`.
 // Even in service mesh, this means `server`/`client` side sidecar
 // `proxy` is reserved only.
-enum DetectPoint {
+enum DetectPointV2 {
     client = 0;
     server = 1;
     proxy = 2;
 }
 
-message Commands {
-    repeated Command commands = 1;
+message CommandsV2 {
+    repeated CommandV2 commands = 1;
 }
 
-message Command {
+message CommandV2 {
     string command = 1;
-    repeated KeyStringValuePair args = 2;
-}
-
-enum ServiceType {
-    // An agent works inside the normal business application.
-    normal = 0;
-    // An agent works inside the database.
-    database = 1;
-    // An agent works inside the MQ.
-    mq = 2;
-    // An agent works inside the cache server.
-    cache = 3;
-    // An agent works inside the browser.
-    browser = 4;
+    repeated KeyStringValuePairV2 args = 2;
 }
