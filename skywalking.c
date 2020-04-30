@@ -873,7 +873,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
         if (SKYWALKING_G(version) == 5) { // skywalking 5.x
             spprintf(&peer, 0, "%s://%s:%d", php_url_scheme, php_url_host, peer_port);
             sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
-        } else if (SKYWALKING_G(version) == 6) { // skywalking 6.x
+        } else if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) { // skywalking 6.x
             spprintf(&peer, 0, "%s:%d", php_url_host, peer_port);
             sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
         } else if (SKYWALKING_G(version) == 8) {
@@ -1349,7 +1349,7 @@ static void generate_context() {
                 efree(uri);
             }
         }
-    } else if (SKYWALKING_G(version) == 6) {
+    } else if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) {
         sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
         if (sw != NULL && Z_TYPE_P(sw) == IS_STRING && Z_STRLEN_P(sw) > 10) {
             add_assoc_string(&SKYWALKING_G(context), "sw6", Z_STRVAL_P(sw));
