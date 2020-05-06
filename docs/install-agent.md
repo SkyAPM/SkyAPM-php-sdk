@@ -1,4 +1,4 @@
-#Tips: It is recommended that you use SkyWalking7 and use nginx As load balancing
+# Tips: It is recommended that you use SkyWalking7 and use nginx As load balancing
 
 # Install SkyWalking PHP Agent
 
