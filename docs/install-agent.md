@@ -17,7 +17,7 @@ You can run the following commands to install the SkyWalking PHP Agent.
 
 ## Install PHP Extension 
 ```shell script
-Get the latest releaese
+#Get the latest releaese
 unzip cd SkyAPM-php-sdk-x.x.x.zip
 cd SkyAPM-php-sdk-x.x.x
 phpize && ./configure && make && make install
@@ -70,7 +70,7 @@ After=syslog.target network.target
 [Service]
 Type=simple
 #Modify the corresponding directory and address here
-ExecStart=/usr/local/bin/sky-php-agent-linux-X64 --grpc=172.16.30.28:16800 --sky-version=7 --socket=/tmp/sky-agent.sock
+ExecStart=/usr/local/bin/sky-php-agent-linux-X64 --grpc=127.0.0.1:11800 --sky-version=7 --socket=/tmp/sky-agent.sock
 ExecStop=/bin/kill -SIGINT $MAINPID
 Restart=on-failure
 
@@ -79,13 +79,14 @@ WantedBy=multi-user.target
 
 ```
 ## If you use CentOS6  Log management with lograted
-## Start script You need to change the corresponding address, version
+## This is Start script You need to change the address, version and Copy and run it with root
 ```shell script
+echo "
 #/bin/bash
 
 start(){
 [ -f /tmp/php-agent.pid ]&&echo "Alredy running"&&exit 1
-/usr/local/bin/sky-php-agent-linux-X64 --grpc=172.16.30.26:39999 --sky-version=7 --socket=/tmp/sky-agent.sock 1>>/var/log/phpagent/php-agent.log 2>>/var/log/phpagent/php-agent-error.log & 
+/usr/local/bin/sky-php-agent-linux-X64 --grpc=127.0.0.1:11800 --sky-version=7 --socket=/tmp/sky-agent.sock 1>>/var/log/phpagent/php-agent.log 2>>/var/log/phpagent/php-agent-error.log & 
 if [ $? -eq 0 ];then
 	echo $! >/tmp/php-agent.pid
 	echo "sky-php-agent startup!!!"
@@ -97,7 +98,7 @@ stop(){
 kill -9 `cat /tmp/php-agent.pid`
 rm -f /tmp/php-agent.pid
 [[ $? == 0 ]]&&echo "sky-php-agent stop!!!"
-}
+}" > /etc/init.d/php-agent
 
 
 
@@ -132,7 +133,7 @@ esac
 
 exit 0
 ```
-## Log management script，Copy and run it with root
+## This is Log management script，Copy and run it with root
 ```shell script
 mkdir /var/log/phpagent/
 echo "
