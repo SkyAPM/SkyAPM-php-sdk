@@ -56,6 +56,7 @@ sh -x build-sky-php-agent.sh  #Four agent of different operating systems will be
 
 #Select the corresponding agent according to your system
 chmod +x sky-php-agent-linux-X64
+
 #Mobile agent to system directory
 cp sky-php-agent-linux-X64 /usr/local/bin/
 ```
@@ -151,13 +152,16 @@ echo "
 
 ### Agent parameter description
 ```shell script
-//View help information
+#View help information
 ./sky-php-agent-linux-X64 -h
-//Specify grpc address
+
+#Specify grpc address
 /usr/local/bin/sky-php-agent-linux-X64 --grpc 127.0.0.1:11800
-//Specify the socket file. The path is the path in the php.ini configuration
+
+#Specify the socket file. The path is the path in the php.ini configuration
 /usr/local/bin/sky-php-agent-linux-X64 --socket=/tmp/sky-agent.sock
-//Specify the version of skywalking
+
+#Specify the version of skywalking
 /usr/local/bin/sky-php-agent-linux-X64 --sky-version=7
 ```
 
