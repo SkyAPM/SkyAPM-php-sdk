@@ -1,4 +1,4 @@
-# Tips: It is recommended that you use SkyWalking7 and use nginx As load balancing
+Tips: It is recommended that you use SkyWalking and use nginx as load balancing
 
 # Install SkyWalking PHP Agent
 
@@ -6,7 +6,8 @@
 When building directly from Git sources or after custom modifications you might also need:
 * php 7+
 * golang 1.13
-* SkyWalking Collector
+* SkyWalking oap server
+* SkyWalking UI
 
 ## PHP extension + Agent
 The collect data from your instance you need both the PHP extension, and the agent. 
@@ -17,11 +18,21 @@ You can run the following commands to install the SkyWalking PHP Agent.
 
 ## Install PHP Extension 
 ```shell script
-#Get the latest releaese
-unzip cd SkyAPM-php-sdk-x.x.x.zip
-cd SkyAPM-php-sdk-x.x.x
+curl -Lo v3.2.8.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v3.2.8.tar.gz
+tar zxvf v3.2.8.tar.gz
+cd SkyAPM-php-sdk-3.2.8
 phpize && ./configure && make && make install
-#After completion, a skywalking.so file will be added to your PHP Library Directory
+```
+
+## Install sky-php-agent
+### Build
+For installing the sky-php-agent, you first need to build it:
+
+```shell script
+cd SkyAPM-php-sdk-3.2.8
+go build -o sky-php-agent cmd/main.go
+chmod +x sky-php-agent
+cp sky-php-agent /usr/local/bin
 ```
 
 ## How to use
@@ -35,31 +46,16 @@ extension=skywalking.so
 ; enable skywalking
 skywalking.enable = 1
 
-; Set skyWalking collector version (5 or 6 or 7)
+; Set skyWalking collector version (5 or 6 or 7 or 8)
 skywalking.version = 6
 
-; Set app code e.g. MyProjectName Do not use Chinese
+; Set app code e.g. MyProjectName
 skywalking.app_code = MyProjectName
 
-; sock file path（default /var/run/sky-agent.sock）
+; sock file path（default /tmp/sky-agent.sock）
 skywalking.sock_path=/tmp/sky-agent.sock
 ```
 
-
-## Install sky-php-agent
-### Build
-For installing the sky-php-agent, you first need to build it:
-
-```shell script
-cd SkyAPM-php-sdk-x.x.x
-sh -x build-sky-php-agent.sh  #Four agent of different operating systems will be generated after execution
-
-#Select the corresponding agent according to your system
-chmod +x sky-php-agent-linux-X64
-
-#Mobile agent to system directory
-cp sky-php-agent-linux-X64 /usr/local/bin/
-```
 ## Select startup script and log output method 
 ## If you use CentOS 7 Use the startup script below to  You need to change the corresponding address, version
 ```shell script
@@ -153,37 +149,17 @@ echo "
 
 ### Agent parameter description
 ```shell script
-#View help information
-./sky-php-agent-linux-X64 -h
+# View help information
+./sky-php-agent -h
 
-#Specify grpc address
-/usr/local/bin/sky-php-agent-linux-X64 --grpc 127.0.0.1:11800
+# Specify grpc address
+/usr/local/bin/sky-php-agent --grpc 127.0.0.1:11800
 
-#Specify the socket file. The path is the path in the php.ini configuration
-/usr/local/bin/sky-php-agent-linux-X64 --socket=/tmp/sky-agent.sock
+# Specify the socket file. The path is the path in the php.ini configuration
+/usr/local/bin/sky-php-agent --socket=/tmp/sky-agent.sock
 
-#Specify the version of skywalking
-/usr/local/bin/sky-php-agent-linux-X64 --sky-version=7
+# Specify the version of skywalking
+/usr/local/bin/sky-php-agent --sky-version=7
 ```
 
 ### ⚠️⚠️⚠️ Warning *Make sure PHP has read and write permissions on the socks file*
-
-## Dockerfile
-
-### Multi stage build example (starting point)
-```bash
-FROM golang:1.13 AS builder
-ARG SKY_AGENT_VERSION=3.2.6
-WORKDIR /go/src/app
-RUN wget https://github.com/SkyAPM/SkyAPM-php-sdk/archive/${SKY_AGENT_VERSION}.tar.gz; \
-    tar xvf ${SKY_AGENT_VERSION}.tar.gz
-RUN mv SkyAPM-php-sdk-${SKY_AGENT_VERSION} build
-RUN cd build; \
-    GOOS=linux GOARCH=amd64 go build -o sky-php-agent-linux-x64 ./agent/cmd/main.go
-
-FROM php:7.2.28-fpm-alpine3.11
-# Copy from builder
-COPY --from=builder /go/src/app/build/sky-php-agent-linux-x64 /usr/local/bin/sky-php-agent
-RUN apk update && apk upgrade && apk add --no-cache autoconf libc6-compat libcurl curl-dev icu-dev & \
-    apk add --no-cache --virtual .build-deps $PHPIZE_DEPS
-```
