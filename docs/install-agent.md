@@ -40,6 +40,7 @@ skywalking.version = 6
 
 ; Set app code e.g. MyProjectName Do not use Chinese
 skywalking.app_code = MyProjectName
+
 ; sock file path（default /var/run/sky-agent.sock）
 skywalking.sock_path=/tmp/sky-agent.sock
 ```
@@ -58,8 +59,8 @@ chmod +x sky-php-agent-linux-X64
 #Mobile agent to system directory
 cp sky-php-agent-linux-X64 /usr/local/bin/
 ```
-##Select startup script and log output method 
-#If you use CentOS 7 Use the startup script below to
+## Select startup script and log output method 
+# If you use CentOS 7 Use the startup script below to  You need to change the corresponding address, version
 ```shell script
 [Unit]
 Description=The Sw-Php-Agent Process Manager
@@ -76,8 +77,8 @@ Restart=on-failure
 WantedBy=multi-user.target
 
 ```
-If you use CentOS6  Log management with lograted
-Start script
+# If you use CentOS6  Log management with lograted
+# Start script You need to change the corresponding address, version
 ```shell script
 #/bin/bash
 
@@ -130,7 +131,7 @@ esac
 
 exit 0
 ```
-##Log management script，Copy and run it with root
+## Log management script，Copy and run it with root
 ```shell script
 mkdir /var/log/phpagent/
 echo "
