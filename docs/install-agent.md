@@ -76,8 +76,8 @@ Restart=on-failure
 WantedBy=multi-user.target
 
 ```
-#If you use CentOS6  Log management with lograted
-##Start script
+If you use CentOS6  Log management with lograted
+Start script
 ```shell script
 #/bin/bash
 
