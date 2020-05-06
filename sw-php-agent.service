@@ -1,0 +1,13 @@
+[Unit]
+Description=The Sw-Php-Agent Process Manager
+After=syslog.target network.target
+
+[Service]
+Type=simple
+#Modify the corresponding directory and address here
+ExecStart=/usr/local/sbin/php-skywalking-agent --grpc=172.16.30.28:16800 --socket=/tmp/sky-agent.sock
+ExecStop=/bin/kill -SIGINT $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
