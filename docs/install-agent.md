@@ -98,7 +98,7 @@ stop(){
 kill -9 `cat /tmp/php-agent.pid`
 rm -f /tmp/php-agent.pid
 [[ $? == 0 ]]&&echo "sky-php-agent stop!!!"
-}" > /etc/init.d/php-agent
+}
 
 
 
@@ -131,7 +131,7 @@ case $1 in
 
 esac
 
-exit 0
+exit 0 " > /etc/init.d/php-agent
 ```
 ## This is Log management script，Copy and run it with root
 ```shell script
