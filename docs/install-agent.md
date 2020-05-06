@@ -60,7 +60,7 @@ chmod +x sky-php-agent-linux-X64
 cp sky-php-agent-linux-X64 /usr/local/bin/
 ```
 ## Select startup script and log output method 
-# If you use CentOS 7 Use the startup script below to  You need to change the corresponding address, version
+## If you use CentOS 7 Use the startup script below to  You need to change the corresponding address, version
 ```shell script
 [Unit]
 Description=The Sw-Php-Agent Process Manager
@@ -77,8 +77,8 @@ Restart=on-failure
 WantedBy=multi-user.target
 
 ```
-# If you use CentOS6  Log management with lograted
-# Start script You need to change the corresponding address, version
+## If you use CentOS6  Log management with lograted
+## Start script You need to change the corresponding address, version
 ```shell script
 #/bin/bash
 
