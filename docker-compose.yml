@@ -1,0 +1,16 @@
+version: '3'
+services:
+  swoap:
+    image: apache/skywalking-oap-server
+  swui:
+    image: apache/skywalking-ui
+    environment:
+      - SW_OAP_ADDRESS=swoap:12800
+    ports:
+      - 9001:8080
+  phpagent:
+    image: skyapm/skywalking-php
+    environment:  
+      - SW_AGENT_COLLECTOR_BACKEND_SERVICES=swoap:11800
+    ports:
+      - 8080:8080
