@@ -1,3 +1,4 @@
-# todo
+# Get started quickly with docker
 
-See [Install agent](install-agent.md)
+See [docker-compose.yml](../docker-compose.yml)
+See [Dockerfile](../Dockerfile)
