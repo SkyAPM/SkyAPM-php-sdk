@@ -58,6 +58,20 @@ skywalking.app_code = MyProjectName
 skywalking.sock_path=/tmp/sky-agent.sock
 ```
 
-## The `systemd` example
+## sky-php-agent `systemd` example
 
-[sw-php-agent.service.example](../sw-php-agent.service.example)
+```shell script
+[Unit]
+Description=The SkyWalking PHP-Agent Process Manager
+After=syslog.target network.target
+
+[Service]
+Type=simple
+# Modify the corresponding directory and address here
+ExecStart=/usr/local/bin/sky-php-agent --grpc=127.0.0.1:11800 --sky-version=8 --socket=/tmp/sky-agent.sock
+ExecStop=/bin/kill -SIGINT $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
