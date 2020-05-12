@@ -9,10 +9,9 @@ SkyAPM PHP
 
 ## Documents
 * [Documents in English](docs/README.md)
-* [中文文档](docs/README_ZH.md)
 
 ## Docker image
-Go to Docker hub -> [SkyAPM PHP](https://hub.docker.com/r/skyapm/skywalking-php)
+Go to Docker hub -> [https://hub.docker.com/r/skyapm/skywalking-php](https://hub.docker.com/r/skyapm/skywalking-php)
 ```shell script
 docker run -d -e SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 skywalking-php
 ```
@@ -34,6 +33,7 @@ Host in Beijing. Go to [demo](http://106.75.237.45:8080/).
 1. GRPC Client ([GRPC](https://github.com/grpc/grpc-php))
 1. Predis Client ([Predis](https://packagist.org/packages/predis/predis))
 1. Redis Extension ([Redis Extension](https://github.com/phpredis/phpredis))
+1. Memcache Extension
 
 ## Contact Us
 * Submit an [issue](https://github.com/SkyAPM/SkyAPM-php-sdk/issues)

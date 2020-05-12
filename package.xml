@@ -15,10 +15,10 @@
         <email>yanlong@php.net</email>
         <active>yes</active>
     </lead>
-    <date>2020-03-23</date>
+    <date>2020-05-12</date>
     <version>
-        <release>3.2.8</release>
-        <api>3.2.8</api>
+        <release>3.3.0</release>
+        <api>3.3.0</api>
     </version>
     <stability>
         <release>stable</release>
@@ -26,7 +26,7 @@
     </stability>
     <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
     <notes>
-        Fix the mistake of field entryOperationName in sw6 header.
+        Added memcache collection and skywalking 8.0 support
     </notes>
     <contents>
         <dir name="/">
@@ -35,52 +35,19 @@
             <file role="doc" name="EXPERIMENTAL" />
             <file role="doc" name="LICENSE" />
             <file role="doc" name="README.md" />
-            <file role="src" name="agent/.gitignore" />
-            <file role="src" name="agent/cmd/main.go" />
-            <file role="src" name="agent/logger/log.go" />
-            <file role="src" name="agent/pb/agent/ApplicationRegisterService.pb.go" />
-            <file role="src" name="agent/pb/agent/CLR.pb.go" />
-            <file role="src" name="agent/pb/agent/DiscoveryService.pb.go" />
-            <file role="src" name="agent/pb/agent/Downstream.pb.go" />
-            <file role="src" name="agent/pb/agent/JVM.pb.go" />
-            <file role="src" name="agent/pb/agent/JVMMetricsService.pb.go" />
-            <file role="src" name="agent/pb/agent/KeyWithIntegerValue.pb.go" />
-            <file role="src" name="agent/pb/agent/KeyWithStringValue.pb.go" />
-            <file role="src" name="agent/pb/agent/NetworkAddressRegisterService.pb.go" />
-            <file role="src" name="agent/pb/agent/TraceSegmentService.pb.go" />
-            <file role="src" name="agent/pb/agent/trace-common.pb.go" />
-            <file role="src" name="agent/pb/agent2/CLRMetric.pb.go" />
-            <file role="src" name="agent/pb/agent2/JVMMetric.pb.go" />
-            <file role="src" name="agent/pb/agent2/trace.pb.go" />
-            <file role="src" name="agent/pb/common/common.pb.go" />
-            <file role="src" name="agent/pb/register2/InstancePing.pb.go" />
-            <file role="src" name="agent/pb/register2/Register.pb.go" />
-            <file role="src" name="agent/pb/servicemesh/service-mesh.pb.go" />
-            <file role="src" name="agent/service/agent.go" />
-            <file role="src" name="agent/service/conn.go" />
-            <file role="src" name="agent/service/heartbeat.go" />
-            <file role="src" name="agent/service/register.go" />
-            <file role="src" name="agent/service/trace.go" />
             <file role="src" name="b64.h" />
-            <file role="src" name="bak/.gitignore" />
-            <file role="doc" name="bak/README.md" />
-            <file role="doc" name="bak/README_ZH.md" />
-            <file role="src" name="bak/SkyWalking.php" />
-            <file role="src" name="bak/demo.php" />
             <file role="src" name="build-sky-php-agent.sh" />
+            <file role="src" name="cmd/main.go" />
             <file role="src" name="components.h" />
             <file role="src" name="config.m4" />
             <file role="src" name="config.w32" />
             <file role="src" name="decode.c" />
+            <file role="src" name="docker-compose.yml" />
             <file role="doc" name="docs/README.md" />
-            <file role="doc" name="docs/README_ZH.md" />
-            <file role="doc" name="docs/install-agent.md" />
+            <file role="doc" name="docs/install.md" />
             <file role="doc" name="docs/quick-start.md" />
-            <file role="doc" name="docs/zh/change-log.md" />
-            <file role="doc" name="docs/zh/install-sdk.md" />
-            <file role="doc" name="docs/zh/qa.md" />
-            <file role="doc" name="docs/zh/start-agent.md" />
             <file role="src" name="encode.c" />
+            <file role="src" name="gen-proto.sh" />
             <file role="src" name="go.mod" />
             <file role="src" name="go.sum" />
             <file role="src" name="nginx.conf" />
@@ -88,26 +55,63 @@
             <file role="src" name="pecl-package.php" />
             <file role="src" name="php.ini" />
             <file role="src" name="php_skywalking.h" />
-            <file role="doc" name="proto/README.md" />
-            <file role="src" name="proto/common/CLR.proto" />
-            <file role="src" name="proto/common/JVM.proto" />
-            <file role="src" name="proto/common/common.proto" />
-            <file role="src" name="proto/common/trace-common.proto" />
-            <file role="src" name="proto/language-agent-v2/CLRMetric.proto" />
-            <file role="src" name="proto/language-agent-v2/JVMMetric.proto" />
-            <file role="src" name="proto/language-agent-v2/trace.proto" />
-            <file role="src" name="proto/language-agent/ApplicationRegisterService.proto" />
-            <file role="src" name="proto/language-agent/DiscoveryService.proto" />
-            <file role="src" name="proto/language-agent/Downstream.proto" />
-            <file role="src" name="proto/language-agent/JVMMetricsService.proto" />
-            <file role="src" name="proto/language-agent/KeyWithIntegerValue.proto" />
-            <file role="src" name="proto/language-agent/KeyWithStringValue.proto" />
-            <file role="src" name="proto/language-agent/NetworkAddressRegisterService.proto" />
-            <file role="src" name="proto/language-agent/TraceSegmentService.proto" />
-            <file role="src" name="proto/register/InstancePing.proto" />
-            <file role="src" name="proto/register/Register.proto" />
-            <file role="src" name="proto/service-mesh-probe/istio/skywalking.config.pb.html" />
-            <file role="src" name="proto/service-mesh-probe/service-mesh.proto" />
+            <file role="src" name="reporter/logger/log.go" />
+            <file role="src" name="reporter/network/common/v1/common.pb.go" />
+            <file role="src" name="reporter/network/common/v2/common.pb.go" />
+            <file role="src" name="reporter/network/common/v3/Common.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/ApplicationRegisterService.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/CLR.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/DiscoveryService.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/Downstream.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/JVM.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/JVMMetricsService.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/KeyWithIntegerValue.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/KeyWithStringValue.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/NetworkAddressRegisterService.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/TraceSegmentService.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v1/trace-common.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v2/CLR.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v2/CLRMetric.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v2/JVM.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v2/JVMMetric.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v2/trace-common.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v2/trace.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v3/CLRMetric.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v3/JVMMetric.pb.go" />
+            <file role="src" name="reporter/network/language/agent/v3/Tracing.pb.go" />
+            <file role="src" name="reporter/network/language/profile/v2/Profile.pb.go" />
+            <file role="src" name="reporter/network/language/profile/v3/Profile.pb.go" />
+            <file role="src" name="reporter/network/management/v3/Management.pb.go" />
+            <file role="src" name="reporter/network/register/v2/InstancePing.pb.go" />
+            <file role="src" name="reporter/network/register/v2/Register.pb.go" />
+            <file role="src" name="reporter/protocol/v1/common/CLR.proto" />
+            <file role="src" name="reporter/protocol/v1/common/JVM.proto" />
+            <file role="src" name="reporter/protocol/v1/common/common.proto" />
+            <file role="src" name="reporter/protocol/v1/common/trace-common.proto" />
+            <file role="src" name="reporter/protocol/v1/language-agent/ApplicationRegisterService.proto" />
+            <file role="src" name="reporter/protocol/v1/language-agent/DiscoveryService.proto" />
+            <file role="src" name="reporter/protocol/v1/language-agent/Downstream.proto" />
+            <file role="src" name="reporter/protocol/v1/language-agent/JVMMetricsService.proto" />
+            <file role="src" name="reporter/protocol/v1/language-agent/KeyWithIntegerValue.proto" />
+            <file role="src" name="reporter/protocol/v1/language-agent/KeyWithStringValue.proto" />
+            <file role="src" name="reporter/protocol/v1/language-agent/NetworkAddressRegisterService.proto" />
+            <file role="src" name="reporter/protocol/v1/language-agent/TraceSegmentService.proto" />
+            <file role="doc" name="reporter/protocol/v2/README.md" />
+            <file role="src" name="reporter/protocol/v2/common/CLR.proto" />
+            <file role="src" name="reporter/protocol/v2/common/JVM.proto" />
+            <file role="src" name="reporter/protocol/v2/common/common.proto" />
+            <file role="src" name="reporter/protocol/v2/common/trace-common.proto" />
+            <file role="src" name="reporter/protocol/v2/language-agent-v2/CLRMetric.proto" />
+            <file role="src" name="reporter/protocol/v2/language-agent-v2/JVMMetric.proto" />
+            <file role="src" name="reporter/protocol/v2/language-agent-v2/trace.proto" />
+            <file role="src" name="reporter/protocol/v2/profile/Profile.proto" />
+            <file role="src" name="reporter/protocol/v2/register/InstancePing.proto" />
+            <file role="src" name="reporter/protocol/v2/register/Register.proto" />
+            <file role="src" name="reporter/service/agent.go" />
+            <file role="src" name="reporter/service/conn.go" />
+            <file role="src" name="reporter/service/heartbeat.go" />
+            <file role="src" name="reporter/service/register.go" />
+            <file role="src" name="reporter/service/trace.go" />
             <file role="src" name="service.sh" />
             <file role="src" name="skywalking.c" />
             <file role="src" name="skywalking.php" />
@@ -145,7 +149,6 @@
             <file role="test" name="tests/skywalking.20171027.log" />
             <file role="src" name="travis/route.sh" />
             <file role="src" name="travis/simple-compile.sh" />
-            <file role="src" name="who-uses.jpg" />
 
         </dir>
     </contents>
@@ -163,6 +166,19 @@
     <extsrcrelease />
     <changelog>
         
+        <release>
+            <version>
+                <release>3.3.0</release>
+                <api>3.3.0</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+                Added memcache collection and skywalking 8.0 support
+            </notes>
+        </release>
         <release>
             <version>
                 <release>3.2.8</release>

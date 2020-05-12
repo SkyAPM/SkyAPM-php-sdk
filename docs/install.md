@@ -18,9 +18,9 @@ You can run the following commands to install the SkyWalking PHP Agent.
 
 ## Install PHP Extension
 ```shell script
-curl -Lo v3.2.8.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v3.2.8.tar.gz
-tar zxvf v3.2.8.tar.gz
-cd SkyAPM-php-sdk-3.2.8
+curl -Lo v3.3.0.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v3.3.0.tar.gz
+tar zxvf v3.3.0.tar.gz
+cd SkyAPM-php-sdk-3.3.0
 phpize && ./configure && make && make install
 ```
 
@@ -29,7 +29,7 @@ phpize && ./configure && make && make install
 For installing the sky-php-agent, you first need to build it:
 
 ```shell script
-cd SkyAPM-php-sdk-3.2.8
+cd SkyAPM-php-sdk-3.3.0
 go build -o sky-php-agent cmd/main.go
 chmod +x sky-php-agent
 cp sky-php-agent /usr/local/bin
@@ -68,7 +68,7 @@ After=syslog.target network.target
 [Service]
 Type=simple
 # Modify the corresponding directory and address here
-ExecStart=/usr/local/bin/sky-php-agent --grpc=127.0.0.1:11800 --sky-version=8 --socket=/tmp/sky-agent.sock
+ExecStart=/usr/local/bin/sky-php-agent --grpc=3.3.0.3.3.01800 --sky-version=8 --socket=/tmp/sky-agent.sock
 ExecStop=/bin/kill -SIGINT $MAINPID
 Restart=on-failure
 
