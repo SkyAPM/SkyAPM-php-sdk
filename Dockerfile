@@ -8,7 +8,7 @@ RUN set -ex \
        go git ca-certificates curl-dev nginx \
     && cd /tmp/skywalking \
     && phpize && ./configure && make && make install \
-    && go build -o /usr/local/bin/sky-php-agent ./agent/cmd/main.go \
+    && go build -o /usr/local/bin/sky-php-agent ./cmd/main.go \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && cp service.sh /opt/ \
     && cp nginx.conf /etc/nginx/nginx.conf \
