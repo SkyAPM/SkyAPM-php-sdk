@@ -189,7 +189,11 @@ func (t *Agent) sub() {
 			go t.doRegister(register)
 		case trace := <-t.trace:
 			t.queueLock.Lock()
-			t.queue = append(t.queue, trace)
+			if len(t.queue) < 65535*2 {
+				t.queue = append(t.queue, trace)
+			} else {
+				log.Warnf("trace queue is fill.")
+			}
 			t.queueLock.Unlock()
 		}
 	}

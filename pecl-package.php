@@ -16,9 +16,13 @@ $header = file_get_contents("$root_dir/php_skywalking.h");
 $header = preg_replace("/PHP_SKYWALKING_VERSION \"(\d.\d.\d)\"/i", 'PHP_SKYWALKING_VERSION "' . $version . '"', $header);
 file_put_contents("$root_dir/php_skywalking.h", $header);
 
-$agent = file_get_contents("$root_dir/agent/cmd/main.go");
+$agent = file_get_contents("$root_dir/cmd/main.go");
 $agent = preg_replace("/app.Version = \"(\d.\d.\d)\"/i", 'app.Version = "' . $version . '"', $agent);
-file_put_contents("$root_dir/agent/cmd/main.go", $agent);
+file_put_contents("$root_dir/cmd/main.go", $agent);
+
+$insert = file_get_contents("$root_dir/docs/install.md");
+$insert = preg_replace("/(\d.\d.\d)/i", $version, $insert);
+file_put_contents("$root_dir/docs/install.md", $insert);
 
 echo "version: $version\n";
 
@@ -76,6 +80,7 @@ $template = str_replace("{{file_list}}", implode("            ", $file_list), $t
 $template = str_replace("{{version}}", $version, $template);
 $template = str_replace("{{date}}", date("Y-m-d"), $template);
 $template = str_replace("{{release}}", "", $template);
+$template = str_replace("{{notes}}", $desc, $template);
 file_put_contents("package.xml", $template);
 
 

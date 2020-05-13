@@ -26,7 +26,7 @@
     </stability>
     <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
     <notes>
-        Fix the mistake of field entryOperationName in sw6 header.
+        {{notes}}
     </notes>
     <contents>
         <dir name="/">
@@ -47,6 +47,19 @@
     <extsrcrelease />
     <changelog>
         {{release}}
+        <release>
+            <version>
+                <release>3.3.0</release>
+                <api>3.3.0</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+                Added memcache collection and skywalking 8.0 support
+            </notes>
+        </release>
         <release>
             <version>
                 <release>3.2.8</release>
