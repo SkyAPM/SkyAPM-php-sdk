@@ -152,7 +152,7 @@ static char *sky_json_encode(zval *parameter);
 static long get_second();
 static char *get_millisecond();
 static char *generate_sw3(zend_long span_id, char *peer_host, char *operation_name);
-static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_name);
+static char *generate_sw6(zend_long span_id, char *peer_host);
 static char *generate_sw8(zend_long span_id);
 static void generate_context();
 static char *get_page_request_uri();
