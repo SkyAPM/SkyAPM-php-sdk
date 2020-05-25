@@ -1173,23 +1173,24 @@ static char *generate_sw6(zend_long span_id, char *peer_host) {
     zval peerHostEncode;
     zval entryEndpointNameEncode;
     zval parentEndpointNameEncode;
+    const char digits[] = "0123456789";
 
     char *sharpPeer;
-    if (strspn(peer_host, "0123456789") == strlen(peer_host)) {
+    if (strspn(peer_host, digits) == strlen(peer_host)) {
         spprintf(&sharpPeer, 0, "%s", peer_host);
     } else {
         spprintf(&sharpPeer, 0, "#%s", peer_host);
     }
 
     char *sharpEntryEndpointName;
-    if (strspn(Z_STRVAL_P(entryOperationName), "0123456789") == Z_STRLEN_P(entryOperationName)) {
+    if (strspn(Z_STRVAL_P(entryOperationName), digits) == Z_STRLEN_P(entryOperationName)) {
         spprintf(&sharpEntryEndpointName, 0, "%s", Z_STRVAL_P(entryOperationName));
     } else {
         spprintf(&sharpEntryEndpointName, 0, "#%s", Z_STRVAL_P(entryOperationName));
     }
 
     char *sharpParentEndpointName;
-    if (strspn(Z_STRVAL_P(parentEndpointName), "0123456789") == Z_STRLEN_P(parentEndpointName)) {
+    if (strspn(Z_STRVAL_P(parentEndpointName), digits) == Z_STRLEN_P(parentEndpointName)) {
         spprintf(&sharpParentEndpointName, 0, "%s", Z_STRVAL_P(parentEndpointName));
     } else {
         spprintf(&sharpParentEndpointName, 0, "#%s", Z_STRVAL_P(parentEndpointName));
