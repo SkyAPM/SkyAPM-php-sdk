@@ -192,9 +192,11 @@ static zval *sky_read_property(zval *obj, const char *property) {
 
 static char *sky_redis_fnamewall(const char *function_name) {
     char *fnamewall = (char *) emalloc(strlen(function_name) + 3);
+    bzero(fnamewall, strlen(function_name) + 3);
     sprintf(fnamewall, "|%s|", function_name);
-    fnamewall = zend_str_tolower_dup(fnamewall, strlen(fnamewall));
-    return fnamewall;
+    char *fnamewall_lower = zend_str_tolower_dup(fnamewall, strlen(fnamewall));
+    efree(fnamewall);
+    return fnamewall_lower;
 }
 
 static int sky_redis_opt_for_string_key(char *fnamewall) {
@@ -641,9 +643,36 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
             add_assoc_string(&tags, "db.type", "redis");
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
 
+            if (strcmp(class_name, "Redis") == 0) {
+                // find peer
+                zval *this = &(execute_data->This);
+                zval host;
+                zval port;
+                zend_call_method(this, Z_OBJCE_P(this), NULL, ZEND_STRL("gethost"), &host, 0, NULL, NULL);
+                zend_call_method(this, Z_OBJCE_P(this), NULL, ZEND_STRL("getport"), &port, 0, NULL, NULL);
+
+
+                if (!Z_ISUNDEF(host) && !Z_ISUNDEF(port) && Z_TYPE(host) == IS_STRING && Z_TYPE(port) == IS_LONG) {
+                    const char *h = ZSTR_VAL(Z_STR(host));
+                    peer = (char *) emalloc(strlen(h) + 10);
+                    bzero(peer, strlen(h) + 10);
+                    sprintf(peer, "%s:%" PRId3264, h, Z_LVAL(port));
+                }
+
+                if (!Z_ISUNDEF(host)) {
+                    zval_ptr_dtor(&host);
+                }
+
+                if (!Z_ISUNDEF(port)) {
+                    zval_ptr_dtor(&port);
+                }
+            }
+
             smart_str command = {0};
-            smart_str_appends(&command, zend_str_tolower_dup((char *) function_name, strlen((char *) function_name)));
+            char *fname = zend_str_tolower_dup((char *) function_name, strlen((char *) function_name));
+            smart_str_appends(&command, fname);
             smart_str_appends(&command, " ");
+            efree(fname);
 
             int is_string_command = 1;
             int i;
@@ -662,14 +691,18 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                 if (i == 1) {
                     add_assoc_string(&tags, "redis.key", Z_STRVAL_P(&str_p));
                 }
-                smart_str_appends(&command, zend_str_tolower_dup(Z_STRVAL_P(&str_p), Z_STRLEN_P(&str_p)));
+                char *tmp = zend_str_tolower_dup(Z_STRVAL_P(&str_p), Z_STRLEN_P(&str_p));
+                smart_str_appends(&command, tmp);
                 smart_str_appends(&command, " ");
+                efree(tmp);
             }
             // store command to tags
             if (command.s) {
                 smart_str_0(&command);
                 if (is_string_command) {
-                    add_assoc_string(&tags, "redis.command", ZSTR_VAL(php_trim(command.s, NULL, 0, 3)));
+                    zend_string *trim_s = php_trim(command.s, NULL, 0, 3);
+                    add_assoc_string(&tags, "redis.command", ZSTR_VAL(trim_s));
+                    zend_string_free(trim_s);
                 }
                 smart_str_free(&command);
             }
