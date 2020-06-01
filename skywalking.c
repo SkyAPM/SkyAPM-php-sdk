@@ -908,7 +908,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
             sw = generate_sw3(Z_LVAL_P(span_id) + 1, peer, operation_name);
         } else if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) { // skywalking 6.x
             spprintf(&peer, 0, "%s:%d", php_url_host, peer_port);
-            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer, operation_name);
+            sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer);
         } else if (SKYWALKING_G(version) == 8) {
             spprintf(&peer, 0, "%s:%d", php_url_host, peer_port);
             sw = generate_sw8(Z_LVAL_P(span_id) + 1);
@@ -1191,12 +1191,14 @@ static char *generate_sw3(zend_long span_id, char *peer_host, char *operation_na
     return sw3;
 }
 
-static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_name) {
+static char *generate_sw6(zend_long span_id, char *peer_host) {
     zval *traceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentTraceId", sizeof("currentTraceId") - 1);
     zval *entryApplicationInstance = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "entryApplicationInstance",
                                                         sizeof("entryApplicationInstance") - 1);
     zval *entryOperationName = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "entryOperationName",
                                                   sizeof("entryOperationName") - 1);
+    zval *parentEndpointName = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentEndpoint",
+                                                  sizeof("currentEndpoint") - 1);
     zval *distributedTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "distributedTraceId",
                                                   sizeof("distributedTraceId") - 1);
     zval distributedTraceIdEncode;
@@ -1204,15 +1206,28 @@ static char *generate_sw6(zend_long span_id, char *peer_host, char *operation_na
     zval peerHostEncode;
     zval entryEndpointNameEncode;
     zval parentEndpointNameEncode;
+    const char digits[] = "0123456789";
 
     char *sharpPeer;
-    spprintf(&sharpPeer, 0, "#%s", peer_host);
+    if (strspn(peer_host, digits) == strlen(peer_host)) {
+        spprintf(&sharpPeer, 0, "%s", peer_host);
+    } else {
+        spprintf(&sharpPeer, 0, "#%s", peer_host);
+    }
 
     char *sharpEntryEndpointName;
-    spprintf(&sharpEntryEndpointName, 0, "#%s", Z_STRVAL_P(entryOperationName));
+    if (strspn(Z_STRVAL_P(entryOperationName), digits) == Z_STRLEN_P(entryOperationName)) {
+        spprintf(&sharpEntryEndpointName, 0, "%s", Z_STRVAL_P(entryOperationName));
+    } else {
+        spprintf(&sharpEntryEndpointName, 0, "#%s", Z_STRVAL_P(entryOperationName));
+    }
 
     char *sharpParentEndpointName;
-    spprintf(&sharpParentEndpointName, 0, "#%s", operation_name);
+    if (strspn(Z_STRVAL_P(parentEndpointName), digits) == Z_STRLEN_P(parentEndpointName)) {
+        spprintf(&sharpParentEndpointName, 0, "%s", Z_STRVAL_P(parentEndpointName));
+    } else {
+        spprintf(&sharpParentEndpointName, 0, "#%s", Z_STRVAL_P(parentEndpointName));
+    }
 
     zval_b64_encode(&distributedTraceIdEncode, Z_STRVAL_P(distributedTraceId));
     zval_b64_encode(&traceSegmentIdEncode, Z_STRVAL_P(traceId));
@@ -1740,9 +1755,9 @@ static void request_init() {
     add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
-    add_assoc_long(&temp, "componentId", COMPONENT_HTTPCLIENT);
+    add_assoc_long(&temp, "componentId", COMPONENT_UNDERTOW);
 
-    // sw8
+    // sw8 or sw6 for parent endpoint name
     add_assoc_string(&SKYWALKING_G(context), "currentEndpoint", path);
     add_assoc_string(&SKYWALKING_G(context), "currentNetworkAddress", (peer == NULL) ? "127.0.0.1:8080" : peer);
 
