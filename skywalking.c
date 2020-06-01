@@ -1722,7 +1722,7 @@ static void request_init() {
     add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
-    add_assoc_long(&temp, "componentId", COMPONENT_HTTPSERVER);
+    add_assoc_long(&temp, "componentId", COMPONENT_UNDERTOW);
 
     // sw8 or sw6 for parent endpoint name
     add_assoc_string(&SKYWALKING_G(context), "currentEndpoint", path);
