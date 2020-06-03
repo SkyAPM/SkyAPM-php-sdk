@@ -49,6 +49,19 @@
         {{release}}
         <release>
             <version>
+                <release>3.3.1</release>
+                <api>3.3.1</api>
+            </version>
+            <stability>
+                <release>stable</release>
+                <api>stable</api>
+            </stability>
+            <notes>
+                Fix bugs
+            </notes>
+        </release>
+        <release>
+            <version>
                 <release>3.3.0</release>
                 <api>3.3.0</api>
             </version>
