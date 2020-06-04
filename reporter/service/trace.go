@@ -448,7 +448,7 @@ func buildRefs3(span *nla3.SpanObject, refs []ref) {
 			ParentService:            rev.ParentService,
 			ParentServiceInstance:    rev.ParentServiceInstance,
 			ParentEndpoint:           rev.ParentEndpoint,
-			NetworkAddressUsedAtPeer: rev.NetworkAddress,
+			NetworkAddressUsedAtPeer: rev.TargetAddress,
 		}
 
 		spanRefs = append(spanRefs, reference)
