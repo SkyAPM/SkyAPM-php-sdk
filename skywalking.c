@@ -911,7 +911,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS)
             sw = generate_sw6(Z_LVAL_P(span_id) + 1, peer);
         } else if (SKYWALKING_G(version) == 8) {
             spprintf(&peer, 0, "%s:%d", php_url_host, peer_port);
-            sw = generate_sw8(Z_LVAL_P(span_id) + 1);
+            sw = generate_sw8(Z_LVAL_P(span_id) + 1, peer);
         }
     }
 
@@ -1259,11 +1259,10 @@ static char *generate_sw6(zend_long span_id, char *peer_host) {
     return sw6;
 }
 
-static char *generate_sw8(zend_long span_id) {
+static char *generate_sw8(zend_long span_id, char *peer_host) {
     zval *traceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "traceId",sizeof("traceId") - 1);
     zval *currentTraceId = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentTraceId", sizeof("currentTraceId") - 1);
     zval *currentEndpoint = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentEndpoint", sizeof("currentEndpoint") - 1);
-    zval *currentNetworkAddress = zend_hash_str_find(Z_ARRVAL(SKYWALKING_G(context)), "currentNetworkAddress", sizeof("currentNetworkAddress") - 1);
 
     zval traceIdEncode;
     zval currentTraceIdEncode;
@@ -1277,7 +1276,7 @@ static char *generate_sw8(zend_long span_id) {
     zval_b64_encode(&serviceEncode, service);
     zval_b64_encode(&serviceInstanceEncode, service_instance);
     zval_b64_encode(&parentEndpointEncode, Z_STRVAL_P(currentEndpoint));
-    zval_b64_encode(&targetAddressEncode, Z_STRVAL_P(currentNetworkAddress));
+    zval_b64_encode(&targetAddressEncode, peer_host);
 
     ssize_t sw6_l = 0;
     sw6_l = snprintf(NULL, 0, "sw8: 1-%s-%s-%" PRId3264 "-%s-%s-%s-%s",
@@ -1649,8 +1648,11 @@ static char *get_page_request_peer() {
     }
     carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
 
-    request_host = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_ADDR", sizeof("SERVER_ADDR") - 1);
+    request_host = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_HOST", sizeof("HTTP_HOST") - 1);
     request_port = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_PORT", sizeof("SERVER_PORT") - 1);
+    if (request_host == NULL) {
+        request_host = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_ADDR", sizeof("SERVER_ADDR") - 1);
+    }
 
     if (request_host != NULL && request_port != NULL) {
         peer_l = snprintf(NULL, 0, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
@@ -1759,7 +1761,6 @@ static void request_init() {
 
     // sw8 or sw6 for parent endpoint name
     add_assoc_string(&SKYWALKING_G(context), "currentEndpoint", path);
-    add_assoc_string(&SKYWALKING_G(context), "currentNetworkAddress", (peer == NULL) ? "127.0.0.1:8080" : peer);
 
     efree(path);
     if (peer != NULL) {
@@ -1778,7 +1779,7 @@ static void request_init() {
     array_init(&globalTraceIds);
     zval tmpGlobalTraceIds;
 
-    zend_hash_str_update(Z_ARRVAL(SKYWALKING_G(UpstreamSegment)), "traceId", sizeof("traceId") - 1, traceId);
+    add_assoc_string(&SKYWALKING_G(UpstreamSegment), "traceId", Z_STRVAL_P(traceId));
 
     if(Z_LVAL_P(isChild) == 1) {
         zval ref;
