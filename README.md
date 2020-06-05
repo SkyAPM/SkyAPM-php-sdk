@@ -1,6 +1,14 @@
 SkyAPM PHP
 ==========
 ![CI](https://github.com/SkyAPM/SkyAPM-php-sdk/workflows/CI/badge.svg)
+![CI](https://travis-ci.org/SkyAPM/SkyAPM-php-sdk.svg?branch=master)
+![release](https://img.shields.io/github/release/SkyAPM/SkyAPM-php-sdk.svg)
+![PHP](https://img.shields.io/badge/PHP-%3E%3D%207.0-brightgreen.svg)
+![contributors](https://img.shields.io/github/contributors/SkyAPM/SkyAPM-php-sdk.svg)
+![platform](https://img.shields.io/badge/platform-macos%20%7C%20linux-brightgreen.svg)
+![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)
+![issues](https://img.shields.io/github/issues/SkyAPM/SkyAPM-php-sdk.svg)
+
 
 <img src="https://skyapmtest.github.io/page-resources/SkyAPM/skyapm.png" alt="Sky Walking logo" height="90px" align="right" />
 
@@ -43,3 +51,7 @@ Host in Beijing. Go to [demo](http://106.75.237.45:8080/).
 
 ## License
 [Apache 2.0](LICENSE)
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/SkyAPM/SkyAPM-php-sdk.svg)](https://starchart.cc/SkyAPM/SkyAPM-php-sdk)
