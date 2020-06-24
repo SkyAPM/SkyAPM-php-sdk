@@ -363,6 +363,15 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
             if (Z_TYPE_P(p) == IS_STRING) {
                 add_assoc_string(&tags, "rpc.method", Z_STRVAL_P(p));
             }
+
+            // peer
+            zval *hostname = sky_read_property(&(execute_data->This), "hostname");
+            if (Z_TYPE_P(hostname) == IS_STRING) {
+                const char *host = ZSTR_VAL(Z_STR_P(hostname));
+                peer = (char *) emalloc(strlen(host) + 10);
+                bzero(peer, strlen(host) + 10);
+                sprintf(peer, "%s", host);
+            }
         }
 
         zval temp;

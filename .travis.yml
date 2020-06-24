@@ -11,10 +11,10 @@ services:
   - docker
 
 php:
-  - 7.1
-  - 7.2
-  - 7.3
-  - 7.4
+  - 7.1-nts
+  - 7.2-nts
+  - 7.3-nts
+  - 7.4-nts
   - nightly
 
 matrix:
