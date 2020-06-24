@@ -304,12 +304,17 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
                     if (Z_TYPE_P(parameters_arr) == IS_ARRAY) {
                         zval *predis_host = zend_hash_str_find(Z_ARRVAL_P(parameters_arr), "host", sizeof("host") - 1);
                         zval *predis_port = zend_hash_str_find(Z_ARRVAL_P(parameters_arr), "port", sizeof("port") - 1);
+                        zval *port;
+                        ZVAL_COPY(&port, predis_port);
+                        if (Z_TYPE_P(port) != IS_LONG) {
+                            convert_to_long(port);
+                        }
 
-                        if (Z_TYPE_P(predis_host) == IS_STRING && Z_TYPE_P(predis_port) == IS_LONG) {
+                        if (Z_TYPE_P(predis_host) == IS_STRING && Z_TYPE_P(port) == IS_LONG) {
                             const char *host = ZSTR_VAL(Z_STR_P(predis_host));
                             peer = (char *) emalloc(strlen(host) + 10);
                             bzero(peer, strlen(host) + 10);
-                            sprintf(peer, "%s:%" PRId3264, host, Z_LVAL_P(predis_port));
+                            sprintf(peer, "%s:%" PRId3264, host, Z_LVAL_P(port));
                         }
                     }
                 }
@@ -1757,7 +1762,12 @@ static void request_init() {
     add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
     add_assoc_long(&temp, "spanType", 0);
     add_assoc_long(&temp, "spanLayer", 3);
-    add_assoc_long(&temp, "componentId", COMPONENT_UNDERTOW);
+    if (SKYWALKING_G(version) == 8) {
+        add_assoc_long(&temp, "componentId", 8001);
+    } else {
+        add_assoc_long(&temp, "componentId", COMPONENT_UNDERTOW);
+    }
+
 
     // sw8 or sw6 for parent endpoint name
     add_assoc_string(&SKYWALKING_G(context), "currentEndpoint", path);
