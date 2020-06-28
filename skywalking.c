@@ -182,10 +182,18 @@ static char *sky_get_class_name(zval *obj) {
     return "";
 }
 
-static zval *sky_read_property(zval *obj, const char *property) {
+static zval *sky_read_property(zval *obj, const char *property, int parent) {
     if (Z_TYPE_P(obj) == IS_OBJECT) {
         zend_object *object = obj->value.obj;
-        return zend_read_property(object->ce, obj, property, strlen(property), 0, NULL);
+        zend_class_entry *ce;
+
+        if (parent == 0) {
+            ce = object->ce;
+        } else {
+            ce = object->ce->parent;
+        }
+
+        return zend_read_property(ce, obj, property, strlen(property), 0, NULL);
     }
     return NULL;
 }
@@ -296,11 +304,11 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
             zend_call_method(p, Z_OBJCE_P(p), NULL, ZEND_STRL("getarguments"), arguments, 0, NULL, NULL);
 
             // peer
-            zval *connection = sky_read_property(&(execute_data->This),"connection");
+            zval *connection = sky_read_property(&(execute_data->This),"connection", 0);
             if (connection != NULL && Z_TYPE_P(connection) == IS_OBJECT && strcmp(sky_get_class_name(connection), "Predis\\Connection\\StreamConnection") == 0) {
-                zval *parameters = sky_read_property(connection, "parameters");
+                zval *parameters = sky_read_property(connection, "parameters", 0);
                 if (parameters != NULL && Z_TYPE_P(parameters) == IS_OBJECT && strcmp(sky_get_class_name(parameters), "Predis\\Connection\\Parameters") == 0) {
-                    zval *parameters_arr = sky_read_property(parameters, "parameters");
+                    zval *parameters_arr = sky_read_property(parameters, "parameters", 0);
                     if (Z_TYPE_P(parameters_arr) == IS_ARRAY) {
                         zval *predis_host = zend_hash_str_find(Z_ARRVAL_P(parameters_arr), "host", sizeof("host") - 1);
                         zval *predis_port = zend_hash_str_find(Z_ARRVAL_P(parameters_arr), "port", sizeof("port") - 1);
@@ -365,9 +373,17 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
             }
 
             // peer
-            zval *hostname = sky_read_property(&(execute_data->This), "hostname");
-            if (Z_TYPE_P(hostname) == IS_STRING) {
-                const char *host = ZSTR_VAL(Z_STR_P(hostname));
+            zval *hostname = sky_read_property(&(execute_data->This), "hostname", 1);
+            zval *hostname_override = sky_read_property(&(execute_data->This), "hostname_override", 1);
+
+            const char *host = NULL;
+            if (hostname_override != NULL && Z_TYPE_P(hostname_override) == IS_STRING) {
+                host = ZSTR_VAL(Z_STR_P(hostname_override));
+            } else if (hostname != NULL && Z_TYPE_P(hostname) == IS_STRING) {
+                host = ZSTR_VAL(Z_STR_P(hostname));
+            }
+
+            if (host != NULL) {
                 peer = (char *) emalloc(strlen(host) + 10);
                 bzero(peer, strlen(host) + 10);
                 sprintf(peer, "%s", host);
