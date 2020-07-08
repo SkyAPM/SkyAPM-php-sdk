@@ -189,12 +189,14 @@ static void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
 ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     char *sock_path;
     char *app_code;
+    char *grpc;
     zend_bool enable;
     zval UpstreamSegment;
     zval context;
     zval curl_header;
     zval curl_header_send;
     int  version;
+    void *segment;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

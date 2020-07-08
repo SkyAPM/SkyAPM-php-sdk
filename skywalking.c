@@ -58,6 +58,12 @@
 
 #include "b64.h"
 
+#include "sys/mman.h"
+#include "manager_wrapper.h"
+#include "segment_wrapper.h"
+#include "cross_process_bag_wrapper.h"
+#include "span_wrapper.h"
+
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
 #endif
@@ -68,6 +74,8 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
 /* True global resources - no need for thread safety here */
 static int le_skywalking;
+struct service_info *s_info;
+
 #if SKY_DEBUG
 static int application_instance = 1;
 static int application_id = 1;
@@ -94,13 +102,14 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
 /* Remove comments and fill if you need to have entries in php.ini*/
 PHP_INI_BEGIN()
 #if SKY_DEBUG
-	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"1", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_BOOLEAN("skywalking.enable", "1", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 #else
-	STD_PHP_INI_BOOLEAN("skywalking.enable",   	"0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_BOOLEAN("skywalking.enable", "0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
 #endif
-	STD_PHP_INI_ENTRY("skywalking.version",   	"8", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.version", "8", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/sky-agent.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.sock_path", "/tmp/so.sock", PHP_INI_ALL, OnUpdateString, sock_path, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -112,13 +121,15 @@ ZEND_END_ARG_INFO()
 // declare function skywalking_get_trace_info()
 PHP_FUNCTION(skywalking_get_trace_info)
 {
-    if (application_instance == 0) {
-        zval empty;
-        array_init(&empty);
-        RETURN_ZVAL(&empty, 0, 1);
-    }
-    // return array
-    RETURN_ZVAL(&SKYWALKING_G(UpstreamSegment), 1, 0)
+    zend_string *strg = strpprintf(0, "The span id %s", s_info->service);
+    RETURN_STR(strg);
+//    if (application_instance == 0) {
+//        zval empty;
+//        array_init(&empty);
+//        RETURN_ZVAL(&empty, 0, 1);
+//    }
+//    // return array
+//    RETURN_ZVAL(&SKYWALKING_G(UpstreamSegment), 1, 0)
 }
 
 
@@ -1132,8 +1143,9 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 {
 	skywalking_globals->app_code = NULL;
 	skywalking_globals->enable = 0;
-	skywalking_globals->version = 6;
-	skywalking_globals->sock_path = "/var/run/sky-agent.sock";
+	skywalking_globals->version = 8;
+	skywalking_globals->grpc = "127.0.0.1:11800";
+	skywalking_globals->sock_path = "127.0.0.1:11800";
 }
 
 
@@ -1725,6 +1737,34 @@ static char* _get_current_machine_ip(){
 
 static void request_init() {
 
+
+    zval *carrier = NULL;
+    zval *sw;
+
+    zend_bool jit_initialization = PG(auto_globals_jit);
+
+    if (jit_initialization) {
+        zend_string *server_str = zend_string_init("_SERVER", sizeof("_SERVER") - 1, 0);
+        zend_is_auto_global(server_str);
+        zend_string_release(server_str);
+    }
+    carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
+
+    if (SKYWALKING_G(version) == 5) {
+        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
+    } else if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) {
+        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
+    } else if (SKYWALKING_G(version) == 8) {
+        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW8", sizeof("HTTP_SW8") - 1);
+    } else {
+        sw = NULL;
+    }
+
+    void *cp = cross_process_bag_init(SKYWALKING_G(version), Z_STRVAL_P(sw));
+    SKYWALKING_G(segment) = segment_init(cp);
+
+    void *span = segment_create_span(SKYWALKING_G(segment), SPAN_TYPE_ENTRY);
+
     array_init(&SKYWALKING_G(curl_header));
     array_init(&SKYWALKING_G(curl_header_send));
     array_init(&SKYWALKING_G(context));
@@ -1777,20 +1817,26 @@ static void request_init() {
 
     add_assoc_zval(&temp, "tags", &tags);
 
-    add_assoc_long(&temp, "spanId", 0);
-    add_assoc_long(&temp, "parentSpanId", -1);
+//    add_assoc_long(&temp, "spanId", 0);
+//    add_assoc_long(&temp, "parentSpanId", -1);
     char *l_millisecond = get_millisecond();
     long millisecond = zend_atol(l_millisecond, strlen(l_millisecond));
     efree(l_millisecond);
-    add_assoc_long(&temp, "startTime", millisecond);
-    add_assoc_string(&temp, "operationName", path);
-    add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
-    add_assoc_long(&temp, "spanType", 0);
-    add_assoc_long(&temp, "spanLayer", 3);
+//    add_assoc_long(&temp, "startTime", millisecond);
+//    add_assoc_string(&temp, "operationName", path);
+    span_set_operation_name(span, path);
+//    add_assoc_string(&temp, "peer", (peer == NULL) ? "" : peer);
+    span_set_peer(span, (peer == NULL) ? "" : peer);
+//    add_assoc_long(&temp, "spanType", 0);
+//    add_assoc_long(&temp, "spanLayer", 3);
+    span_set_span_layer(span, SPAN_LAYER_HTTP);
+
     if (SKYWALKING_G(version) == 8) {
-        add_assoc_long(&temp, "componentId", 8001);
+//        add_assoc_long(&temp, "componentId", 8001);
+        span_set_component_id(span, 8001);
     } else {
-        add_assoc_long(&temp, "componentId", COMPONENT_UNDERTOW);
+//        add_assoc_long(&temp, "componentId", COMPONENT_UNDERTOW);
+        span_set_component_id(span, COMPONENT_UNDERTOW);
     }
 
 
@@ -2001,6 +2047,13 @@ PHP_MINIT_FUNCTION (skywalking) {
             orig_curl_close = old_function->internal_function.handler;
             old_function->internal_function.handler = sky_curl_close_handler;
         }
+
+        int protection = PROT_READ | PROT_WRITE;
+        int visibility = MAP_SHARED | MAP_ANONYMOUS;
+
+        s_info = (struct service_info *) mmap(NULL, sizeof(struct service_info), protection, visibility, -1, 0);
+
+        manager_init(SKYWALKING_G(version), SKYWALKING_G(app_code), SKYWALKING_G(grpc), s_info);
 	}
 
 	return SUCCESS;
@@ -2038,6 +2091,7 @@ PHP_RINIT_FUNCTION(skywalking)
             sky_increment_id = 0;
         }
         request_init();
+
     }
     return SUCCESS;
 }
