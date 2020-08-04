@@ -16,10 +16,14 @@ protoc -I reporter/protocol/v2 --go_out=plugins=grpc:/tmp/protoc-tmp reporter/pr
 protoc -I reporter/protocol/v2 --go_out=plugins=grpc:/tmp/protoc-tmp reporter/protocol/v2/register/*.proto
 
 # gen v3
-protoc -I reporter/protocol/v3 --go_out=plugins=grpc:/tmp/protoc-tmp reporter/protocol/v3/common/Common.proto
-protoc -I reporter/protocol/v3 --go_out=plugins=grpc:/tmp/protoc-tmp reporter/protocol/v3/language-agent/*.proto
-protoc -I reporter/protocol/v3 --go_out=plugins=grpc:/tmp/protoc-tmp reporter/protocol/v3/profile/*.proto
-protoc -I reporter/protocol/v3 --go_out=plugins=grpc:/tmp/protoc-tmp reporter/protocol/v3/management/*.proto
+protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/common/Common.proto
+protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/language-agent/*.proto
+protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/profile/*.proto
+protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/management/*.proto
+find src -name "*.grpc.pb.cc" | while read id; do mv $id ${id/.grpc/_grpc}; done
+
+
+
 find /tmp/protoc-tmp -type f -print0 | xargs -0 sed -i "" "s/skywalking\/network/github.com\/SkyAPM\/SkyAPM-php-sdk\/reporter\/network/g"
 rm -r reporter/network
 mv /tmp/protoc-tmp/skywalking/* reporter

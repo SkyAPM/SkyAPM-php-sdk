@@ -132,14 +132,23 @@ if test "$PHP_SKYWALKING" != "no"; then
       decode.c \
       encode.c \
       src/base64.cc \
+      src/cross_process_bag.cc \
       src/manager.cc \
       src/manager_wrapper.cc \
       src/segment.cc \
+      src/segment_reference.cc \
       src/segment_wrapper.cc \
+      src/sky_curl.c \
+      src/sky_execute.c \
+      src/sky_utils.c \
       src/span.cc \
       src/span_wrapper.cc \
+      src/tag.cc \
+      src/tag_wrapper.cc \
       src/network/v3/common/Common_grpc.pb.cc \
       src/network/v3/common/Common.pb.cc \
+      src/network/v3/language-agent/Tracing.pb.cc \
+      src/network/v3/language-agent/Tracing_grpc.pb.cc \
       src/network/v3/management/Management_grpc.pb.cc \
       src/network/v3/management/Management.pb.cc \
   , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
