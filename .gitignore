@@ -41,3 +41,6 @@ CMakeLists.txt
 /tests/*/*.log
 /tests/*/*.sh
 sky_php*
+/src/network/*
+log.cpp
+skywalking*.tgz
