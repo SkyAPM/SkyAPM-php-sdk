@@ -53,10 +53,7 @@ namespace Predis {
         protected $connection;
 
         public function __construct($parameters = null) {
-            $this->connection = new \Predis\Connection\StreamConnection([
-                "host" => "127.0.0.1",
-                "port" => 6379
-            ]);
+            $this->connection = new \Predis\Connection\StreamConnection($parameters);
         }
 
         public function __call($commandID, $arguments) {
@@ -69,43 +66,44 @@ namespace Predis {
     }
 }
 
+namespace Grpc {
+    class BaseStub {
+        private $hostname;
+        private $hostname_override;
+
+        public function __construct($hostname) {
+            $this->hostname = $hostname;
+        }
+
+        public function _simpleRequest($method) {}
+    }
+
+    class HelloClient extends BaseStub {
+
+        public function __construct($hostname) {
+            parent::__construct($hostname);
+        }
+
+        public function hello() {
+            $this->_simpleRequest("user.mock");
+        }
+    }
+}
+
 namespace {
-    $client = new \Predis\Client();
+    $client = new \Predis\Client(["host" => "127.0.0.1", "port" => 6379]);
     $client->set('foo', 'bar');
     $client->get('foo');
+
+    // test grpc
+    $hello = new \Grpc\HelloClient("127.0.0.1:8888");
+    $hello->hello();
+
+    // test curl
+    // $ch = curl_init("https://api.github.com/repos");
+    // curl_setopt($ch, 9923, []);
+    // curl_exec($ch);
+    // $ch = curl_init("https://api.github.com/repos");
+    // curl_exec($ch);
 }
-
-
-// $ch = curl_init("https://api.github.com/repos");
-// curl_setopt($ch, 9923, []);
-// curl_exec($ch);
-/*
-namespace Grpc;
-
-class BaseStub {
-    private $hostname;
-
-    public function __construct($hostname) {
-        $this->hostname = $hostname;
-    }
-
-    public function _simpleRequest($method) {}
-}
-
-class HelloClient extends BaseStub {
-
-    public function __construct($hostname) {
-        parent::__construct($hostname);
-    }
-
-    public function hello() {
-        $this->_simpleRequest("user.aa");
-    }
-}
-
-$hello = new HelloClient("127.0.0.1:8888");
-$hello->hello();
-// $ch = curl_init("https://api.github.com/repos");
-// curl_exec($ch);
-*/
 ?>

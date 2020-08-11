@@ -17,6 +17,7 @@
 #include "segment.h"
 
 #include "php_skywalking.h"
+#include "sky_utils.h"
 
 Span *sky_grpc(zend_execute_data *execute_data, char *class_name, char *function_name) {
     std::string _class_name(class_name);
@@ -30,6 +31,19 @@ Span *sky_grpc(zend_execute_data *execute_data, char *class_name, char *function
         span->setOperationName(_class_name + "->" + _function_name);
         span->addTag("rpc.type", "grpc");
 
+        zval *method = ZEND_CALL_ARG(execute_data, 1);
+        if (Z_TYPE_P(method) == IS_STRING) {
+            span->addTag("rpc.method", Z_STRVAL_P(method));
+        }
+
+        zval *hostname = sky_read_property(&(execute_data->This), "hostname", 1);
+        zval *hostname_override = sky_read_property(&(execute_data->This), "hostname_override", 1);
+
+        if (hostname_override != nullptr && Z_TYPE_P(hostname_override) == IS_STRING) {
+            span->setPeer(Z_STRVAL_P(hostname_override));
+        } else if (hostname != nullptr && Z_TYPE_P(hostname) == IS_STRING) {
+            span->setPeer(Z_STRVAL_P(hostname));
+        }
 
         return span;
     }
