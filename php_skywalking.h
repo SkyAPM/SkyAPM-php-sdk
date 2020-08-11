@@ -20,6 +20,23 @@
 #ifndef PHP_SKYWALKING_H
 #define PHP_SKYWALKING_H
 
+#include "src/common.h"
+
+SKY_BEGIN_EXTERN_C()
+
+#include "php.h"
+#include "php_ini.h"
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "main/SAPI.h"
+#include "zend_API.h"
+#include <curl/curl.h>
+#include "ext/standard/url.h"
+#include "zend_interfaces.h"
+
 extern zend_module_entry skywalking_module_entry;
 #define phpext_skywalking_ptr &skywalking_module_entry
 
@@ -38,6 +55,13 @@ extern zend_module_entry skywalking_module_entry;
 #include "TSRM.h"
 #endif
 
+PHP_MINIT_FUNCTION (skywalking);
+PHP_MSHUTDOWN_FUNCTION (skywalking);
+PHP_RINIT_FUNCTION (skywalking);
+PHP_RSHUTDOWN_FUNCTION (skywalking);
+PHP_MINFO_FUNCTION (skywalking);
+
+
 ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     char *authentication;
     char *app_code;
@@ -45,7 +69,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     zend_bool enable;
     zval context;
     zval curl_header;
-    int  version;
+    int version;
     void *segment;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
@@ -61,4 +85,5 @@ extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
 ZEND_TSRMLS_CACHE_EXTERN()
 #endif
 
+SKY_END_EXTERN_C()
 #endif

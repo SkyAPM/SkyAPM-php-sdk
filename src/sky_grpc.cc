@@ -12,13 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_SKY_EXECUTE_H
-#define SKYWALKING_SKY_EXECUTE_H
+
+#include "sky_grpc.h"
+#include "segment.h"
 
 #include "php_skywalking.h"
 
-ZEND_API void sky_execute_ex(zend_execute_data *execute_data);
+Span *sky_grpc(zend_execute_data *execute_data, char *class_name, char *function_name) {
+    std::string _class_name(class_name);
+    std::string _function_name(function_name);
 
-ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value);
+    if (_function_name == "_simpleRequest" || _function_name == "_clientStreamRequest" ||
+        _function_name == "_serverStreamRequest" || _function_name == "_bidiRequest") {
 
-#endif //SKYWALKING_SKY_EXECUTE_H
+        auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+        auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::RPCFramework, 23);
+        span->setOperationName(_class_name + "->" + _function_name);
+        span->addTag("rpc.type", "grpc");
+
+
+        return span;
+    }
+
+
+    return nullptr;
+}

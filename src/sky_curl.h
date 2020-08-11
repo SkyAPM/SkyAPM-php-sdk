@@ -15,7 +15,7 @@
 #ifndef SKYWALKING_SKY_CURL_H
 #define SKYWALKING_SKY_CURL_H
 
-#include "zend.h"
+#include "php_skywalking.h"
 
 #define SKY_CURLOPT_HTTPHEADER 9923
 

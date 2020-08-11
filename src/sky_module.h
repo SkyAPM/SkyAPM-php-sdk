@@ -12,10 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef SKYWALKING_SKY_MODULE_H
+#define SKYWALKING_SKY_MODULE_H
 
-#include "tag_wrapper.h"
-#include "tag.h"
+#include "php_skywalking.h"
 
-void *tag_init(char *key, char *value) {
-    return new Tag(key, value);
-}
+#define SKY_OLD_FN(n) static_cast<zend_function *>(zend_hash_str_find_ptr(CG(function_table), n, sizeof(n) - 1))
+
+void sky_module_init();
+
+void sky_request_init();
+
+void sky_request_flush();
+
+#endif //SKYWALKING_SKY_MODULE_H

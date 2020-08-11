@@ -14,19 +14,17 @@
 // limitations under the License.
 
 #include "segment.h"
-#include <iostream>
-#include <regex>
-#include <utility>
 #include "manager.h"
 #include "cross_process_bag.h"
 #include "language-agent/Tracing.grpc.pb.h"
 
-Segment::Segment(std::string serviceId,
-                 std::string serviceInstanceId,
-                 int version,
-                 std::string header) : _version(version), _serviceId(std::move(serviceId)),
-                                       _serviceInstanceId(std::move(serviceInstanceId)),
-                                       _header(std::move(header)) {
+Segment::Segment(const std::string &serviceId, const std::string &serviceInstanceId, int version,
+                 const std::string &header) {
+
+    _serviceId = serviceId;
+    _serviceInstanceId = serviceInstanceId;
+    _header = header;
+    _version = version;
 
     std::string traceId = Manager::generateUUID();
     traceId.erase(std::remove(traceId.begin(), traceId.end(), '-'), traceId.end());
@@ -96,9 +94,11 @@ std::string Segment::marshal(int status_code) {
     return msg.SerializeAsString();
 }
 
-Span *Segment::createSpan(SkySpanType type) {
+Span *Segment::createSpan(SkySpanType type, SkySpanLayer layer, int componentId) {
     Span *span = new Span();
     span->setSpanType(type);
+    span->setSpanLayer(layer);
+    span->setComponentId(componentId);
 
     int id = 0;
     int parentId = -1;

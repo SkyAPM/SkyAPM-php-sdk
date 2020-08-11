@@ -14,24 +14,45 @@
 
 #include "sky_execute.h"
 
-#include "php.h"
 #include "php_skywalking.h"
 
-void (*ori_execute_ex)(zend_execute_data *execute_data) = NULL;
+#include "sky_predis.h"
+#include "sky_grpc.h"
 
-void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value) = NULL;
+void (*ori_execute_ex)(zend_execute_data *execute_data) = nullptr;
+
+void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value) = nullptr;
 
 ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
-    if (SKYWALKING_G(segment) == NULL) {
+    if (SKYWALKING_G(segment) == nullptr) {
         ori_execute_ex(execute_data);
         return;
     }
 
-    ori_execute_ex(execute_data);
+    zend_function *fn = execute_data->func;
+    int is_class = fn->common.scope != nullptr && fn->common.scope->name != nullptr;
+    char *class_name = is_class ? ZSTR_VAL(fn->common.scope->name) : nullptr;
+    char *function_name = fn->common.function_name != nullptr ? ZSTR_VAL(fn->common.function_name) : nullptr;
+    Span *span = nullptr;
+
+    if (class_name != nullptr) {
+        if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "executeCommand") == 0) {
+            span = sky_predis(execute_data, class_name, function_name);
+        } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
+            span = sky_grpc(execute_data, class_name, function_name);
+        }
+    }
+
+    if (span != nullptr) {
+        ori_execute_ex(execute_data);
+        span->setEndTIme();
+    } else {
+        ori_execute_ex(execute_data);
+    }
 }
 
 ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
-    if (SKYWALKING_G(segment) == NULL) {
+    if (SKYWALKING_G(segment) == nullptr) {
         if (ori_execute_internal) {
             ori_execute_internal(execute_data, return_value);
         } else {

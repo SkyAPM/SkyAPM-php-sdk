@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#ifndef SKYWALKING_TAG_WRAPPER_H
-#define SKYWALKING_TAG_WRAPPER_H
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-void *tag_init(char *key, char *value);
+#ifndef SKYWALKING_COMMON_H
+#define SKYWALKING_COMMON_H
 
 #ifdef __cplusplus
-}
+#define SKY_BEGIN_EXTERN_C() extern "C" {
+#define SKY_END_EXTERN_C() }
+#else
+#define SKY_BEGIN_EXTERN_C()
+#define SKY_END_EXTERN_C()
 #endif
 
-#endif //SKYWALKING_TAG_WRAPPER_H
+struct service_info {
+    char service[1024];
+    char service_instance[1024];
+};
+
+#endif //SKYWALKING_COMMON_H

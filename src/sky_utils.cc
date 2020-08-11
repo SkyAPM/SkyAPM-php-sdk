@@ -14,11 +14,7 @@
 
 #include "sky_utils.h"
 
-#include "php.h"
-#include "zend_smart_str.h"
-#include "main/SAPI.h"
-#include "stdbool.h"
-#include "string.h"
+#include "php_skywalking.h"
 
 bool starts_with(const char *pre, const char *str) {
     size_t len_pre = strlen(pre),
@@ -26,14 +22,14 @@ bool starts_with(const char *pre, const char *str) {
     return len_str < len_pre ? false : memcmp(pre, str, len_pre) == 0;
 }
 
-char *get_page_request_uri() {
-    zval *carrier = NULL;
+std::string get_page_request_uri() {
+    zval *carrier;
     zval *request_uri;
 
-    smart_str uri = {0};
+    std::string uri;
 
     if (strcasecmp("cli", sapi_module.name) == 0) {
-        smart_str_appendl(&uri, "cli", strlen("cli"));
+        uri = "cli";
     } else {
         zend_bool jit_initialization = PG(auto_globals_jit);
 
@@ -45,26 +41,17 @@ char *get_page_request_uri() {
         carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
 
         request_uri = zend_hash_str_find(Z_ARRVAL_P(carrier), "REQUEST_URI", sizeof("REQUEST_URI") - 1);
-        smart_str_appendl(&uri, Z_STRVAL_P(request_uri), strlen(Z_STRVAL_P(request_uri)));
+        uri = Z_STRVAL_P(request_uri);
     }
-
-    smart_str_0(&uri);
-    if (uri.s != NULL) {
-        char *uris = emalloc(strlen(ZSTR_VAL(uri.s)) + 1);
-        strcpy(uris, ZSTR_VAL(uri.s));
-        smart_str_free(&uri);
-        return uris;
-    }
-    return NULL;
+    return uri;
 }
 
-char *get_page_request_peer() {
-    zval *carrier = NULL;
-    zval *request_host = NULL;
-    zval *request_port = NULL;
+std::string get_page_request_peer() {
+    zval *carrier;
+    zval *request_host;
+    zval *request_port;
 
-    char *peer = NULL;
-    size_t peer_l = 0;
+    std::string peer;
 
     zend_bool jit_initialization = PG(auto_globals_jit);
 
@@ -77,15 +64,37 @@ char *get_page_request_peer() {
 
     request_host = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_HOST", sizeof("HTTP_HOST") - 1);
     request_port = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_PORT", sizeof("SERVER_PORT") - 1);
-    if (request_host == NULL) {
+    if (request_host == nullptr) {
         request_host = zend_hash_str_find(Z_ARRVAL_P(carrier), "SERVER_ADDR", sizeof("SERVER_ADDR") - 1);
     }
 
-    if (request_host != NULL && request_port != NULL) {
-        peer_l = snprintf(NULL, 0, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
-        peer = emalloc(peer_l + 1);
-        snprintf(peer, peer_l + 1, "%s:%s", Z_STRVAL_P(request_host), Z_STRVAL_P(request_port));
+    if (request_host != nullptr && request_port != nullptr) {
+        peer = std::string(Z_STRVAL_P(request_host)) + ":" + Z_STRVAL_P(request_port);
     }
 
     return peer;
+}
+
+zval *sky_read_property(zval *obj, const char *property, int parent) {
+    if (Z_TYPE_P(obj) == IS_OBJECT) {
+        zend_object *object = obj->value.obj;
+        zend_class_entry *ce;
+
+        if (parent == 0) {
+            ce = object->ce;
+        } else {
+            ce = object->ce->parent;
+        }
+
+        return zend_read_property(ce, obj, property, strlen(property), 0, nullptr);
+    }
+    return nullptr;
+}
+
+std::string sky_get_class_name(zval *obj) {
+    if (Z_TYPE_P(obj) == IS_OBJECT) {
+        zend_object *object = obj->value.obj;
+        return ZSTR_VAL(object->ce->name);
+    }
+    return "";
 }

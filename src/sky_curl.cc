@@ -13,25 +13,18 @@
 // limitations under the License.
 
 #include "sky_curl.h"
-
-#include <curl/curl.h>
-
-#include "php.h"
-#include "ext/standard/url.h"
 #include "php_skywalking.h"
 
-#include "segment_wrapper.h"
-#include "span_wrapper.h"
-#include "tag_wrapper.h"
+#include "segment.h"
 #include "sky_utils.h"
 
-void (*orig_curl_exec)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+void (*orig_curl_exec)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
 
-void (*orig_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+void (*orig_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
 
-void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
 
-void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
 
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
@@ -123,14 +116,13 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     }
 
     // set header
-    char *sw_header = NULL;
-    void *span = NULL;
+    Span *span;
     int is_emalloc = 0;
-    zval *option = NULL;
+    zval *option = nullptr;
     option = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), Z_RES_HANDLE_P(zid));
     if (is_record) {
         if (option == NULL) {
-            option = emalloc(sizeof(zval));
+            option = (zval *) emalloc(sizeof(zval));
             bzero(option, sizeof(zval));
             array_init(option);
             is_emalloc = 1;
@@ -162,18 +154,14 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         }
 
         spprintf(&peer, 0, "%s:%d", php_url_host, peer_port);
+        auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+        span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
+        span->setPeer(peer);
+        span->setOperationName(php_url_path);
+        span->addTag("url", url_str);
 
-        span = segment_create_span(SKYWALKING_G(segment), SPAN_TYPE_EXIT);
-        span_set_peer(span, peer);
-        efree(peer);
-        span_set_operation_name(span, php_url_path == NULL ? "" : php_url_path);
-        span_set_span_layer(span, SPAN_LAYER_HTTP);
-        span_set_component_id(span, 8002);
-        void *tag = tag_init("url", (url_str == NULL) ? "" : url_str);
-        span_put_tag(span, tag);
-
-        sw_header = segment_create_header(SKYWALKING_G(segment), span);
-        add_next_index_string(option, sw_header);
+        std::string sw_header = segment->createHeader(span);
+        add_next_index_string(option, sw_header.c_str());
     }
 
     zval argv[3];
@@ -192,9 +180,6 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         zval_ptr_dtor(option);
         efree(option);
     }
-    if (sw_header != NULL) {
-        free(sw_header);
-    }
 
     orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
@@ -211,22 +196,19 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
         zval *response_http_code;
         response_http_code = zend_hash_str_find(Z_ARRVAL(url_response), ZEND_STRL("http_code"));
-        char code[1000];
-        sprintf(code, "%d", Z_LVAL_P(response_http_code));
-        void *tag = tag_init("status_code", code);
-        span_put_tag(span, tag);
+        span->addTag("status_code", std::to_string(Z_LVAL_P(response_http_code)));
         if (Z_LVAL_P(response_http_code) >= 400) {
-            span_set_is_error(span, 1);
+            span->setIsError(true);
         } else {
-            span_set_is_error(span, 0);
+            span->setIsError(false);
         }
         zval_dtor(&url_response);
 
-        span_set_end_time(span);
+        span->setEndTIme();
     }
 
     zval_dtor(&url_info);
-    if (url_parse != NULL) {
+    if (url_parse != nullptr) {
         php_url_free(url_parse);
     }
 }

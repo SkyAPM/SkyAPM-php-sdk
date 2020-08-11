@@ -1,14 +1,5 @@
-DIALECT="-std=c++11"
-echo 'int main() {return 0;}' > ./log.cpp && $CXX -std=c++11 ./log.cpp || $DIALECT="no"
-
-if test $DILAECT = no; then
-    AC_MSG_ERROR([c++ compiler does not support c++11])
-else
-    echo $DILAECT
-fi
-
 PHP_REQUIRE_CXX()
-CXXFLAGS="$CXXFLAGS -Wall -std=c++11"
+CXXFLAGS="$CXXFLAGS -Wall -std=c++11 -Wno-deprecated-register"
 
 PHP_ARG_ENABLE(skywalking, whether to enable skywalking support,
 [  --enable-skywalking           Enable skywalking support])
@@ -16,6 +7,10 @@ PHP_ARG_ENABLE(skywalking, whether to enable skywalking support,
 if test "$PHP_THREAD_SAFETY" == "yes"; then
   AC_MSG_ERROR([skywalking does not support ZTS])
 fi
+
+AC_LANG_PUSH(C++)
+AX_CHECK_COMPILE_FLAG([-std=c++0x], , [AC_MSG_ERROR([compiler not accept c++11])])
+AC_LANG_POP()
 
 AC_MSG_CHECKING([for php_json.h])
 json_inc_path=""
@@ -128,23 +123,20 @@ if test "$PHP_SKYWALKING" != "no"; then
 
 
   PHP_NEW_EXTENSION(skywalking, \
-      skywalking.c \
-      decode.c \
-      encode.c \
+      skywalking.cc \
       src/base64.cc \
       src/cross_process_bag.cc \
       src/manager.cc \
-      src/manager_wrapper.cc \
       src/segment.cc \
       src/segment_reference.cc \
-      src/segment_wrapper.cc \
-      src/sky_curl.c \
-      src/sky_execute.c \
-      src/sky_utils.c \
+      src/sky_curl.cc \
+      src/sky_execute.cc \
+      src/sky_grpc.cc \
+      src/sky_predis.cc \
+      src/sky_module.cc \
+      src/sky_utils.cc \
       src/span.cc \
-      src/span_wrapper.cc \
       src/tag.cc \
-      src/tag_wrapper.cc \
       src/network/v3/common/Common_grpc.pb.cc \
       src/network/v3/common/Common.pb.cc \
       src/network/v3/language-agent/Tracing.pb.cc \

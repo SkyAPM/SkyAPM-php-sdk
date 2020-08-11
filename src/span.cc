@@ -119,11 +119,16 @@ void Span::pushTag(Tag *tag) {
     tags.push_back(tag);
 }
 
+void Span::addTag(const std::string &key, const std::string &value) {
+    tags.push_back(new Tag(key, value));
+}
+
 void Span::pushRefs(SkySegmentReference *ref) {
     refs.push_back(ref);
 }
 
 uint64_t Span::getUnixTimeStamp() {
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch());
     return ms.count();
 }

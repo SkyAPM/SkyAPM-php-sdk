@@ -1,4 +1,3 @@
-// Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
 // The ASF licenses this file to You under the Apache License, Version 2.0
@@ -13,9 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "manager_wrapper.h"
-#include "manager.h"
+#ifndef SKYWALKING_SKY_PREDIS_H
+#define SKYWALKING_SKY_PREDIS_H
 
-void *manager_init(int version, char *code, char *grpc, struct service_info *info, int *fd) {
-    return new Manager(version, code, grpc, info, fd);
-}
+#include "php_skywalking.h"
+
+#include "sky_utils.h"
+#include <string>
+#include "span.h"
+
+#define SKY_PREDIS_IS_PARAMETERS(p) SKY_IS_OBJECT(p) && sky_get_class_name(p) == "Predis\\Connection\\Parameters"
+
+#define SKY_PREDIS_IS_STREAM_CONNECTION(c) SKY_IS_OBJECT(c) && sky_get_class_name(c) == "Predis\\Connection\\StreamConnection"
+
+
+Span *sky_predis(zend_execute_data *execute_data, char *class_name, char *function_name);
+
+static std::string sky_predis_peer(zend_execute_data *execute_data);
+
+static std::string sky_predis_command(zval *id, zval *arguments);
+
+#endif //SKYWALKING_SKY_PREDIS_H

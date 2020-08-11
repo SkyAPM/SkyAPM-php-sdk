@@ -18,28 +18,30 @@
 #include <iostream>
 #include <string>
 #include <zconf.h>
-#include <netdb.h>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 #include <sstream>
 #include <random>
 #include <fstream>
 #include <queue>
-#include "manager_wrapper.h"
 #include "management/Management.grpc.pb.h"
 #include "language-agent/Tracing.grpc.pb.h"
 #include "grpc/grpc.h"
 #include "grpc++/grpc++.h"
 #include "segment.h"
 #include <google/protobuf/util/json_util.h>
+#include "common.h"
 
-
+std::ofstream sky_log;
 std::queue<std::string> messageQueue;
 static pthread_mutex_t mx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t cond_mx = PTHREAD_MUTEX_INITIALIZER;
 
 Manager::Manager(int version, const std::string &code, const std::string &grpc, struct service_info *info, int *fd) {
+
+    sky_log.open("/tmp/skywalking-php.log", std::ios::app);
+
     std::thread th(login, version, code, grpc, info, fd);
     th.detach();
 
@@ -49,12 +51,11 @@ Manager::Manager(int version, const std::string &code, const std::string &grpc, 
     std::thread s(sender, grpc);
     s.detach();
 
-    std::cout << "readddd" << std::endl;
+    sky_log << "the apache skywalking php plugin mounted" << std::endl;
 }
 
 void Manager::login(int version, const std::string &code, const std::string &grpc, struct service_info *info, int *fd) {
 
-    std::ofstream fout("/tmp/log.txt");
     std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(grpc, grpc::InsecureChannelCredentials()));
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
 
@@ -149,7 +150,6 @@ void Manager::login(int version, const std::string &code, const std::string &grp
 }
 
 [[noreturn]] void Manager::sender(const std::string &grpc) {
-    std::ofstream fout("/tmp/sender.txt");
 
     std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(grpc, grpc::InsecureChannelCredentials()));
     std::unique_ptr<TraceSegmentReportService::Stub> stub(TraceSegmentReportService::NewStub(channel));
@@ -170,7 +170,6 @@ void Manager::login(int version, const std::string &code, const std::string &grp
 
             // todo sender
             std::string json_str;
-            fout << "sender" << std::endl;
             SegmentObject msg;
             msg.ParseFromString(data);
             google::protobuf::util::JsonPrintOptions opt;
@@ -178,8 +177,7 @@ void Manager::login(int version, const std::string &code, const std::string &grp
             opt.preserve_proto_field_names = true;
             google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
             writer->Write(msg);
-            fout << json_str << std::endl;
-            fout << "sender111" << std::endl;
+            sky_log << json_str << std::endl;
         }
     }
 }

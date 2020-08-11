@@ -15,12 +15,20 @@
 #ifndef SKYWALKING_SKY_UTILS_H
 #define SKYWALKING_SKY_UTILS_H
 
-#include <stdbool.h>
+#include "php_skywalking.h"
+
+#include <string>
+
+#define SKY_IS_OBJECT(p) p != nullptr && Z_TYPE_P(p) == IS_OBJECT
 
 bool starts_with(const char *pre, const char *str);
 
-char *get_page_request_uri();
+std::string get_page_request_uri();
 
-char *get_page_request_peer();
+std::string get_page_request_peer();
+
+zval *sky_read_property(zval *obj, const char *property, int parent);
+
+std::string sky_get_class_name(zval *obj);
 
 #endif //SKYWALKING_SKY_UTILS_H

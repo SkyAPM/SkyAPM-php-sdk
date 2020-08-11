@@ -26,8 +26,8 @@ public:
     std::string getValue();
 
 private:
-    std::string key;
-    std::string value;
+    std::string _key;
+    std::string _value;
 };
 
 

@@ -18,7 +18,6 @@
 
 #include <string>
 #include <vector>
-#include "manager_wrapper.h"
 
 #if defined(__linux__)
 #define PLATFORM_NAME "Linux"

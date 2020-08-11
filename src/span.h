@@ -84,6 +84,8 @@ public:
 
     void pushTag(Tag *tag);
 
+    void addTag(const std::string &key, const std::string &value);
+
     void pushRefs(SkySegmentReference *ref);
 
 private:

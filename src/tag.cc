@@ -16,12 +16,14 @@
 
 #include <utility>
 
-Tag::Tag(std::string key, std::string value) : key(std::move(key)), value(std::move(value)) {}
+Tag::Tag(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
+    _value.erase(_value.find_last_not_of(' ') + 1);
+}
 
 std::string Tag::getKey() {
-    return key;
+    return _key;
 }
 
 std::string Tag::getValue() {
-    return value;
+    return _value;
 }

@@ -26,9 +26,9 @@
 
 class Segment {
 public:
-    Segment(std::string serviceId, std::string serviceInstanceId, int version, std::string header);
+    Segment(const std::string &serviceId, const std::string &serviceInstanceId, int version, const std::string &header);
 
-    Span *createSpan(SkySpanType type);
+    Span *createSpan(SkySpanType type, SkySpanLayer layer, int componentId);
 
     std::string marshal(int status_code);
 
