@@ -8,7 +8,6 @@ RUN set -ex \
        go git ca-certificates curl-dev nginx \
     && cd /tmp/skywalking \
     && phpize && ./configure && make && make install \
-    && go build -o /usr/local/bin/sky-php-agent ./cmd/main.go \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && cp service.sh /opt/ \
     && cp nginx.conf /etc/nginx/nginx.conf \
@@ -19,7 +18,6 @@ RUN set -ex \
        etc/nginx/nginx.conf \
        var/www/html/index.php \
        usr/local/etc/php/conf.d/ext-skywalking.ini \
-       usr/local/bin/sky-php-agent \
        usr/local/lib/php/extensions/no-debug-non-zts-20190902/skywalking.so
 
 FROM php:7.4-fpm-alpine
