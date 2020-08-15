@@ -99,6 +99,16 @@ namespace {
     $hello = new \Grpc\HelloClient("127.0.0.1:8888");
     $hello->hello();
 
+    // test pdo
+    $dbh = new \PDO("mysql:host=127.0.0.1;port=3306;dbname=mock", "root", "111111");
+    $dbh->exec("SET names utf8");
+    $dbh->query("select * from mock");
+    $dbh->prepare("select * from mock where id = ?");
+
+    $dbh->beginTransaction();
+    $dbh->query("select * from mock");
+    $dbh->commit();
+
     // test curl
     // $ch = curl_init("https://api.github.com/repos");
     // curl_setopt($ch, 9923, []);

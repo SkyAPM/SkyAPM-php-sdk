@@ -36,6 +36,7 @@ SKY_BEGIN_EXTERN_C()
 #include <curl/curl.h>
 #include "ext/standard/url.h"
 #include "zend_interfaces.h"
+#include "ext/pdo/php_pdo_driver.h"
 
 extern zend_module_entry skywalking_module_entry;
 #define phpext_skywalking_ptr &skywalking_module_entry

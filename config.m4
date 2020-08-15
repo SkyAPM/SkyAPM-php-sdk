@@ -134,6 +134,7 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/sky_grpc.cc \
       src/sky_predis.cc \
       src/sky_module.cc \
+      src/sky_pdo.cc \
       src/sky_utils.cc \
       src/span.cc \
       src/tag.cc \
