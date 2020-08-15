@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - cpp
     tags:
       - 'v*'
   pull_request:
