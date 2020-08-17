@@ -30,12 +30,12 @@ jobs:
           path: skywalking-agent-test-tool
 
       - name: Checkout GRPC
-          uses: actions/checkout@v2
-          with:
-            ref: v1.31.x
-            repository: grpc/grpc
-            path: grpc
-            submodules: true
+        uses: actions/checkout@v2
+        with:
+          ref: v1.31.x
+          repository: grpc/grpc
+          path: grpc
+          submodules: true
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
