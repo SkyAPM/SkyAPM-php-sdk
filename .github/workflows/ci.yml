@@ -56,22 +56,24 @@ jobs:
       - name: Install library
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl libcurl4-openssl-dev build-essential autoconf libtool pkg-config cmake
-          sudo apt-get install -y automake libtool make g++ unzip
+          sudo apt-get install -y curl libcurl4-openssl-dev
+          sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
+          sudo apt-get install -y autoconf automake libtool curl make g++ unzip
 
       - name: Build GRPC
         run: |
           pwd
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
-          ./autogen.sh && ./configure --enable-shared
-          make -j$(nproc) && make -j$(nproc) check && make install && make clean && ldconfig
+          ./autogen.sh && ./configure
+          make -j$(nproc) && make -j$(nproc) check && sudo make install && sudo make clean && sudo ldconfig
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           mkdir -p cmake/build
           cd cmake/build
-          cmake ../..
-          make -j$(nproc) && make install && make clean && ldconfig
+          cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
+          make -j$(nproc) && sudo make install && make clean && sudo ldconfig
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
-          rm -fr grpc
+          sudo rm -fr /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          pkg-config --cflags --libs protobuf
 
       - name: Build SkyWalking-PHP
         run: |
