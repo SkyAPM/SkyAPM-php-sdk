@@ -54,20 +54,28 @@ jobs:
           maven-version: 3.6.1
 
       - name: Install library
-        run: sudo apt-get update && sudo apt-get install -y curl libcurl4-openssl-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl libcurl4-openssl-dev build-essential autoconf libtool pkg-config cmake
+          sudo apt-get install -y automake libtool make g++ unzip
 
       - name: Build GRPC
         run: |
           pwd
-          cd grpc
-          cd third_party/protobuf
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
           ./autogen.sh && ./configure --enable-shared
           make -j$(nproc) && make -j$(nproc) check && make install && make clean && ldconfig
-          cd ../../
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          mkdir -p cmake/build
+          cd cmake/build
+          cmake ../..
           make -j$(nproc) && make install && make clean && ldconfig
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
+          rm -fr grpc
 
       - name: Build SkyWalking-PHP
         run: |
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
           ./configure
           make
@@ -76,7 +84,7 @@ jobs:
           
       - name: Build SkyWalking mock collector
         run: |
-          cd skywalking-agent-test-tool
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/skywalking-agent-test-tool
           mvn package -DskipTests
           tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
           cd ./mock-collector/skywalking-mock-collector
