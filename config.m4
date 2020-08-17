@@ -37,9 +37,6 @@ fi
 
 if test "$PHP_SKYWALKING" != "no"; then
 
-  PHP_ADD_INCLUDE(src)
-  PHP_ADD_INCLUDE(src/network/v3)
-
   SEARCH_PATH="/usr/local /usr"
   SEARCH_GRPC_FOR="/include/grpc/grpc.h"
   SEARCH_PROTOBUF_FOR="/include/google/protobuf/message.h"
@@ -114,12 +111,22 @@ if test "$PHP_SKYWALKING" != "no"; then
     -L$GRPC_LIBDIR
   ])
 
+  mkdir -p src/network/v3
+  protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/common/Common.proto
+  protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/language-agent/*.proto
+  protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/profile/*.proto
+  protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/management/*.proto
+  find src -name "*.grpc.pb.cc" | while read id; do mv $id ${id/.grpc/_grpc}; done
+
   PROTOBUF_LIBDIR=$PROTOBUF_DIR/${PROTOBUF_LIB_SUBDIR-lib}
   PHP_ADD_LIBPATH($PROTOBUF_LIBDIR)
   PHP_ADD_LIBRARY(protobuf,,SKYWALKING_SHARED_LIBADD)
   AC_DEFINE(HAVE_PROTOBUFLIB,1,[ ])
 
   PHP_SUBST(SKYWALKING_SHARED_LIBADD)
+
+  PHP_ADD_INCLUDE(src)
+  PHP_ADD_INCLUDE(src/network/v3)
 
 
   PHP_NEW_EXTENSION(skywalking, \
