@@ -29,6 +29,14 @@ jobs:
           repository: apache/skywalking-agent-test-tool
           path: skywalking-agent-test-tool
 
+      - name: Checkout GRPC
+          uses: actions/checkout@v2
+          with:
+            ref: v1.31.x
+            repository: grpc/grpc
+            path: grpc
+            submodules: true
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -47,6 +55,16 @@ jobs:
 
       - name: Install library
         run: sudo apt-get update && sudo apt-get install -y curl libcurl4-openssl-dev
+
+      - name: Build GRPC
+        run: |
+          pwd
+          cd grpc
+          cd third_party/protobuf
+          ./autogen.sh && ./configure --enable-shared
+          make -j$(nproc) && make -j$(nproc) check && make install && make clean && ldconfig
+          cd ../../
+          make -j$(nproc) && make install && make clean && ldconfig
 
       - name: Build SkyWalking-PHP
         run: |
