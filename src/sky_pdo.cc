@@ -18,7 +18,6 @@
 #include "segment.h"
 
 #include "php_skywalking.h"
-#include "sky_utils.h"
 
 Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
@@ -57,19 +56,24 @@ static std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data) {
 
         if (dbh->data_source != nullptr) {
             span->addTag("db.data_source", dbh->data_source);
-            std::regex host_pattern(".*host=([^;\\s]+).*", std::regex_constants::ECMAScript);
-            std::regex port_pattern(".*port=([^;\\s]+).*", std::regex_constants::ECMAScript);
-            std::smatch host_result;
-            std::smatch port_result;
+            std::regex ws_re(";");
+            std::regex kv_re("=");
+            std::string source(dbh->data_source);
+            std::vector<std::string> items(std::sregex_token_iterator(source.begin(), source.end(), ws_re, -1), std::sregex_token_iterator());
+
             std::string host("not_found");
             std::string port("3306");
 
-            if (std::regex_match(std::string(dbh->data_source), host_result, host_pattern) && !host_result.empty()) {
-                host = host_result[1];
-            }
-
-            if (std::regex_match(std::string(dbh->data_source), port_result, port_pattern) && !port_result.empty()) {
-                port = port_result[1];
+            for(auto item:items) {
+                std::vector<std::string> kv(std::sregex_token_iterator(item.begin(), item.end(), kv_re, -1), std::sregex_token_iterator());
+                if (kv.size() >=2) {
+                    if (kv[0] == "host") {
+                        host = kv[1];
+                    }
+                    if (kv[0] == "port") {
+                        port = kv[1];
+                    }
+                }
             }
 
             return host + ":" + port;
