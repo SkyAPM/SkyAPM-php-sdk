@@ -1,38 +1,59 @@
-Tips: It is recommended to use nginx as the load balancer of SkyWalking-oap-server
-
 # Install SkyWalking PHP Agent
 
 ## Requirements
 When building directly from Git sources or after custom modifications you might also need:
+* grpc and protobuf
 * php 7+
-* golang 1.13
 * SkyWalking oap server
 * SkyWalking UI
 
-## PHP extension + Agent
-The collect data from your instance you need both the PHP extension, and the agent. 
-No pre built binaries or PHP extension are availble at the moment, so you need to
-build them from a source.
+## Install Protobuf
 
-You can run the following commands to install the SkyWalking PHP Agent.
+View official documents [protobuf C++ installation](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md)
+
+Or use
+
+```shell script
+sudo apt-get install autoconf automake libtool curl make g++ unzip
+git clone https://github.com/protocolbuffers/protobuf.git
+cd protobuf
+git submodule update --init --recursive
+./autogen.sh
+
+./configure
+make -j$(nproc)
+make check
+sudo make install
+sudo ldconfig # refresh shared library cache.
+```
+
+## Install GRPC
+
+View official documents [GRPC C++ installation](https://github.com/grpc/grpc/blob/master/BUILDING.md)
+
+Or use
+
+```shell script
+sudo apt-get install build-essential autoconf libtool pkg-config cmake
+git clone https://github.com/grpc/grpc.git
+cd grpc
+git submodule update --init --recursive
+
+mkdir -p cmake/build
+cd cmake/build
+cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
+make -j$(nproc)
+sudo make install
+make clean
+sudo ldconfig
+```
 
 ## Install PHP Extension
 ```shell script
-curl -Lo v3.3.2.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v3.3.2.tar.gz
-tar zxvf v3.3.2.tar.gz
-cd SkyAPM-php-sdk-3.3.2
+curl -Lo v4.0.0.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.0.0.tar.gz
+tar zxvf v4.0.0.tar.gz
+cd SkyAPM-php-sdk-4.0.0
 phpize && ./configure && make && make install
-```
-
-## Install sky-php-agent
-### Build
-For installing the sky-php-agent, you first need to build it:
-
-```shell script
-cd SkyAPM-php-sdk-3.3.2
-go build -o sky-php-agent cmd/main.go
-chmod +x sky-php-agent
-cp sky-php-agent /usr/local/bin
 ```
 
 ## How to use
@@ -52,26 +73,6 @@ skywalking.version = 8
 ; Set app code e.g. MyProjectName
 skywalking.app_code = MyProjectName
 
-; sock file path default /tmp/sky-agent.sock
-; Warning *[systemd] please disable PrivateTmp feature*
-; Warning *Make sure PHP has read and write permissions on the socks file*
-skywalking.sock_path=/tmp/sky-agent.sock
-```
-
-## sky-php-agent `systemd` example
-
-```shell script
-[Unit]
-Description=The SkyWalking PHP-Agent Process Manager
-After=syslog.target network.target
-
-[Service]
-Type=simple
-# Modify the corresponding directory and address here
-ExecStart=/usr/local/bin/sky-php-agent --grpc=127.0.0.1:11800 --sky-version=8 --socket=/tmp/sky-agent.sock
-ExecStop=/bin/kill -SIGINT $MAINPID
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
+; Set grpc address
+skywalking.grpc=127.0.0.1:11800
 ```
