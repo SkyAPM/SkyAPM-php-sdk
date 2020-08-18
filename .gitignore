@@ -48,3 +48,5 @@ CMakeLists.txt
 /tests/*/*.log
 /tests/*/*.sh
 sky_php*
+sky-php-agent
+.history

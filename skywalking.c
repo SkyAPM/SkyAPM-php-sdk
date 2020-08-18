@@ -632,12 +632,21 @@ ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return
                         char *host = mysql->mysql->data->host;
 #endif
                         char port[6];
+                        char nullHost[10] = "nullhost\0";
+
                         sprintf(port, "%d", mysql->mysql->data->port);
-                        add_assoc_string(&tags, "db.host", host);
                         add_assoc_string(&tags, "db.port", port);
-                        peer = (char *) emalloc(strlen(host) + 10);
-                        bzero(peer, strlen(host) + 10);
-                        sprintf(peer, "%s:%d", host, mysql->mysql->data->port);
+                        if(host != NULL){
+                            add_assoc_string(&tags, "db.host", host);
+                            peer = (char *)emalloc(strlen(host) + 10);
+                            bzero(peer, strlen(host) + 10);
+                            sprintf(peer, "%s:%d", host, mysql->mysql->data->port);
+                        }else{
+                            add_assoc_string(&tags, "db.host", nullHost);
+                            peer = (char *)emalloc(strlen(nullHost) + 10);
+                            bzero(peer, strlen(nullHost) + 10);
+                            sprintf(peer, "%s:%d", nullHost, mysql->mysql->data->port);
+                        }
                     }
                 }
 #endif
