@@ -24,7 +24,7 @@ void (*ori_execute_ex)(zend_execute_data *execute_data) = nullptr;
 
 void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value) = nullptr;
 
-ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
+void sky_execute_ex(zend_execute_data *execute_data) {
     if (SKYWALKING_G(segment) == nullptr) {
         ori_execute_ex(execute_data);
         return;
@@ -52,33 +52,32 @@ ZEND_API void sky_execute_ex(zend_execute_data *execute_data) {
     }
 }
 
-ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
+void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
     if (SKYWALKING_G(segment) == nullptr) {
         if (ori_execute_internal) {
             ori_execute_internal(execute_data, return_value);
         } else {
             execute_internal(execute_data, return_value);
         }
-        return;
-    }
-
-    zend_function *fn = execute_data->func;
-    int is_class = fn->common.scope != nullptr && fn->common.scope->name != nullptr;
-    char *class_name = is_class ? ZSTR_VAL(fn->common.scope->name) : nullptr;
-    char *function_name = fn->common.function_name != nullptr ? ZSTR_VAL(fn->common.function_name) : nullptr;
-    Span *span = nullptr;
-
-    if (std::string(class_name) == "PDO") {
-        span = sky_pdo(execute_data, class_name, function_name);
-    }
-
-    if (ori_execute_internal) {
-        ori_execute_internal(execute_data, return_value);
     } else {
-        execute_internal(execute_data, return_value);
-    }
+        zend_function *fn = execute_data->func;
+        int is_class = fn->common.scope != nullptr && fn->common.scope->name != nullptr;
+        char *class_name = is_class ? ZSTR_VAL(fn->common.scope->name) : nullptr;
+        char *function_name = fn->common.function_name != nullptr ? ZSTR_VAL(fn->common.function_name) : nullptr;
 
-    if (span != nullptr) {
-        span->setEndTIme();
+        Span *span = nullptr;
+        if (class_name != nullptr && function_name != nullptr && std::string(class_name) == "PDO") {
+            span = sky_pdo(execute_data, class_name, function_name);
+        }
+
+        if (ori_execute_internal) {
+            ori_execute_internal(execute_data, return_value);
+        } else {
+            execute_internal(execute_data, return_value);
+        }
+
+        if (span != nullptr) {
+            span->setEndTIme();
+        }
     }
 }

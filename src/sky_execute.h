@@ -17,8 +17,8 @@
 
 #include "php_skywalking.h"
 
-ZEND_API void sky_execute_ex(zend_execute_data *execute_data);
+void sky_execute_ex(zend_execute_data *execute_data);
 
-ZEND_API void sky_execute_internal(zend_execute_data *execute_data, zval *return_value);
+void sky_execute_internal(zend_execute_data *execute_data, zval *return_value);
 
 #endif //SKYWALKING_SKY_EXECUTE_H
