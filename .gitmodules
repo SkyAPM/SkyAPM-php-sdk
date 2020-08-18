@@ -1,3 +1,0 @@
-[submodule "reporter/protocol/v3"]
-	path = reporter/protocol/v3
-	url = https://github.com/apache/skywalking-data-collect-protocol.git

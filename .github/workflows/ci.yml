@@ -28,6 +28,14 @@ jobs:
           repository: apache/skywalking-agent-test-tool
           path: skywalking-agent-test-tool
 
+      - name: Checkout GRPC
+        uses: actions/checkout@v2
+        with:
+          ref: v1.31.x
+          repository: grpc/grpc
+          path: grpc
+          submodules: true
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -43,26 +51,41 @@ jobs:
         uses: aahmed-se/setup-maven@v3
         with:
           maven-version: 3.6.1
-      - name: Setup GO
-        uses: actions/setup-go@v2-beta
-        with:
-          go-version: '^1.13.1'
 
       - name: Install library
-        run: sudo apt-get update && sudo apt-get install -y curl libcurl4-openssl-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl libcurl4-openssl-dev
+          sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
+          sudo apt-get install -y autoconf automake libtool curl make g++ unzip
+
+      - name: Build GRPC
+        run: |
+          pwd
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
+          ./autogen.sh && ./configure
+          make -j$(nproc) && make -j$(nproc) check && sudo make install && sudo make clean && sudo ldconfig
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          mkdir -p cmake/build
+          cd cmake/build
+          cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
+          make -j$(nproc) && sudo make install && make clean && sudo ldconfig
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
+          sudo rm -fr /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          pkg-config --cflags --libs protobuf
 
       - name: Build SkyWalking-PHP
         run: |
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
           ./configure
           make
           sudo make install
-          bash -c './build-sky-php-agent.sh'
           sudo make clean
           
       - name: Build SkyWalking mock collector
         run: |
-          cd skywalking-agent-test-tool
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/skywalking-agent-test-tool
           mvn package -DskipTests
           tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
           cd ./mock-collector/skywalking-mock-collector
