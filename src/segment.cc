@@ -38,6 +38,12 @@ Segment::Segment(const std::string &serviceId, const std::string &serviceInstanc
     }
 }
 
+Segment::~Segment() {
+    delete bag;
+    spans.clear();
+    spans.shrink_to_fit();
+}
+
 std::string Segment::marshal(int status_code) {
     if (!spans.empty()) {
         auto span = spans.front();

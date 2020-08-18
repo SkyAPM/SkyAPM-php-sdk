@@ -36,6 +36,8 @@ public:
 
     void createRefs();
 
+    ~Segment();
+
 private:
     CrossProcessBag *bag;
 

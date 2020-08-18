@@ -24,6 +24,11 @@ Span::Span() {
     skipAnalysis = false;
 }
 
+Span::~Span() {
+    tags.clear();
+    tags.shrink_to_fit();
+}
+
 // get
 int Span::getSpanId() const {
     return spanId;

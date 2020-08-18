@@ -36,6 +36,8 @@ enum class SkySpanLayer {
 class Span {
 public:
     Span();
+    
+    ~Span();
 
     int getSpanId() const;
 
