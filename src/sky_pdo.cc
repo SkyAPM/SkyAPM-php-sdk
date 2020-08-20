@@ -25,7 +25,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
         function_name == "prepare" || function_name == "commit" ||
         function_name == "begintransaction" || function_name == "rollback") {
         auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
-        auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 0);
+        auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8003);
         span->setOperationName(class_name + "->" + function_name);
 
         uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
