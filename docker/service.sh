@@ -1,11 +1,14 @@
 #!/usr/bin/env sh
 
+grpc=$SW_OAP_ADDRESS
+
+if [ ! $grpc ]; then
+    grpc="127.0.0.1:11800"
+fi
+
+echo "sw oap address:" $grpc
+
+sed -i "s/127.0.0.1:11800/$grpc/g" $PHP_INI_DIR/conf.d/ext-skywalking.ini
 nginx
 
-php-fpm > /var/log/php-fpm.log 2>&1 &
-
-sky-php-agent --grpc ${SW_AGENT_COLLECTOR_BACKEND_SERVICES} --socket /tmp/sky-agent.sock > /var/log/sky-php.log 2>&1 &
-
-while [[ true ]]; do
-    sleep 1
-done
+php-fpm
