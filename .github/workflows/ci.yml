@@ -39,7 +39,7 @@ jobs:
       - name: Install library
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl libcurl4-openssl-dev
+          sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
 
@@ -69,7 +69,17 @@ jobs:
         run: |
           docker-compose -f docker/docker-compose.yml up -d
           docker ps
-    
+
+      - name: Start FPM and Nginx
+        run: |
+          php-fpm
+          nginx
+
+      - name: E2E tests
+        run: |
+          php --ini
+          php e2e/e2e.php
+ 
   publish:
     needs: [build]
     runs-on: [ubuntu-latest]

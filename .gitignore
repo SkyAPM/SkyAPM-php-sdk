@@ -44,3 +44,5 @@ sky_php*
 /src/network/*
 log.cpp
 skywalking*.tgz
+e2e/composer.lock
+e2e/vendor
