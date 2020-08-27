@@ -1,0 +1,7 @@
+CREATE DATABASE mock;
+USE mock;
+CREATE TABLE IF NOT EXISTS `mock` (
+  `id` INT AUTO_INCREMENT,
+  `name` CHAR(1),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,16 +1,19 @@
 version: '3'
 services:
-  oap:
+  skywalking:
     image: apache/skywalking-oap-server
-  ui:
-    image: apache/skywalking-ui
+    ports:
+      - "11800:11800"
+  mysql:
+    image: mysql:5
+    restart: always
     environment:
-      - SW_OAP_ADDRESS=oap:12800
+      MYSQL_ROOT_PASSWORD: 111111
     ports:
-      - 9001:8080
-  phpagent:
-    image: skyapm/skywalking-php
-    environment:  
-      - SW_AGENT_COLLECTOR_BACKEND_SERVICES=oap:11800
+      - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+  redis:
+    image: redis
     ports:
-      - 8080:8080
+      - "6379:6379"

@@ -22,12 +22,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Checkout agent test tool
-        uses: actions/checkout@v2
-        with:
-          repository: apache/skywalking-agent-test-tool
-          path: skywalking-agent-test-tool
-
       - name: Checkout GRPC
         uses: actions/checkout@v2
         with:
@@ -42,16 +36,6 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           extensions: curl, json
 
-      - name: Setup java
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-
-      - name: Setup maven
-        uses: aahmed-se/setup-maven@v3
-        with:
-          maven-version: 3.6.1
-
       - name: Install library
         run: |
           sudo apt-get update
@@ -61,7 +45,6 @@ jobs:
 
       - name: Build GRPC
         run: |
-          pwd
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
           ./autogen.sh && ./configure
           make -j$(nproc) && make -j$(nproc) check && sudo make install && sudo make clean && sudo ldconfig
@@ -72,7 +55,6 @@ jobs:
           make -j$(nproc) && sudo make install && make clean && sudo ldconfig
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           sudo rm -fr /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
-          pkg-config --cflags --libs protobuf
 
       - name: Build SkyWalking-PHP
         run: |
@@ -82,16 +64,12 @@ jobs:
           make
           sudo make install
           sudo make clean
-          
-      - name: Build SkyWalking mock collector
+      
+      - name: Start docker-compose
         run: |
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/skywalking-agent-test-tool
-          mvn package -DskipTests
-          tar zxvf ./dist/skywalking-mock-collector.tar.gz -C ./mock-collector
-          cd ./mock-collector/skywalking-mock-collector
-          nohup bash -c './bin/collector-startup.sh' &
-          bash -c 'response=0; while [ $response -ne 200 ]; do sleep 1; response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:12800/receiveData);echo $response;done'
-
+          docker-compose -f docker/docker-compose.yml up -d
+          docker ps
+    
   publish:
     needs: [build]
     runs-on: [ubuntu-latest]
