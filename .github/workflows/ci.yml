@@ -16,8 +16,8 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['7.0', '7.1', '7.2', '7.3', '7.4']
-    name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
+        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4']
+    name: PHP ${{ matrix.php-version }} Test on ${{ matrix.operating-system }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -33,7 +33,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: ${{ matrix.php-version }}
           extensions: curl, json
 
       - name: Install library
@@ -42,7 +42,7 @@ jobs:
           sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
-          sudo apt-get install -y php$php-versions-fpm
+          sudo apt-get install -y php${{ matrix.php-version }}-fpm
 
       - name: Build GRPC
         run: |
@@ -73,7 +73,7 @@ jobs:
 
       - name: Start FPM and Nginx
         run: |
-          sudo service php$php-versions-fpm start
+          sudo service php${{ matrix.php-version }}-fpm start
           nginx
 
       - name: E2E tests
