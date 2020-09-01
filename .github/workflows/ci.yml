@@ -73,8 +73,8 @@ jobs:
 
       - name: Start FPM and Nginx
         run: |
-          sudo service php${{ matrix.php-version }}-fpm start
-          nginx
+          sudo systemctl start php${{ matrix.php-version }}-fpm
+          sudo systemctl start nginx
 
       - name: E2E tests
         run: |
