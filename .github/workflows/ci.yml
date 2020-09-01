@@ -73,9 +73,9 @@ jobs:
 
       - name: Start FPM and Nginx
         run: |
-          cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/cli/conf.d/
-          cp e2e/nginx.conf /etc/nginx/
-          cp e2e/index.php /var/www/html/
+          sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/cli/conf.d/
+          sudo cp e2e/nginx.conf /etc/nginx/
+          sudo cp e2e/index.php /var/www/html/
           sudo systemctl start php${{ matrix.php-version }}-fpm
           sudo systemctl start nginx
           sudo nginx -t
