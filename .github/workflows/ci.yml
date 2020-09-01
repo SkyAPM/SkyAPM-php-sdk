@@ -42,6 +42,7 @@ jobs:
           sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
+          sudo apt-get install -y php$php-versions-fpm
 
       - name: Build GRPC
         run: |
@@ -67,12 +68,12 @@ jobs:
       
       - name: Start docker-compose
         run: |
-          docker-compose -f docker/docker-compose.yml up -d
+          docker-compose -f e2e/docker-compose.yml up -d
           docker ps
 
       - name: Start FPM and Nginx
         run: |
-          php-fpm
+          sudo service php$php-versions-fpm start
           nginx
 
       - name: E2E tests
