@@ -59,7 +59,7 @@ GRAPHQL;
 
         $this->info($res);
         if (!empty($res)) {
-            $data = json_decode($res);
+            $data = json_decode($res, true);
             if (count($data['data']['services']) <= 0) {
                 return [[], false];
             }
