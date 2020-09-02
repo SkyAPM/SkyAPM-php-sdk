@@ -56,8 +56,17 @@ GRAPHQL;
         $this->call();
         sleep(1);
         $res = $this->services();
-        var_dump($res);
-        return [$res, $res != ""];
+
+        $this->info($res);
+        if (!empty($res)) {
+            $data = json_decode($res);
+            if (count($data['data']['services']) <= 0) {
+                return [[], false];
+            }
+            return [$data['data'], true];
+        }
+
+        return [[], false];
     }
 
 }
