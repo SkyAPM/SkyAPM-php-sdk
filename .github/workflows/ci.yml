@@ -35,6 +35,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: curl, json
+          tools: php-config, phpize, composer
 
       - name: Install library
         run: |
