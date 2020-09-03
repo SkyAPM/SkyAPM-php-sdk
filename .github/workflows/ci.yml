@@ -85,7 +85,6 @@ jobs:
         run: |
           cd e2e
           composer install
-          sudo cat /tmp/skywalking-php.log
           php e2e.php
  
   publish:
