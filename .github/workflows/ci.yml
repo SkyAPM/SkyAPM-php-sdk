@@ -75,6 +75,7 @@ jobs:
       - name: Start FPM and Nginx
         run: |
           sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/cli/conf.d/
+          sudo cat /etc/nginx/nginx.conf
           sudo cp e2e/nginx.conf /etc/nginx/
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl start php${{ matrix.php-version }}-fpm
@@ -86,7 +87,9 @@ jobs:
           cd e2e
           composer install
           php e2e.php
- 
+          sudo cat /var/log/nginx/error.log
+          sudo cat /var/log/nginx/access.log
+
   publish:
     needs: [build]
     runs-on: [ubuntu-latest]
