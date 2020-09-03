@@ -83,9 +83,6 @@ jobs:
 
       - name: E2E tests
         run: |
-          php --ini
-          php --version
-          php -m
           cd e2e
           composer install
           sudo cat /tmp/skywalking-php.log

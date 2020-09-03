@@ -50,6 +50,8 @@ GRAPHQL;
     public function call() {
         $ch = curl_init('http://127.0.0.1:8080/call');
         curl_exec($ch);
+        $info = curl_getinfo($ch);
+        var_dump($info);
     }
 
     public function check_services() {
