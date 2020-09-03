@@ -62,7 +62,7 @@ jobs:
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
           ./configure
-          make
+          make -j$(nproc)
           sudo make install
           sudo make clean
       
@@ -82,6 +82,8 @@ jobs:
 
       - name: E2E tests
         run: |
+          php --ini
+          php -m
           cd e2e
           composer install
           php e2e.php
