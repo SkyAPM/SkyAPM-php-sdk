@@ -78,7 +78,8 @@ jobs:
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl restart php${{ matrix.php-version }}-fpm
-          sudo nginx
+          sudo nginx -t
+          sudo nginx -s reload
           curl -i http://127.0.0.1:8080/call
 
 
