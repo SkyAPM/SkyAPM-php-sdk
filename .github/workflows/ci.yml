@@ -78,7 +78,8 @@ jobs:
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
           sudo rm /etc/nginx/sites-available/default
           sudo mkdir /etc/systemd/system/nginx.service.d
-          sudo printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.service.d/override.conf
+          sudo cp e2e/override.conf /etc/systemd/system/nginx.service.d/
+          sudo cat /etc/systemd/system/nginx.service.d/override.conf
           sudo systemctl daemon-reload
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl restart php${{ matrix.php-version }}-fpm
