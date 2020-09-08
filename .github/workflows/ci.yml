@@ -76,13 +76,13 @@ jobs:
         run: |
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
-          sudo cat /etc/nginx/nginx.conf
-          sudo cat /etc/nginx/sites-available/default
-          sudo ls -l /etc/nginx/conf.d/
-          sudo ls -l /etc/nginx/sites-enabled/
+          sudo rm /etc/nginx/sites-available/default
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl start php${{ matrix.php-version }}-fpm
+          sudo systemctl status php${{ matrix.php-version }}-fpm
           sudo systemctl start nginx
+          sudo systemctl status nginx
+          curl -i http://127.0.0.1:8080/call
 
 
       - name: E2E tests
