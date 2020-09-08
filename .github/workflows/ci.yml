@@ -79,6 +79,10 @@ jobs:
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl start php${{ matrix.php-version }}-fpm
           sudo systemctl start nginx
+          curl http://127.0.0.1:8080/
+          sudo cat /var/log/nginx/error.log
+          sudo cat /var/log/nginx/access.log
+
 
       - name: E2E tests
         run: |
