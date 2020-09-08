@@ -77,11 +77,10 @@ jobs:
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
           sudo rm /etc/nginx/sites-available/default
+          sudo cat /lib/systemd/system/nginx.service
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl start php${{ matrix.php-version }}-fpm
-          sudo systemctl status php${{ matrix.php-version }}-fpm
           sudo systemctl start nginx
-          sudo systemctl status nginx
           curl -i http://127.0.0.1:8080/call
 
 
