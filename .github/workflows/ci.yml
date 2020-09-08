@@ -77,6 +77,7 @@ jobs:
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
           sudo cat /etc/nginx/nginx.conf
+          sudo cat /etc/nginx/sites-available/default
           sudo ls -l /etc/nginx/conf.d/
           sudo ls -l /etc/nginx/sites-enabled/
           sudo cp e2e/index.php /var/www/html/
