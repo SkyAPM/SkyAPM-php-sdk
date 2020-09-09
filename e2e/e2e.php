@@ -29,8 +29,6 @@ GRAPHQL;
 
     public $startTime;
 
-    public $services;
-
     public $allServiceMetrics = [
         'service_sla',
         'service_cpm',
@@ -85,17 +83,20 @@ GRAPHQL;
             if (count($data['data']['services']) <= 0) {
                 return false;
             }
-            $this->services = $data['data']['services'];
-            // todo
+
+            if (!$this->verifyServiceMetrics($data['data']['services'])) {
+                return false;
+            }
+
             return true;
         }
 
         return false;
     }
 
-    public function verifyServiceMetrics() {
+    public function verifyServiceMetrics($services) {
 
-        foreach ($this->services as $service) {
+        foreach ($services as $service) {
             foreach ($this->allServiceMetrics as $metrics) {
                 $key = $service['key'];
                 $label = $service['label'];
@@ -138,7 +139,7 @@ GRAPHQL;
 
 }
 
-$check = ['verifyServices', 'verifyServiceMetrics'];
+$check = ['verifyServices'];
 $e2e = new E2E();
 
 foreach($check as $func) {
