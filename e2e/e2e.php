@@ -71,8 +71,6 @@ GRAPHQL;
     }
 
     public function verifyServices() {
-        $this->call();
-        sleep(1);
         $variables = [
             'duration' => [
                 "start" => date("Y-m-d His", $this->startTime),
@@ -149,6 +147,8 @@ foreach($check as $func) {
     $status = false;
     for($i = 1; $i <= 10; $i++) {
          $e2e->info("test $func $i/10...");
+         $e2e->call();
+         sleep(1);
          $status = $e2e->$func();
          if ($status === true) {
              $status = true;
@@ -159,7 +159,7 @@ foreach($check as $func) {
 
     if (!$status) {
         $e2e->info("test $func fail...");
-        exit(0);
+        exit(2);
     }
 
     $e2e->info("test $func success...");
