@@ -46,7 +46,6 @@ jobs:
           sudo apt-get install -y php${{ matrix.php-version }}-fpm
           date +"%Y-%m-%d %T"
           php -r "echo date('YmdHis');"
-          sudo hwclock
 
       - name: Build GRPC
         run: |
