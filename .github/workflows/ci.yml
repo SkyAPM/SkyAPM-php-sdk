@@ -47,6 +47,8 @@ jobs:
           date +"%Y-%m-%d %T"
           php -r "echo date('YmdHis');"
           sudo hwclock --show
+          gcc -o test test.c
+          ./test
 
       - name: Build GRPC
         run: |

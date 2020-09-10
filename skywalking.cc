@@ -16,7 +16,6 @@
   +----------------------------------------------------------------------+
 */
 
-#include <iostream>
 #include "php_skywalking.h"
 
 #include "src/sky_module.h"
@@ -83,7 +82,6 @@ PHP_RINIT_FUNCTION(skywalking)
 #if defined(COMPILE_DL_SKYWALKING) && defined(ZTS)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
-	std::cout << time(nullptr) << std::endl;
     if (SKYWALKING_G(enable)) {
         if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
             return SUCCESS;
