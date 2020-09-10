@@ -45,6 +45,11 @@ jobs:
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
           sudo apt-get install -y php${{ matrix.php-version }}-fpm
 
+      - name: Start docker-compose
+        run: |
+          docker-compose -f e2e/docker-compose.yml up -d
+          docker ps
+
       - name: Build GRPC
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
@@ -66,11 +71,6 @@ jobs:
           make -j$(nproc)
           sudo make install
           sudo make clean
-      
-      - name: Start docker-compose
-        run: |
-          docker-compose -f e2e/docker-compose.yml up -d
-          docker ps
 
       - name: Start FPM and Nginx
         run: |
@@ -89,6 +89,7 @@ jobs:
           composer install
           php e2e.php
           sudo cat /tmp/skywalking-php.log
+          docker logs e2e_skywalking_1
 
   publish:
     needs: [build]
