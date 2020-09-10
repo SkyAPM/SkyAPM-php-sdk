@@ -1,7 +1,7 @@
 version: '3'
 services:
   skywalking:
-    image: apache/skywalking-oap-server
+    image: apache/skywalking-oap-server:VERSION
     ports:
       - "11800:11800"
       - "12800:12800"

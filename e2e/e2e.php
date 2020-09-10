@@ -64,8 +64,11 @@ GRAPHQL;
     }
 
     public function call() {
-        $ch = curl_init('http://127.0.0.1:8080/call');
+        $ch = curl_init('http://127.0.0.1:8083/call');
         curl_exec($ch);
+        if (curl_getinfo($ch, CURLINFO_HTTP_CODE) != 200) {
+            exit(2);
+        }
     }
 
     public function verifyServices() {
@@ -161,7 +164,7 @@ foreach($check as $func) {
 
     if (!$status) {
         $e2e->info("test $func fail...");
-        exit(0);
+        exit(2);
     }
 
     $e2e->info("test $func success...");
