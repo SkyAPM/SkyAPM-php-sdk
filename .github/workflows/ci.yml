@@ -44,11 +44,6 @@ jobs:
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
           sudo apt-get install -y php${{ matrix.php-version }}-fpm
-          date +"%Y-%m-%d %T"
-          php -r "echo date('YmdHis');"
-          sudo hwclock --show
-          gcc -o test test.c
-          ./test
 
       - name: Build GRPC
         run: |

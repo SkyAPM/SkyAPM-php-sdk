@@ -133,10 +133,7 @@ void Span::pushRefs(SkySegmentReference *ref) {
 }
 
 long Span::getUnixTimeStamp() {
-    struct timeval tv{};
-    gettimeofday(&tv, nullptr);
-    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-//    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-//            std::chrono::system_clock::now().time_since_epoch());
-//    return ms.count();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch());
+    return ms.count();
 }

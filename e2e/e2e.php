@@ -37,7 +37,7 @@ GRAPHQL;
     ];
 
     public function __construct() {
-        $this->startTime = time() - 15 * 60;
+        $this->startTime = time() - 1500 * 60;
     }
 
     public function query($query, $variables) {
@@ -105,7 +105,7 @@ GRAPHQL;
                 $variables = [
                     'duration' => [
                         "start" => date("Y-m-d Hi", $this->startTime),
-                        "end" => date("Y-m-d Hi"),
+                        "end" => date("Y-m-d Hi", time() + 1500*60),
                         "step" => "MINUTE"
                     ],
                     "id" => $key
