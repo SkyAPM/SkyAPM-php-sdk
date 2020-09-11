@@ -27,6 +27,20 @@ query ($id: ID!, $duration: Duration!) {
 }
 GRAPHQL;
 
+    public $instanceQuery = <<<'GRAPHQL'
+query queryInstances($serviceId: ID!, $duration: Duration!) {
+    instances: getServiceInstances(duration: $duration, serviceId: $serviceId) {
+        key: id
+        label: name
+        attributes {
+            name
+            value
+        }
+        instanceUUID
+    }
+}
+GRAPHQL;
+
     public $startTime;
 
     public $allServiceMetrics = [
@@ -87,8 +101,16 @@ GRAPHQL;
                 return false;
             }
 
-            if (!$this->verifyServiceMetrics($data['data']['services'])) {
-                return false;
+            foreach ($data['data']['services'] as $service) {
+
+                if (!$this->verifyServiceMetrics($service)) {
+                    return false;
+                }
+
+                $instances = $this->verifyServiceInstances($service);
+                if ($instances === false) {
+                    return false;
+                }
             }
 
             return true;
@@ -97,50 +119,87 @@ GRAPHQL;
         return false;
     }
 
-    public function verifyServiceMetrics($services) {
+    public function verifyServiceMetrics($service) {
 
-        foreach ($services as $service) {
-            foreach ($this->allServiceMetrics as $metrics) {
-                $key = $service['key'];
-                $label = $service['label'];
-                $this->info("verifying service ($key:$label), metrics: $metrics");
+        foreach ($this->allServiceMetrics as $metrics) {
+            $key = $service['key'];
+            $label = $service['label'];
+            $this->info("verifying service ($key:$label), metrics: $metrics");
 
-                $variables = [
-                    'duration' => [
-                        "start" => date("Y-m-d Hi", $this->startTime),
-                        "end" => date("Y-m-d Hi"),
-                        "step" => "MINUTE"
-                    ],
-                    "id" => $key
-                ];
-                var_dump($variables);
-                $query = str_replace("{metricsName}", $metrics, $this->metricsQuery);
+            $variables = [
+                'duration' => [
+                    "start" => date("Y-m-d Hi", time() - 15 * 60),
+                    "end" => date("Y-m-d Hi"),
+                    "step" => "MINUTE"
+                ],
+                "id" => $key
+            ];
+            $query = str_replace("{metricsName}", $metrics, $this->metricsQuery);
 
-                $res = $this->query($query, $variables);
-                if (!empty($res)) {
-                    $data = json_decode($res, true);
-                    if (count($data['data']['metrics']['values']) > 0) {
-                        $check = false;
-                        foreach ($data['data']['metrics']['values'] as $item) {
-                            if ($item['value'] > 0) {
-                                $check = true;
-                                break;
-                            }
+            $res = $this->query($query, $variables);
+            if (!empty($res)) {
+                $data = json_decode($res, true);
+                if (count($data['data']['metrics']['values']) > 0) {
+                    $check = false;
+                    foreach ($data['data']['metrics']['values'] as $item) {
+                        if ($item['value'] > 0) {
+                            $check = true;
+                            break;
                         }
-                        if (!$check) {
-                            return false;
-                        }
-                    } else {
+                    }
+                    if (!$check) {
                         return false;
                     }
                 } else {
                     return false;
                 }
+            } else {
+                return false;
             }
         }
+
         return true;
     }
 
+    public function verifyServiceInstances($service) {
+
+        $key = $service['key'];
+        $label = $service['label'];
+        $this->info("verifying instance ($key:$label)");
+
+        $variables = [
+            'duration' => [
+                "start" => date("Y-m-d His", $this->startTime),
+                "end" => date("Y-m-d His"),
+                "step" => "SECOND"
+            ],
+            "serviceId" => $key
+        ];
+
+        $res = $this->query($this->instanceQuery, $variables);
+        if (!empty($res)) {
+            $data = json_decode($res, true);
+
+            if (count($data['data']['instances']) > 0) {
+                foreach ($data['data']['instances'] as $instance) {
+                    $status = $instance['key'] == '' or $instance['label'] == '';
+                    if ($status) {
+                        return false;
+                    } else {
+                        foreach ($instance['attributes'] as $attr) {
+                            if ($attr['value'] == '') {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                return $data['data']['instances'];
+            }
+            return false;
+        } else {
+            return false;
+        }
+    }
 }
 
 $check = ['verifyServices'];

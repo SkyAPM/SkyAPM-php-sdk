@@ -18,7 +18,7 @@ jobs:
         operating-system: [ubuntu-latest]
         php-version: ['7.0', '7.1', '7.2', '7.3', '7.4']
         skywalking-version: ['8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
-    name: PHP ${{ matrix.php-version }} SkyWalking ${{ matrix.skywalking-version }} Test on ${{ matrix.operating-system }}
+    name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
