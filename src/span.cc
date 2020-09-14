@@ -38,7 +38,7 @@ int Span::getParentSpanId() const {
     return parentSpanId;
 }
 
-uint64_t Span::getStartTime() const {
+long Span::getStartTime() const {
     return startTime;
 }
 
@@ -132,7 +132,7 @@ void Span::pushRefs(SkySegmentReference *ref) {
     refs.push_back(ref);
 }
 
-uint64_t Span::getUnixTimeStamp() {
+long Span::getUnixTimeStamp() {
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch());
     return ms.count();

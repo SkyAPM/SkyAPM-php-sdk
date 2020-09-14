@@ -16,8 +16,9 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['7.0', '7.1', '7.2', '7.3', '7.4']
-    name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
+        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4']
+        skywalking-version: ['8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
+    name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -33,15 +34,23 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: ${{ matrix.php-version }}
           extensions: curl, json
+          tools: php-config, phpize, composer
 
       - name: Install library
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl libcurl4-openssl-dev
+          sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
+          sudo apt-get install -y php${{ matrix.php-version }}-fpm
+
+      - name: Start docker-compose
+        run: |
+          sudo sed -i "s/VERSION/${{ matrix.skywalking-version }}/g" e2e/docker-compose.yml
+          docker-compose -f e2e/docker-compose.yml up -d
+          docker ps
 
       - name: Build GRPC
         run: |
@@ -61,15 +70,28 @@ jobs:
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
           ./configure
-          make
+          make -j$(nproc)
           sudo make install
           sudo make clean
-      
-      - name: Start docker-compose
+
+      - name: Start FPM and Nginx
         run: |
-          docker-compose -f docker/docker-compose.yml up -d
-          docker ps
-    
+          sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/cli/conf.d/
+          sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/fpm/conf.d/
+          sudo cp e2e/nginx.conf /etc/nginx/conf.d/
+          sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
+          sudo cp e2e/index.php /var/www/html/
+          sudo systemctl restart php${{ matrix.php-version }}-fpm
+          sudo nginx -s reload
+
+
+      - name: E2E tests
+        run: |
+          cd e2e
+          composer install
+          php e2e.php
+          sudo cat /tmp/skywalking-php.log
+
   publish:
     needs: [build]
     runs-on: [ubuntu-latest]

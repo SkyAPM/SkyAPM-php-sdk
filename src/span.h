@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include "sys/time.h"
 #include "tag.h"
 #include "segment_reference.h"
 
@@ -43,7 +44,7 @@ public:
 
     int getParentSpanId() const;
 
-    uint64_t getStartTime() const;
+    long getStartTime() const;
 
     long getEndTime() const;
 
@@ -91,12 +92,12 @@ public:
     void pushRefs(SkySegmentReference *ref);
 
 private:
-    static uint64_t getUnixTimeStamp();
+    static long getUnixTimeStamp();
 
 private:
     int spanId;
     int parentSpanId;
-    uint64_t startTime;
+    long startTime;
     long endTime;
     std::vector<SkySegmentReference *> refs;
     std::string operationName;
