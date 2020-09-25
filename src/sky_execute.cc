@@ -18,6 +18,7 @@
 
 #include "sky_predis.h"
 #include "sky_grpc.h"
+#include "sky_plugin_rabbit_mq.h"
 #include "sky_pdo.h"
 
 void (*ori_execute_ex)(zend_execute_data *execute_data) = nullptr;
@@ -41,6 +42,8 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             span = sky_predis(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
             span = sky_grpc(execute_data, class_name, function_name);
+        } else if (strcmp(class_name, "PhpAmqpLib\\Channel\\AMQPChannel") == 0) {
+            span = sky_plugin_rabbit_mq(execute_data, class_name, function_name);
         }
     }
 

@@ -90,7 +90,42 @@ namespace Grpc {
     }
 }
 
+namespace PhpAmqpLib\Connection {
+
+    class AbstractConnection {
+        protected $construct_params;
+    }
+    class AMQPStreamConnection extends AbstractConnection {
+
+
+        public function __construct($host, $port) {
+            $this->construct_params = func_get_args();
+        }
+    }
+}
+
+namespace PhpAmqpLib\Channel {
+    class AbstractChannel {
+        protected $connection;
+        public function __construct($connection) {
+            $this->connection = $connection;
+        }
+    }
+    class AMQPChannel extends AbstractChannel {
+
+        public function __construct($connection, $channel_id = null, $auto_decode = true, $channel_rpc_timeout = 0) {
+            parent::__construct($connection);
+        }
+
+        public function basic_publish($msg, $exchange = '') {
+        }
+
+    }
+}
+
 namespace {
+    $channel = new \PhpAmqpLib\Channel\AMQPChannel(new \PhpAmqpLib\Connection\AMQPStreamConnection("127.0.0.1", 2222));
+    $channel->basic_publish("test", "exchange");
     $client = new \Predis\Client(["host" => "127.0.0.1", "port" => 6379]);
     $client->set('foo', 'bar');
     $client->get('foo');
@@ -98,16 +133,16 @@ namespace {
     // test grpc
     $hello = new \Grpc\HelloClient("127.0.0.1:8888");
     $hello->hello();
-
-    // test pdo
-    $dbh = new \PDO("mysql:host=127.0.0.1;port=3306;dbname=mock", "root", "111111");
-    $dbh->exec("SET names utf8");
-    $dbh->query("select * from mock");
-    $dbh->prepare("select * from mock where id = ?");
-
-    $dbh->beginTransaction();
-    $dbh->query("select * from mock");
-    $dbh->commit();
+//
+//     // test pdo
+//     $dbh = new \PDO("mysql:host=127.0.0.1;port=3306;dbname=mock", "root", "111111");
+//     $dbh->exec("SET names utf8");
+//     $dbh->query("select * from mock");
+//     $dbh->prepare("select * from mock where id = ?");
+//
+//     $dbh->beginTransaction();
+//     $dbh->query("select * from mock");
+//     $dbh->commit();
 
     // test curl
     // $ch = curl_init("https://api.github.com/repos");
