@@ -52,7 +52,7 @@ private:
 
     [[noreturn]] static void sender(const ManagerOptions &options);
 
-    [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &service, const std::string &serviceInstance);
+    [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &serviceInstance);
 
     [[noreturn]] static void consumer(int *fd);
 

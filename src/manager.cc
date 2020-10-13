@@ -106,7 +106,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info, in
         if (rc.ok()) {
             strcpy(info->service, options.code.c_str());
             strcpy(info->service_instance, instance.c_str());
-            std::thread h(heartbeat, options.grpc, options.code, instance);
+            std::thread h(heartbeat, options, instance);
             h.detach();
         }
         status = rc.ok();
@@ -114,7 +114,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info, in
     }
 }
 
-[[noreturn]] void Manager::heartbeat(const ManagerOptions &options, const std::string &service, const std::string &serviceInstance) {
+[[noreturn]] void Manager::heartbeat(const ManagerOptions &options, const std::string &serviceInstance) {
     std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
 
@@ -123,7 +123,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info, in
         InstancePingPkg ping;
         Commands commands;
 
-        ping.set_service(service);
+        ping.set_service(options.code);
         ping.set_serviceinstance(serviceInstance);
 
         stub->keepAlive(&context, ping, &commands);
