@@ -68,7 +68,16 @@ void sky_module_init() {
 
         s_info = (struct service_info *) mmap(nullptr, sizeof(struct service_info), protection, visibility, -1, 0);
 
-        new Manager(SKYWALKING_G(version), SKYWALKING_G(app_code), SKYWALKING_G(grpc), s_info, fd);
+        ManagerOptions opt;
+        opt.version = SKYWALKING_G(version);
+        opt.code = SKYWALKING_G(app_code);
+        opt.grpc = SKYWALKING_G(grpc);
+        opt.grpc_tls = SKYWALKING_G(grpc_tls_enable);
+        opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
+        opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
+        opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
+
+        new Manager(opt, s_info, fd);
     }
 }
 

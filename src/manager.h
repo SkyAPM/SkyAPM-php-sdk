@@ -18,6 +18,8 @@
 
 #include <string>
 #include <vector>
+#include "grpc/grpc.h"
+#include "grpc++/grpc++.h"
 
 #if defined(__linux__)
 #define PLATFORM_NAME "Linux"
@@ -27,25 +29,36 @@
 #define PLATFORM_NAME ""
 #endif
 
+struct ManagerOptions {
+    int version;
+    std::string code;
+    std::string grpc;
+    bool grpc_tls;
+    std::string root_certs;
+    std::string private_key;
+    std::string cert_chain;
+};
+
 class Manager {
 
 public:
-    Manager(int version, const std::string &code, const std::string &grpc, struct service_info *info, int *fd);
+    Manager(const ManagerOptions &options, struct service_info *info, int *fd);
 
     static std::string generateUUID();
 
 private:
 
-    static void
-    login(int version, const std::string &code, const std::string &grpc, struct service_info *info, int *fd);
+    static void login(const ManagerOptions &options, struct service_info *info, int *fd);
 
-    [[noreturn]] static void sender(const std::string &grpc);
+    [[noreturn]] static void sender(const ManagerOptions &options);
 
-    [[noreturn]] static void heartbeat(const std::string &grpc, const std::string &service, const std::string &serviceInstance);
+    [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &service, const std::string &serviceInstance);
 
     [[noreturn]] static void consumer(int *fd);
 
     static std::vector<std::string> getIps();
+
+    static std::shared_ptr<grpc::ChannelCredentials> getCredentials(const ManagerOptions &options);
 };
 
 
