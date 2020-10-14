@@ -56,6 +56,7 @@ extern zend_module_entry skywalking_module_entry;
 #include "TSRM.h"
 #endif
 
+PHP_FUNCTION (skywalking_trace_id);
 PHP_MINIT_FUNCTION (skywalking);
 PHP_MSHUTDOWN_FUNCTION (skywalking);
 PHP_RINIT_FUNCTION (skywalking);
@@ -72,6 +73,12 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     zval curl_header;
     int version;
     void *segment;
+
+    // tls
+    zend_bool grpc_tls_enable;
+    char *grpc_tls_pem_root_certs;
+    char *grpc_tls_pem_private_key;
+    char *grpc_tls_pem_cert_chain;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

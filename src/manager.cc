@@ -38,25 +38,25 @@ static pthread_mutex_t mx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t cond_mx = PTHREAD_MUTEX_INITIALIZER;
 
-Manager::Manager(int version, const std::string &code, const std::string &grpc, struct service_info *info, int *fd) {
+Manager::Manager(const ManagerOptions &options, struct service_info *info, int *fd) {
 
     sky_log.open("/tmp/skywalking-php.log", std::ios::app);
 
-    std::thread th(login, version, code, grpc, info, fd);
+    std::thread th(login, options, info, fd);
     th.detach();
 
     std::thread c(consumer, fd);
     c.detach();
 
-    std::thread s(sender, grpc);
+    std::thread s(sender, options);
     s.detach();
 
     sky_log << "the apache skywalking php plugin mounted" << std::endl;
 }
 
-void Manager::login(int version, const std::string &code, const std::string &grpc, struct service_info *info, int *fd) {
+void Manager::login(const ManagerOptions &options, struct service_info *info, int *fd) {
 
-    std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(grpc, grpc::InsecureChannelCredentials()));
+    std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
 
     bool status = false;
@@ -74,7 +74,7 @@ void Manager::login(int version, const std::string &code, const std::string &grp
             instance = generateUUID() + "@" + ips[0];
         }
 
-        properties.set_service(code);
+        properties.set_service(options.code);
         properties.set_serviceinstance(instance);
         auto osName = properties.add_properties();
         osName->set_key("os_name");
@@ -104,9 +104,9 @@ void Manager::login(int version, const std::string &code, const std::string &grp
         std::string msg = properties.SerializeAsString();
         auto rc = stub->reportInstanceProperties(&context, properties, &commands);
         if (rc.ok()) {
-            strcpy(info->service, code.c_str());
+            strcpy(info->service, options.code.c_str());
             strcpy(info->service_instance, instance.c_str());
-            std::thread h(heartbeat, grpc, code, instance);
+            std::thread h(heartbeat, options, instance);
             h.detach();
         }
         status = rc.ok();
@@ -114,8 +114,8 @@ void Manager::login(int version, const std::string &code, const std::string &grp
     }
 }
 
-[[noreturn]] void Manager::heartbeat(const std::string &grpc, const std::string &service, const std::string &serviceInstance) {
-    std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(grpc, grpc::InsecureChannelCredentials()));
+[[noreturn]] void Manager::heartbeat(const ManagerOptions &options, const std::string &serviceInstance) {
+    std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
 
     while (true) {
@@ -123,7 +123,7 @@ void Manager::login(int version, const std::string &code, const std::string &grp
         InstancePingPkg ping;
         Commands commands;
 
-        ping.set_service(service);
+        ping.set_service(options.code);
         ping.set_serviceinstance(serviceInstance);
 
         stub->keepAlive(&context, ping, &commands);
@@ -149,9 +149,9 @@ void Manager::login(int version, const std::string &code, const std::string &grp
     }
 }
 
-[[noreturn]] void Manager::sender(const std::string &grpc) {
+[[noreturn]] void Manager::sender(const ManagerOptions &options) {
 
-    std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(grpc, grpc::InsecureChannelCredentials()));
+    std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
     std::unique_ptr<TraceSegmentReportService::Stub> stub(TraceSegmentReportService::NewStub(channel));
     grpc::ClientContext context;
     Commands commands;
@@ -206,6 +206,24 @@ std::vector<std::string> Manager::getIps() {
     freeifaddrs(interfaces);
 
     return ips;
+}
+
+std::shared_ptr<grpc::ChannelCredentials> Manager::getCredentials(const ManagerOptions &options) {
+    std::shared_ptr<grpc::ChannelCredentials> creds;
+    if (options.grpc_tls == true) {
+        if (options.cert_chain.empty() && options.private_key.empty()) {
+            creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
+        } else {
+            grpc::SslCredentialsOptions opts;
+            opts.pem_cert_chain = options.cert_chain;
+            opts.pem_root_certs = options.root_certs;
+            opts.pem_private_key = options.private_key;
+            creds = grpc::SslCredentials(opts);
+        }
+    } else {
+        creds = grpc::InsecureChannelCredentials();
+    }
+    return creds;
 }
 
 std::string Manager::generateUUID() {

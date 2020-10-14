@@ -144,3 +144,7 @@ void Segment::createRefs() {
         }
     }
 }
+
+std::string Segment::getTraceId() {
+    return _traceId;
+}

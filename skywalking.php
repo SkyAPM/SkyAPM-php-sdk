@@ -133,6 +133,7 @@ namespace {
     // test grpc
     $hello = new \Grpc\HelloClient("127.0.0.1:8888");
     $hello->hello();
+    var_dump(skywalking_trace_id());
 //
 //     // test pdo
 //     $dbh = new \PDO("mysql:host=127.0.0.1;port=3306;dbname=mock", "root", "111111");
