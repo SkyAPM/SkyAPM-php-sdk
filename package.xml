@@ -20,7 +20,7 @@
 		<api>stable</api>
 	</stability>
 	<license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
-	<notes>Fix bugs</notes>
+	<notes>newly designed agent, modular design</notes>
 	<contents>
 		<dir name="/">
 			<file role="doc" name="CREDITS"/>
