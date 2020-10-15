@@ -110,11 +110,20 @@ if test "$PHP_SKYWALKING" != "no"; then
     -L$GRPC_LIBDIR
   ])
 
+  AC_PATH_PROG(PROTOC, protoc, no)
+  if ! test -x "$PROTOC"; then
+    AC_MSG_ERROR([protoc command missing, please reinstall the protobuf distribution])
+  fi
+  AC_PATH_PROG(GRPC_CPP_PLUGIN, grpc_cpp_plugin, no)
+  if ! test -x "$GRPC_CPP_PLUGIN"; then
+    AC_MSG_ERROR([grpc_cpp_plugin command missing, please reinstall the grpc distribution])
+  fi
+
   mkdir -p src/network/v3
-  protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/common/Common.proto
-  protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/language-agent/*.proto
-  protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/profile/*.proto
-  protoc -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --cpp_out=src/network/v3 src/protocol/v3/management/*.proto
+  $PROTOC -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN --cpp_out=src/network/v3 src/protocol/v3/common/Common.proto
+  $PROTOC -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN --cpp_out=src/network/v3 src/protocol/v3/language-agent/*.proto
+  $PROTOC -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN --cpp_out=src/network/v3 src/protocol/v3/profile/*.proto
+  $PROTOC -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN --cpp_out=src/network/v3 src/protocol/v3/management/*.proto
   find src -name "*.grpc.pb.cc" | while read id; do mv $id ${id/.grpc/_grpc}; done
 
   PROTOBUF_LIBDIR=$PROTOBUF_DIR/${PROTOBUF_LIB_SUBDIR-lib}
