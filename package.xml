@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.9.4" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+	<name>skywalking</name>
+	<channel>pecl.php.net</channel>
+	<summary>The PHP instrument agent for Apache SkyWalking.</summary>
+	<description>The package is the PHP instrumentation agent, which is compatible with Apache SkyWalking backend and others compatible agents/SDKs.</description>
+	<lead>
+		<name>Yanlong He</name>
+		<user>yanlong</user>
+		<email>yanlong@php.net</email>
+		<active>yes</active>
+	</lead>
+	<date>2020-10-15</date>
+	<version>
+		<release>4.0.0</release>
+		<api>4.0.0</api>
+	</version>
+	<stability>
+		<release>stable</release>
+		<api>stable</api>
+	</stability>
+	<license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
+	<notes>Fix bugs</notes>
+	<contents>
+		<dir name="/">
+			<file role="doc" name="CREDITS"/>
+			<file role="doc" name="EXPERIMENTAL"/>
+			<file role="doc" name="LICENSE"/>
+			<file role="doc" name="README.md"/>
+			<file role="src" name="config.m4"/>
+			<file role="src" name="config.w32"/>
+			<file role="src" name="docker/Dockerfile"/>
+			<file role="src" name="docker/index.php"/>
+			<file role="src" name="docker/nginx.conf"/>
+			<file role="src" name="docker/service.sh"/>
+			<file role="doc" name="docs/README.md"/>
+			<file role="doc" name="docs/install.md"/>
+			<file role="doc" name="docs/quick-start.md"/>
+			<file role="src" name="e2e/99-skywalking.ini"/>
+			<file role="src" name="e2e/composer.json"/>
+			<file role="src" name="e2e/docker-compose.yml"/>
+			<file role="src" name="e2e/e2e.php"/>
+			<file role="src" name="e2e/index.php"/>
+			<file role="src" name="e2e/init.sql"/>
+			<file role="src" name="e2e/nginx.conf"/>
+			<file role="src" name="e2e/override.conf"/>
+			<file role="src" name="php.ini"/>
+			<file role="src" name="php_skywalking.h"/>
+			<file role="src" name="scripts/package.py"/>
+			<file role="src" name="scripts/pecl.sh"/>
+			<file role="src" name="scripts/version.sh"/>
+			<file role="src" name="skywalking.cc"/>
+			<file role="src" name="skywalking.php"/>
+			<file role="src" name="src/base64.cc"/>
+			<file role="src" name="src/base64.h"/>
+			<file role="src" name="src/common.h"/>
+			<file role="src" name="src/cross_process_bag.cc"/>
+			<file role="src" name="src/cross_process_bag.h"/>
+			<file role="src" name="src/manager.cc"/>
+			<file role="src" name="src/manager.h"/>
+			<file role="doc" name="src/protocol/v3/README.md"/>
+			<file role="src" name="src/protocol/v3/browser/BrowserPerf.proto"/>
+			<file role="src" name="src/protocol/v3/common/Common.proto"/>
+			<file role="src" name="src/protocol/v3/language-agent/CLRMetric.proto"/>
+			<file role="src" name="src/protocol/v3/language-agent/JVMMetric.proto"/>
+			<file role="src" name="src/protocol/v3/language-agent/Tracing.proto"/>
+			<file role="src" name="src/protocol/v3/management/Management.proto"/>
+			<file role="src" name="src/protocol/v3/profile/Profile.proto"/>
+			<file role="src" name="src/protocol/v3/service-mesh-probe/service-mesh.proto"/>
+			<file role="src" name="src/segment.cc"/>
+			<file role="src" name="src/segment.h"/>
+			<file role="src" name="src/segment_reference.cc"/>
+			<file role="src" name="src/segment_reference.h"/>
+			<file role="src" name="src/sky_curl.cc"/>
+			<file role="src" name="src/sky_curl.h"/>
+			<file role="src" name="src/sky_execute.cc"/>
+			<file role="src" name="src/sky_execute.h"/>
+			<file role="src" name="src/sky_grpc.cc"/>
+			<file role="src" name="src/sky_grpc.h"/>
+			<file role="src" name="src/sky_module.cc"/>
+			<file role="src" name="src/sky_module.h"/>
+			<file role="src" name="src/sky_pdo.cc"/>
+			<file role="src" name="src/sky_pdo.h"/>
+			<file role="src" name="src/sky_plugin_rabbit_mq.cc"/>
+			<file role="src" name="src/sky_plugin_rabbit_mq.h"/>
+			<file role="src" name="src/sky_predis.cc"/>
+			<file role="src" name="src/sky_predis.h"/>
+			<file role="src" name="src/sky_utils.cc"/>
+			<file role="src" name="src/sky_utils.h"/>
+			<file role="src" name="src/span.cc"/>
+			<file role="src" name="src/span.h"/>
+			<file role="src" name="src/tag.cc"/>
+			<file role="src" name="src/tag.h"/>
+		</dir>
+	</contents>
+	<dependencies>
+		<required>
+			<php>
+				<min>7.0.0</min>
+			</php>
+			<pearinstaller>
+				<min>1.4.0</min>
+			</pearinstaller>
+		</required>
+	</dependencies>
+	<providesextension>skywalking</providesextension>
+	<extsrcrelease/>
+	<changelog>
+		<release>
+			<version>
+				<release>4.4.0</release>
+				<api>4.4.0</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>newly designed agent, modular design</notes>
+		</release>
+		<release>
+			<version>
+				<release>3.3.2</release>
+				<api>3.3.2</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Fix bugs</notes>
+		</release>
+		<release>
+			<version>
+				<release>3.3.1</release>
+				<api>3.3.1</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Fix bugs</notes>
+		</release>
+		<release>
+			<version>
+				<release>3.3.0</release>
+				<api>3.3.0</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Added memcache collection and skywalking 8.0 support</notes>
+		</release>
+		<release>
+			<version>
+				<release>3.2.8</release>
+				<api>3.2.8</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Fix bugs and add Dockerfile</notes>
+		</release>
+		<release>
+			<version>
+				<release>3.2.6</release>
+				<api>3.2.6</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Fix the mistake of field entryOperationName in sw6 header.</notes>
+		</release>
+		<release>
+			<version>
+				<release>3.2.5</release>
+				<api>3.2.5</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Fix the empty field bug in span refs for SkyWalking v6.</notes>
+		</release>
+		<release>
+			<version>
+				<release>3.2.4</release>
+				<api>3.2.4</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Support php7.4</notes>
+		</release>
+	</changelog>
+</package>
