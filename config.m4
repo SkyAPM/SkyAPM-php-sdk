@@ -78,7 +78,6 @@ if test "$PHP_SKYWALKING" != "no"; then
       PHP_ADD_LIBRARY(c++,1,SKYWALKING_SHARED_LIBADD)
       ;;
     *)
-      PHP_ADD_LIBRARY(stdc++,1,SKYWALKING_SHARED_LIBADD)
       PHP_ADD_LIBRARY(rt,,SKYWALKING_SHARED_LIBADD)
       PHP_ADD_LIBRARY(rt)
       ;;
@@ -152,7 +151,7 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/network/v3/language-agent/Tracing_grpc.pb.cc \
       src/network/v3/management/Management_grpc.pb.cc \
       src/network/v3/management/Management.pb.cc \
-  , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, cxx)
 fi
 
 if test -r $phpincludedir/ext/mysqli/mysqli_mysqlnd.h; then
