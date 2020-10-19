@@ -32,9 +32,16 @@ Span *sky_predis(zend_execute_data *execute_data, char *class_name, char *functi
 
         zval *id = (zval *) emalloc(sizeof(zval));
         zval *arguments = (zval *) emalloc(sizeof(zval));
+#if PHP_VERSION_ID < 80000
         zend_call_method(command, Z_OBJCE_P(command), nullptr, ZEND_STRL("getid"), id, 0, nullptr, nullptr);
         zend_call_method(command, Z_OBJCE_P(command), nullptr, ZEND_STRL("getarguments"), arguments, 0, nullptr,
                          nullptr);
+#else
+        zend_call_method(Z_OBJ_P(command), Z_OBJCE_P(command), nullptr, ZEND_STRL("getid"), id, 0, nullptr,
+                         nullptr);
+        zend_call_method(Z_OBJ_P(command), Z_OBJCE_P(command), nullptr, ZEND_STRL("getarguments"), arguments,
+                         0, nullptr, nullptr);
+#endif
 
         if (id != nullptr && Z_TYPE_P(id) == IS_STRING) {
             span->setOperationName(_class_name + "->" + std::string(Z_STRVAL_P(id)));

@@ -86,7 +86,11 @@ zval *sky_read_property(zval *obj, const char *property, int parent) {
             ce = object->ce->parent;
         }
 
+#if PHP_VERSION_ID < 80000
         return zend_read_property(ce, obj, property, strlen(property), 0, nullptr);
+#else
+        return zend_read_property(ce, object, property, strlen(property), 0, nullptr);
+#endif
     }
     return nullptr;
 }
