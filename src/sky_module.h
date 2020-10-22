@@ -21,8 +21,8 @@
 
 void sky_module_init();
 
-void sky_request_init();
+void sky_request_init(zval *request);
 
-void sky_request_flush();
+void sky_request_flush(zval *response);
 
 #endif //SKYWALKING_SKY_MODULE_H

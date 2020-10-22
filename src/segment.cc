@@ -49,14 +49,14 @@ Segment::~Segment() {
     spans.shrink_to_fit();
 }
 
-std::string Segment::marshal(int status_code) {
+std::string Segment::marshal() {
     if (!spans.empty()) {
         auto span = spans.front();
         span->setEndTIme();
-        if (status_code >= 400) {
+        if (_status_code >= 400) {
             span->setIsError(true);
         }
-        span->pushTag(new Tag("status_code", std::to_string(status_code)));
+        span->pushTag(new Tag("status_code", std::to_string(_status_code)));
     }
 
     SegmentObject msg;
@@ -103,6 +103,10 @@ std::string Segment::marshal(int status_code) {
     msg.set_serviceinstance(_serviceInstanceId);
     msg.set_issizelimited(false);
     return msg.SerializeAsString();
+}
+
+void Segment::setStatusCode(int code) {
+    _status_code = code;
 }
 
 Span *Segment::createSpan(SkySpanType type, SkySpanLayer layer, int componentId) {

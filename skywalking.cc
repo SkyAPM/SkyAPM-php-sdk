@@ -82,9 +82,6 @@ PHP_MINIT_FUNCTION (skywalking) {
 	REGISTER_INI_ENTRIES();
 
 	if (SKYWALKING_G(enable)) {
-        if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
-            return SUCCESS;
-        }
         sky_module_init();
 	}
 
@@ -104,36 +101,33 @@ PHP_RINIT_FUNCTION(skywalking)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
     if (SKYWALKING_G(enable)) {
-        if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
-            return SUCCESS;
-        }
-
         if (cli_debug == 1) {
             strcpy(s_info->service, "service");
             strcpy(s_info->service_instance, "service_instance");
         }
 
-        if (strlen(s_info->service_instance) == 0) {
-            return SUCCESS;
-        }
+        if (strcasecmp("fpm-fcgi", sapi_module.name) == 0 || (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 1)) {
+            if (strlen(s_info->service_instance) == 0) {
+                return SUCCESS;
+            }
 
-        sky_request_init();
+            sky_request_init(nullptr);
+        }
     }
     return SUCCESS;
 }
 
 PHP_RSHUTDOWN_FUNCTION(skywalking)
 {
-	if(SKYWALKING_G(enable)){
-        if (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 0) {
-            return SUCCESS;
-        }
-        if (SKYWALKING_G(segment) == nullptr) {
-            return SUCCESS;
-        }
+	if (SKYWALKING_G(enable)) {
+        if (strcasecmp("fpm-fcgi", sapi_module.name) == 0 || (strcasecmp("cli", sapi_module.name) == 0 && cli_debug == 1)) {
+            if (SKYWALKING_G(segment) == nullptr) {
+                return SUCCESS;
+            }
 
-        sky_request_flush();
-        zval_dtor(&SKYWALKING_G(curl_header));
+            sky_request_flush(nullptr);
+            zval_dtor(&SKYWALKING_G(curl_header));
+        }
 	}
 	return SUCCESS;
 }

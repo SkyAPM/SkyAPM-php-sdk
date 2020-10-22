@@ -81,41 +81,56 @@ void sky_module_init() {
     }
 }
 
-void sky_request_init() {
+void sky_request_init(zval *request) {
     array_init(&SKYWALKING_G(curl_header));
 
     zval *carrier = nullptr;
     zval *sw;
+    std::string header;
+    std::string uri;
+    std::string peer;
 
-    zend_bool jit_initialization = PG(auto_globals_jit);
+    if (request != nullptr) {
+        zval *swoole_header = sky_read_property(request, "header", 0);
+        zval *swoole_server = sky_read_property(request, "server", 0);
 
-    if (jit_initialization) {
-        zend_string *server_str = zend_string_init("_SERVER", sizeof("_SERVER") - 1, 0);
-        zend_is_auto_global(server_str);
-        zend_string_release(server_str);
-    }
-    carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
+        if (SKYWALKING_G(version) == 8) {
+            sw = zend_hash_str_find(Z_ARRVAL_P(swoole_header), "sw8", sizeof("sw8") - 1);
+        }
 
-    if (SKYWALKING_G(version) == 5) {
-        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
-    } else if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) {
-        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
-    } else if (SKYWALKING_G(version) == 8) {
-        sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW8", sizeof("HTTP_SW8") - 1);
+        header = (sw != nullptr ? Z_STRVAL_P(sw) : "");
+        uri = Z_STRVAL_P(zend_hash_str_find(Z_ARRVAL_P(swoole_server), "request_uri", sizeof("request_uri") - 1));
+        peer = Z_STRVAL_P(zend_hash_str_find(Z_ARRVAL_P(swoole_header), "host", sizeof("host") - 1));
+
     } else {
-        sw = nullptr;
+        zend_bool jit_initialization = PG(auto_globals_jit);
+
+        if (jit_initialization) {
+            zend_string *server_str = zend_string_init("_SERVER", sizeof("_SERVER") - 1, 0);
+            zend_is_auto_global(server_str);
+            zend_string_release(server_str);
+        }
+        carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
+
+        if (SKYWALKING_G(version) == 5) {
+            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
+        } else if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) {
+            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
+        } else if (SKYWALKING_G(version) == 8) {
+            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW8", sizeof("HTTP_SW8") - 1);
+        } else {
+            sw = nullptr;
+        }
+
+        header = (sw != nullptr ? Z_STRVAL_P(sw) : "");
+        uri = get_page_request_uri();
+        peer = get_page_request_peer();
     }
 
-    std::string header(sw != nullptr ? Z_STRVAL_P(sw) : "");
     auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
     SKYWALKING_G(segment) = segment;
 
     auto *span = segment->createSpan(SkySpanType::Entry, SkySpanLayer::Http, 8001);
-
-
-    // init entry span
-    auto uri = get_page_request_uri();
-    auto peer = get_page_request_peer();
     span->setOperationName(uri);
     span->setPeer(peer);
     span->addTag("url", uri);
@@ -123,9 +138,14 @@ void sky_request_init() {
 
 }
 
-void sky_request_flush() {
+void sky_request_flush(zval *response) {
     auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
-    std::string msg = segment->marshal(SG(sapi_headers).http_response_code);
+
+    if (response == nullptr) {
+        segment->setStatusCode(SG(sapi_headers).http_response_code);
+    }
+    std::string msg = segment->marshal();
     delete segment;
+    SKYWALKING_G(segment) = nullptr;
     write(fd[1], msg.c_str(), msg.length());
 }
