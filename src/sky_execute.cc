@@ -38,14 +38,14 @@ void sky_execute_ex(zend_execute_data *execute_data) {
     // swoole
     bool swoole = false;
     zval *sw_response;
-    if (function_name != nullptr && std::string(function_name) == "{closure}") {
+    if (function_name != nullptr && strcmp(function_name, "{closure}") == 0) {
         uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
         if (arg_count == 2) {
             zval *sw_request = ZEND_CALL_ARG(execute_data, 1);
             sw_response = ZEND_CALL_ARG(execute_data, 2);
             if (Z_TYPE_P(sw_request) == IS_OBJECT && Z_TYPE_P(sw_response) == IS_OBJECT) {
-                if (std::string(Z_OBJ_P(sw_request)->ce->name->val) == "Swoole\\Http\\Request") {
-                    if (std::string(Z_OBJ_P(sw_response)->ce->name->val) == "Swoole\\Http\\Response") {
+                if (strcmp(ZSTR_VAL(Z_OBJ_P(sw_request)->ce->name), "Swoole\\Http\\Request") == 0) {
+                    if(strcmp(ZSTR_VAL(Z_OBJ_P(sw_response)->ce->name), "Swoole\\Http\\Response") == 0) {
                         swoole = true;
                         sky_request_init(sw_request);
                     }
@@ -98,7 +98,7 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
         char *function_name = fn->common.function_name != nullptr ? ZSTR_VAL(fn->common.function_name) : nullptr;
 
         if (class_name != nullptr && function_name != nullptr) {
-            if (std::string(class_name) == "Swoole\\Http\\Response" && std::string(function_name) == "status") {
+            if (strcmp(class_name, "Swoole\\Http\\Response") == 0 && strcmp(function_name, "status") == 0) {
                 auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
                 zval *status = ZEND_CALL_ARG(execute_data, 1);
                 if (Z_TYPE_P(status) == IS_LONG) {
@@ -108,7 +108,7 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
         }
 
         Span *span = nullptr;
-        if (class_name != nullptr && function_name != nullptr && std::string(class_name) == "PDO") {
+        if (class_name != nullptr && function_name != nullptr && strcmp(class_name, "PDO") == 0) {
             span = sky_pdo(execute_data, class_name, function_name);
         }
 
