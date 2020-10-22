@@ -100,9 +100,12 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
         if (class_name != nullptr && function_name != nullptr) {
             if (strcmp(class_name, "Swoole\\Http\\Response") == 0 && strcmp(function_name, "status") == 0) {
                 auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
-                zval *status = ZEND_CALL_ARG(execute_data, 1);
-                if (Z_TYPE_P(status) == IS_LONG) {
-                    segment->setStatusCode(Z_LVAL_P(status));
+                uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+                if (arg_count >= 1) {
+                    zval *status = ZEND_CALL_ARG(execute_data, 1);
+                    if (Z_TYPE_P(status) == IS_LONG) {
+                        segment->setStatusCode(Z_LVAL_P(status));
+                    }
                 }
             }
         }
