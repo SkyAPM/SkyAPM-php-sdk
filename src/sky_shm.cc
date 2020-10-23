@@ -24,7 +24,7 @@
 int sky_sem_new(int proj_id, int init_val) {
     key_t key;
     int sem_id;
-    union semun sem_union{};
+    union semun sem_union;
 
     key = ftok(IPC_KEY_PATH, proj_id);
 
@@ -95,7 +95,7 @@ int sky_sem_v(int sem_id) {
 }
 
 int sky_sem_del(int sem_id) {
-    union semun sem_union{};
+    union semun sem_union;
     if (semctl(sem_id, 0, IPC_RMID, sem_union) < 0) {
         return -1;
     }

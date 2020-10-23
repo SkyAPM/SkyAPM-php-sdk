@@ -111,8 +111,10 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
         }
 
         Span *span = nullptr;
-        if (class_name != nullptr && function_name != nullptr && strcmp(class_name, "PDO") == 0) {
-            span = sky_pdo(execute_data, class_name, function_name);
+        if (class_name != nullptr) {
+            if (strcmp(class_name, "PDO") == 0 || strcmp(class_name, "PDOStatement") == 0) {
+                span = sky_pdo(execute_data, class_name, function_name);
+            }
         }
 
         if (ori_execute_internal) {
