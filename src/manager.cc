@@ -241,5 +241,6 @@ std::string Manager::generateUUID() {
         res += v[dist(rng)];
         res += v[dist(rng)];
     }
+
     return res;
 }

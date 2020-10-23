@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <random>
+#include <unistd.h>
 #include "segment.h"
 #include "manager.h"
 #include "cross_process_bag.h"
@@ -26,7 +28,10 @@ Segment::Segment(const std::string &serviceId, const std::string &serviceInstanc
     _header = header;
     _version = version;
 
-    std::string traceId = Manager::generateUUID();
+    static std::random_device dev;
+    static std::mt19937 rng(dev());
+
+    std::string traceId = Manager::generateUUID() + "." + std::to_string(getpid()) + "." + std::to_string(rng());
     traceId.erase(std::remove(traceId.begin(), traceId.end(), '-'), traceId.end());
 
     Segment::_traceId = traceId;
