@@ -21,10 +21,14 @@
 #include "grpc/grpc.h"
 #include "grpc++/grpc++.h"
 
-#if defined(__linux__)
+#if (defined(unix) || defined(__unix__) || defined(__unix)) && !defined(__APPLE__)
+#define PLATFORM_NAME "Unix"
+#elif defined(__linux__)
 #define PLATFORM_NAME "Linux"
 #elif defined(__APPLE__) && defined(__MACH__)
-#define PLATFORM_NAME "osx"
+#define PLATFORM_NAME "MacOS"
+#elif defined(__FreeBSD__)
+#define PLATFORM_NAME "FreeBSD"
 #else
 #define PLATFORM_NAME ""
 #endif
