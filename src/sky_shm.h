@@ -24,6 +24,14 @@
 #define SHM_PROJ_ID '-'
 #define SHM_SIZE 0x400000
 
+#if !defined(__APPLE__) && !defined(__MACH__)
+union semun {
+    int val;
+    struct semid_ds *buf;
+    unsigned short *array;
+} arg;
+#endif
+
 int sky_sem_new(int proj_id, int init_val);
 
 int sky_sem_get(int proj_id);
