@@ -31,6 +31,7 @@
 #include "segment.h"
 #include <google/protobuf/util/json_util.h>
 #include "common.h"
+#include "sky_shm.h"
 
 std::ofstream sky_log;
 std::queue<std::string> messageQueue;
@@ -38,14 +39,16 @@ static pthread_mutex_t mx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t cond_mx = PTHREAD_MUTEX_INITIALIZER;
 
-Manager::Manager(const ManagerOptions &options, struct service_info *info, int *fd) {
+extern struct sky_shm_obj *sky_shm;
+
+Manager::Manager(const ManagerOptions &options, struct service_info *info) {
 
     sky_log.open("/tmp/skywalking-php.log", std::ios::app);
 
-    std::thread th(login, options, info, fd);
+    std::thread th(login, options, info);
     th.detach();
 
-    std::thread c(consumer, fd);
+    std::thread c(consumer, terminate);
     c.detach();
 
     std::thread s(sender, options);
@@ -54,7 +57,7 @@ Manager::Manager(const ManagerOptions &options, struct service_info *info, int *
     sky_log << "the apache skywalking php plugin mounted" << std::endl;
 }
 
-void Manager::login(const ManagerOptions &options, struct service_info *info, int *fd) {
+void Manager::login(const ManagerOptions &options, struct service_info *info) {
 
     std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
@@ -132,19 +135,27 @@ void Manager::login(const ManagerOptions &options, struct service_info *info, in
     }
 }
 
-[[noreturn]] void Manager::consumer(int *fd) {
+[[noreturn]] void Manager::consumer(bool terminate) {
     while (true) {
-        char buffer[2048];
-        int len = read(fd[0], buffer, 2048);
-        if (len > 0) {
-            pthread_mutex_lock(&mx);
-            std::string msg(buffer, len);
-            messageQueue.push(msg);
-            pthread_mutex_unlock(&mx);
 
-            pthread_mutex_lock(&cond_mx);
-            pthread_cond_signal(&cond);
-            pthread_mutex_unlock(&cond_mx);
+        if (terminate) {
+            break;
+        }
+
+        if (sky_shm != nullptr) {
+            sky_sem_p(sky_shm->sem_id);
+            std::string full = sky_shm_read(sky_shm->shm_addr);
+            sky_sem_v(sky_shm->sem_id);
+
+            if (full.length() > 0) {
+                pthread_mutex_lock(&mx);
+                messageQueue.push(full);
+                pthread_mutex_unlock(&mx);
+
+                pthread_mutex_lock(&cond_mx);
+                pthread_cond_signal(&cond);
+                pthread_mutex_unlock(&cond_mx);
+            }
         }
     }
 }
@@ -243,4 +254,8 @@ std::string Manager::generateUUID() {
     }
 
     return res;
+}
+
+void Manager::shutdown() {
+    terminate = true;
 }

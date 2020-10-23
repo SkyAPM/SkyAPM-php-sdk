@@ -20,9 +20,10 @@
 #include "sky_execute.h"
 #include "sys/mman.h"
 #include "manager.h"
+#include "sky_shm.h"
 
 extern struct service_info *s_info;
-extern int fd[2];
+extern struct sky_shm_obj *sky_shm;
 
 extern void (*ori_execute_ex)(zend_execute_data *execute_data);
 
@@ -36,7 +37,7 @@ extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
-void sky_module_init() {
+Manager* sky_module_init() {
     ori_execute_ex = zend_execute_ex;
     zend_execute_ex = sky_execute_ex;
 
@@ -62,23 +63,45 @@ void sky_module_init() {
         old_function->internal_function.handler = sky_curl_close_handler;
     }
 
-    if (pipe(fd) == 0) {
-        int protection = PROT_READ | PROT_WRITE;
-        int visibility = MAP_SHARED | MAP_ANONYMOUS;
-
-        s_info = (struct service_info *) mmap(nullptr, sizeof(struct service_info), protection, visibility, -1, 0);
-
-        ManagerOptions opt;
-        opt.version = SKYWALKING_G(version);
-        opt.code = SKYWALKING_G(app_code);
-        opt.grpc = SKYWALKING_G(grpc);
-        opt.grpc_tls = SKYWALKING_G(grpc_tls_enable);
-        opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
-        opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
-        opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
-
-        new Manager(opt, s_info, fd);
+    int sem_id;
+    int shm_id;
+    char *shm_addr;
+    sem_id = sky_sem_new(SEM_PROJ_ID, 1);
+    if (sem_id == SEM_EXIST) {
+        sem_id = sky_sem_get(SEM_PROJ_ID);
     }
+
+    if (sem_id > 0) {
+        sky_shm->sem_id = sem_id;
+        shm_id = sky_shm_new(SHM_PROJ_ID, SHM_SIZE);
+        if (shm_id > 0) {
+            sky_shm->shm_id = shm_id;
+
+            shm_addr = sky_shm_get_addr(shm_id);
+            if (shm_addr != nullptr) {
+                sky_shm->shm_addr = shm_addr;
+                sky_shm_memset(shm_addr);
+
+                int protection = PROT_READ | PROT_WRITE;
+                int visibility = MAP_SHARED | MAP_ANONYMOUS;
+
+                s_info = (struct service_info *) mmap(nullptr, sizeof(struct service_info), protection, visibility, -1, 0);
+
+                ManagerOptions opt;
+                opt.version = SKYWALKING_G(version);
+                opt.code = SKYWALKING_G(app_code);
+                opt.grpc = SKYWALKING_G(grpc);
+                opt.grpc_tls = SKYWALKING_G(grpc_tls_enable);
+                opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
+                opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
+                opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
+
+                return new Manager(opt, s_info);
+
+            }
+        }
+    }
+    return nullptr;
 }
 
 void sky_request_init(zval *request) {
@@ -147,5 +170,13 @@ void sky_request_flush(zval *response) {
     std::string msg = segment->marshal();
     delete segment;
     SKYWALKING_G(segment) = nullptr;
-    write(fd[1], msg.c_str(), msg.length());
+
+    char *buf = new char[msg.length() + 1];
+    strcpy(buf, msg.c_str());
+
+    sky_sem_p(sky_shm->sem_id);
+    sky_shm_write(sky_shm->shm_addr, buf);
+    sky_sem_v(sky_shm->sem_id);
+
+    delete [] buf;
 }

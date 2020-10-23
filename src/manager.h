@@ -42,23 +42,27 @@ struct ManagerOptions {
 class Manager {
 
 public:
-    Manager(const ManagerOptions &options, struct service_info *info, int *fd);
+    Manager(const ManagerOptions &options, struct service_info *info);
 
     static std::string generateUUID();
 
+    void shutdown();
+
 private:
 
-    static void login(const ManagerOptions &options, struct service_info *info, int *fd);
+    static void login(const ManagerOptions &options, struct service_info *info);
 
     [[noreturn]] static void sender(const ManagerOptions &options);
 
     [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &serviceInstance);
 
-    [[noreturn]] static void consumer(int *fd);
+    [[noreturn]] static void consumer(bool terminate);
 
     static std::vector<std::string> getIps();
 
     static std::shared_ptr<grpc::ChannelCredentials> getCredentials(const ManagerOptions &options);
+
+    bool terminate = false;
 };
 
 

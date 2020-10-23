@@ -16,6 +16,7 @@
   +----------------------------------------------------------------------+
 */
 
+#include <src/sky_shm.h>
 #include "php_skywalking.h"
 
 #include "src/sky_module.h"
@@ -28,7 +29,8 @@
 ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
 struct service_info *s_info = nullptr;
-int fd[2];
+struct sky_shm_obj *sky_shm = nullptr;
+Manager *manager = nullptr;
 
 #if SKY_DEBUG
 static int cli_debug = 1;
@@ -82,15 +84,28 @@ PHP_MINIT_FUNCTION (skywalking) {
 	REGISTER_INI_ENTRIES();
 
 	if (SKYWALKING_G(enable)) {
-        sky_module_init();
+	    sky_shm = (struct sky_shm_obj *) malloc(sizeof(struct sky_shm_obj));
+        manager = sky_module_init();
 	}
 
 	return SUCCESS;
 }
 
-PHP_MSHUTDOWN_FUNCTION(skywalking)
-{
-	UNREGISTER_INI_ENTRIES();
+PHP_MSHUTDOWN_FUNCTION (skywalking) {
+    UNREGISTER_INI_ENTRIES();
+    if (SKYWALKING_G(enable)) {
+
+        if (manager != nullptr) {
+            manager->shutdown();
+        }
+
+        if (sky_shm->shm_id > 0) {
+            sky_sem_del(sky_shm->sem_id);
+            sky_shm_del(sky_shm->shm_id);
+        }
+        free(sky_shm);
+        sky_shm = nullptr;
+    }
     return SUCCESS;
 }
 

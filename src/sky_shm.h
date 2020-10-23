@@ -12,26 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_COMMON_H
-#define SKYWALKING_COMMON_H
+#ifndef SKYWALKING_SKY_SHM_H
+#define SKYWALKING_SKY_SHM_H
 
-#ifdef __cplusplus
-#define SKY_BEGIN_EXTERN_C() extern "C" {
-#define SKY_END_EXTERN_C() }
-#else
-#define SKY_BEGIN_EXTERN_C()
-#define SKY_END_EXTERN_C()
-#endif
+#include "string"
 
-struct service_info {
-    char service[1024];
-    char service_instance[1024];
-};
+#define IPC_KEY_PATH "/"
+#define ACCESS_BIT 0666
+#define SEM_EXIST (-2)
+#define SEM_PROJ_ID '*'
+#define SHM_PROJ_ID '-'
+#define SHM_SIZE 0x400000
 
-struct sky_shm_obj {
-    int shm_id;
-    int sem_id;
-    char *shm_addr;
-};
+int sky_sem_new(int proj_id, int init_val);
 
-#endif //SKYWALKING_COMMON_H
+int sky_sem_get(int proj_id);
+
+int sky_sem_p(int sem_id);
+
+int sky_sem_v(int sem_id);
+
+int sky_sem_del(int sem_id);
+
+int sky_shm_new(int proj_id, int size);
+
+char *sky_shm_get_addr(int shm_id);
+
+std::string sky_shm_read(char *shm_addr);
+
+void sky_shm_write(char *shm_addr, char *buf);
+
+int sky_shm_del(int shm_id);
+
+void sky_shm_memset(char *shm_addr);
+
+#endif //SKYWALKING_SKY_SHM_H
