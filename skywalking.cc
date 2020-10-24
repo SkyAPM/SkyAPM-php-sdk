@@ -110,7 +110,6 @@ PHP_MINIT_FUNCTION (skywalking) {
             s_info->sem_id = sky_sem_get();
         }
 
-	    sky_shm = (struct sky_shm_obj *) malloc(sizeof(struct sky_shm_obj));
         sky_module_init();
 	}
 

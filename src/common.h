@@ -35,10 +35,4 @@ struct service_info {
     char message[0x400000];
 };
 
-struct sky_shm_obj {
-    int shm_id;
-    int sem_id;
-    char *shm_addr;
-};
-
 #endif //SKYWALKING_COMMON_H
