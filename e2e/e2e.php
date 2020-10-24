@@ -229,7 +229,7 @@ foreach($check as $func) {
 
     if (!$status) {
         $e2e->info("test $func fail...");
-        exit(0);
+        exit(2);
     }
 
     $e2e->info("test $func success...");
