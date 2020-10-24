@@ -89,7 +89,7 @@ jobs:
         run: |
           cd e2e
           composer install
-          php e2e.php
+          php -dskywalking.enable=0 e2e.php
           sudo cat /tmp/skywalking-php.log
 
   publish:
