@@ -17,12 +17,8 @@
 
 #include "string"
 
-#define IPC_KEY_PATH "/"
 #define ACCESS_BIT 0666
 #define SEM_EXIST (-2)
-#define SEM_PROJ_ID '*'
-#define SHM_PROJ_ID '-'
-#define SHM_SIZE 0x400000
 
 #if !defined(__APPLE__) && !defined(__MACH__)
 union semun {
@@ -32,9 +28,9 @@ union semun {
 };
 #endif
 
-int sky_sem_new(int proj_id, int init_val);
+int sky_sem_new();
 
-int sky_sem_get(int proj_id);
+int sky_sem_get();
 
 int sky_sem_p(int sem_id);
 
@@ -42,16 +38,5 @@ int sky_sem_v(int sem_id);
 
 int sky_sem_del(int sem_id);
 
-int sky_shm_new(int proj_id, int size);
-
-char *sky_shm_get_addr(int shm_id);
-
-std::string sky_shm_read(char *shm_addr);
-
-void sky_shm_write(char *shm_addr, char *buf);
-
-int sky_shm_del(int shm_id);
-
-void sky_shm_memset(char *shm_addr);
 
 #endif //SKYWALKING_SKY_SHM_H

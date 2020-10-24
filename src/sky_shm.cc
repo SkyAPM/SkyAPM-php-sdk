@@ -16,23 +16,13 @@
 
 #include "sys/ipc.h"
 #include "sys/sem.h"
-#include "sys/shm.h"
-#include <cstring>
 #include <cerrno>
-#include <string>
 
-int sky_sem_new(int proj_id, int init_val) {
-    key_t key;
+int sky_sem_new() {
     int sem_id;
     union semun sem_union;
 
-    key = ftok(IPC_KEY_PATH, proj_id);
-
-    if (key < 0) {
-        return -1;
-    }
-
-    sem_id = semget(key, 1, ACCESS_BIT | IPC_CREAT | IPC_EXCL);
+    sem_id = semget(IPC_PRIVATE, 1, ACCESS_BIT | IPC_CREAT | IPC_EXCL);
 
     if (sem_id < 0) {
         if (errno == EEXIST) {
@@ -41,24 +31,15 @@ int sky_sem_new(int proj_id, int init_val) {
         return -1;
     }
 
-    sem_union.val = init_val;
+    sem_union.val = 1;
     if ((semctl(sem_id, 0, SETVAL, sem_union)) < 0) {
         return -1;
     }
     return sem_id;
 }
 
-int sky_sem_get(int proj_id) {
-    key_t key;
-    int sem_id;
-
-    key = ftok(IPC_KEY_PATH, proj_id);
-
-    if (key < 0) {
-        return -1;
-    }
-
-    sem_id = semget(key, 1, ACCESS_BIT);
+int sky_sem_get() {
+    int sem_id = semget(IPC_PRIVATE, 1, ACCESS_BIT);
     if (sem_id < 0) {
         return -1;
     }
@@ -100,58 +81,4 @@ int sky_sem_del(int sem_id) {
         return -1;
     }
     return 0;
-}
-
-int sky_shm_new(int proj_id, int size) {
-    int shm_id;
-    key_t key;
-    key = ftok(IPC_KEY_PATH, proj_id);
-
-    if (key < 0) {
-        return -1;
-    }
-
-    shm_id = shmget(key, size, ACCESS_BIT | IPC_CREAT);
-
-    if (shm_id < 0) {
-        return -1;
-    }
-
-    return shm_id;
-}
-
-char *sky_shm_get_addr(int shm_id) {
-    char *p;
-
-    if ((p = static_cast<char *>(shmat(shm_id, nullptr, 0))) == (char *) -1) {
-        return nullptr;
-    }
-
-    return p;
-}
-
-std::string sky_shm_read(char *shm_addr) {
-
-    int len = strlen(shm_addr) + 1;
-    char *buf = new char[len];
-    strncpy(buf, shm_addr, strlen(shm_addr) + 1);
-    std::string full(buf);
-    delete[] buf;
-
-    return full;
-}
-
-void sky_shm_write(char *shm_addr, char *buf) {
-    strncpy(shm_addr, buf, strlen(buf) + 1);
-}
-
-int sky_shm_del(int shm_id) {
-    if (shmctl(shm_id, IPC_RMID, nullptr) < 0) {
-        return -1;
-    }
-    return 0;
-}
-
-void sky_shm_memset(char *shm_addr) {
-    memset(shm_addr, 0, SHM_SIZE);
 }

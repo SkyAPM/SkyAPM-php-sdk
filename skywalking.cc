@@ -30,7 +30,6 @@
 ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
 struct service_info *s_info = nullptr;
-struct sky_shm_obj *sky_shm = nullptr;
 
 #if SKY_DEBUG
 static int cli_debug = 1;
@@ -90,6 +89,27 @@ PHP_MINIT_FUNCTION (skywalking) {
 
         s_info = (struct service_info *) mmap(nullptr, sizeof(struct service_info), protection, visibility, -1, 0);
 
+        pthread_mutexattr_t cond_mutexattr;
+        pthread_mutexattr_init(&cond_mutexattr);
+        pthread_mutexattr_setpshared(&cond_mutexattr, PTHREAD_PROCESS_SHARED);
+        pthread_mutex_init(&s_info->cond_mx, &cond_mutexattr);
+
+        pthread_mutexattr_t mutexattr;
+        pthread_mutexattr_init(&mutexattr);
+        pthread_mutexattr_setpshared(&mutexattr, PTHREAD_PROCESS_SHARED);
+        pthread_mutex_init(&s_info->mx, &mutexattr);
+
+        pthread_condattr_t condattr;
+        pthread_condattr_init(&condattr);
+        pthread_condattr_setpshared(&condattr, PTHREAD_PROCESS_SHARED);
+        pthread_cond_init(&s_info->cond, &condattr);
+
+        s_info->sem_id = sky_sem_new();
+
+        if (s_info->sem_id == SEM_EXIST) {
+            s_info->sem_id = sky_sem_get();
+        }
+
 	    sky_shm = (struct sky_shm_obj *) malloc(sizeof(struct sky_shm_obj));
         sky_module_init();
 	}
@@ -101,26 +121,20 @@ PHP_MSHUTDOWN_FUNCTION (skywalking) {
     UNREGISTER_INI_ENTRIES();
     if (SKYWALKING_G(enable)) {
 
-        if (sky_shm->shm_id > 0) {
+        if (s_info->sem_id > 0) {
             std::string msg("terminate");
             char *buf = new char[msg.length() + 1];
             strcpy(buf, msg.c_str());
 
-            sky_sem_p(sky_shm->sem_id);
-            sky_shm_write(sky_shm->shm_addr, buf);
-            sky_sem_v(sky_shm->sem_id);
+            sky_sem_p(s_info->sem_id);
+            strncpy(s_info->message, buf, strlen(buf) + 1);
+            sky_sem_v(s_info->sem_id);
 
-            sky_shm_del(sky_shm->shm_id);
+            pthread_mutex_lock(&s_info->cond_mx);
+            pthread_cond_signal(&s_info->cond);
+            pthread_mutex_unlock(&s_info->cond_mx);
 
-            delete [] buf;
         }
-
-        if (sky_shm->shm_id > 0) {
-            sky_sem_del(sky_shm->sem_id);
-        }
-
-        free(sky_shm);
-        sky_shm = nullptr;
     }
     return SUCCESS;
 }

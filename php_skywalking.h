@@ -20,6 +20,8 @@
 #ifndef PHP_SKYWALKING_H
 #define PHP_SKYWALKING_H
 
+#include "thread"
+
 #include "src/common.h"
 
 SKY_BEGIN_EXTERN_C()

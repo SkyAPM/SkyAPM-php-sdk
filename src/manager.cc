@@ -39,7 +39,7 @@ static pthread_mutex_t mx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t cond_mx = PTHREAD_MUTEX_INITIALIZER;
 
-extern struct sky_shm_obj *sky_shm;
+extern struct service_info *s_info;
 
 Manager::Manager(const ManagerOptions &options, struct service_info *info) {
 
@@ -137,10 +137,16 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
 
 [[noreturn]] void Manager::consumer() {
     while (true) {
-        if (sky_shm != nullptr && sky_shm->shm_id > 0) {
-            sky_sem_p(sky_shm->sem_id);
-            std::string full = sky_shm_read(sky_shm->shm_addr);
-            sky_sem_v(sky_shm->sem_id);
+        pthread_mutex_lock(&s_info->cond_mx);
+        pthread_cond_wait(&s_info->cond, &s_info->cond_mx);
+        pthread_mutex_unlock(&s_info->cond_mx);
+
+
+        if (s_info->sem_id > 0) {
+            sky_sem_p(s_info->sem_id);
+            std::string full(s_info->message);
+            s_info->message[0] = '\0';
+            sky_sem_v(s_info->sem_id);
 
             if (full.length() > 0) {
 
