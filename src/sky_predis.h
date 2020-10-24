@@ -28,8 +28,8 @@
 
 Span *sky_predis(zend_execute_data *execute_data, char *class_name, char *function_name);
 
-static std::string sky_predis_peer(zend_execute_data *execute_data);
+std::string sky_predis_peer(zend_execute_data *execute_data);
 
-static std::string sky_predis_command(zval *id, zval *arguments);
+std::string sky_predis_command(zval *id, zval *arguments);
 
 #endif //SKYWALKING_SKY_PREDIS_H

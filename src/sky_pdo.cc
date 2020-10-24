@@ -58,7 +58,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
     return nullptr;
 }
 
-static std::string sky_pdo_statement_peer(Span *span, zend_execute_data *execute_data) {
+std::string sky_pdo_statement_peer(Span *span, zend_execute_data *execute_data) {
     pdo_stmt_t *stmt = (pdo_stmt_t *) Z_PDO_STMT_P(&(execute_data->This));
 
     if (stmt != nullptr) {
@@ -73,7 +73,7 @@ static std::string sky_pdo_statement_peer(Span *span, zend_execute_data *execute
     return nullptr;
 }
 
-static std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data) {
+std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data) {
     pdo_dbh_t *dbh = Z_PDO_DBH_P(&(execute_data)->This);
 
     if (dbh != nullptr) {
@@ -83,7 +83,7 @@ static std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data) {
     return nullptr;
 }
 
-static std::string sky_pdo_dbh_peer(Span *span, pdo_dbh_t *dbh) {
+std::string sky_pdo_dbh_peer(Span *span, pdo_dbh_t *dbh) {
     if (dbh->driver != nullptr) {
         span->addTag("db.type", dbh->driver->driver_name);
     }
@@ -112,4 +112,5 @@ static std::string sky_pdo_dbh_peer(Span *span, pdo_dbh_t *dbh) {
 
         return host + ":" + port;
     }
+    return nullptr;
 }
