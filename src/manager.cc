@@ -142,7 +142,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         pthread_mutex_unlock(&s_info->cond_mx);
 
 
-        if (s_info->sem_id > 0) {
+        if (s_info->sem_id != -1) {
             sky_sem_p(s_info->sem_id);
             std::string full(s_info->message);
             s_info->message[0] = '\0';

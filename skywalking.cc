@@ -110,7 +110,9 @@ PHP_MINIT_FUNCTION (skywalking) {
             s_info->sem_id = sky_sem_get();
         }
 
-        sky_module_init();
+        if (s_info->sem_id != -1) {
+            sky_module_init();
+        }
 	}
 
 	return SUCCESS;
@@ -120,7 +122,7 @@ PHP_MSHUTDOWN_FUNCTION (skywalking) {
     UNREGISTER_INI_ENTRIES();
     if (SKYWALKING_G(enable)) {
 
-        if (s_info->sem_id > 0) {
+        if (s_info->sem_id != -1) {
             std::string msg("terminate");
             char *buf = new char[msg.length() + 1];
             strcpy(buf, msg.c_str());

@@ -61,7 +61,7 @@ void sky_module_init() {
         old_function->internal_function.handler = sky_curl_close_handler;
     }
 
-    if (s_info->sem_id > 0) {
+    if (s_info->sem_id != -1) {
         ManagerOptions opt;
         opt.version = SKYWALKING_G(version);
         opt.code = SKYWALKING_G(app_code);
