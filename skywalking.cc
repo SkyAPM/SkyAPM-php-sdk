@@ -21,6 +21,7 @@
 
 #include "src/sky_module.h"
 #include "src/segment.h"
+#include "sys/mman.h"
 
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
@@ -30,7 +31,6 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
 struct service_info *s_info = nullptr;
 struct sky_shm_obj *sky_shm = nullptr;
-Manager *manager = nullptr;
 
 #if SKY_DEBUG
 static int cli_debug = 1;
@@ -84,8 +84,14 @@ PHP_MINIT_FUNCTION (skywalking) {
 	REGISTER_INI_ENTRIES();
 
 	if (SKYWALKING_G(enable)) {
+
+        int protection = PROT_READ | PROT_WRITE;
+        int visibility = MAP_SHARED | MAP_ANONYMOUS;
+
+        s_info = (struct service_info *) mmap(nullptr, sizeof(struct service_info), protection, visibility, -1, 0);
+
 	    sky_shm = (struct sky_shm_obj *) malloc(sizeof(struct sky_shm_obj));
-        manager = sky_module_init();
+        sky_module_init();
 	}
 
 	return SUCCESS;
@@ -95,14 +101,24 @@ PHP_MSHUTDOWN_FUNCTION (skywalking) {
     UNREGISTER_INI_ENTRIES();
     if (SKYWALKING_G(enable)) {
 
-        if (manager != nullptr) {
-            manager->shutdown();
+        if (sky_shm->shm_id > 0) {
+            std::string msg("terminate");
+            char *buf = new char[msg.length() + 1];
+            strcpy(buf, msg.c_str());
+
+            sky_sem_p(sky_shm->sem_id);
+            sky_shm_write(sky_shm->shm_addr, buf);
+            sky_sem_v(sky_shm->sem_id);
+
+            sky_shm_del(sky_shm->shm_id);
+
+            delete [] buf;
         }
 
         if (sky_shm->shm_id > 0) {
             sky_sem_del(sky_shm->sem_id);
-            sky_shm_del(sky_shm->shm_id);
         }
+
         free(sky_shm);
         sky_shm = nullptr;
     }

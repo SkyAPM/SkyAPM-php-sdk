@@ -48,7 +48,7 @@ Manager::Manager(const ManagerOptions &options, struct service_info *info) {
     std::thread th(login, options, info);
     th.detach();
 
-    std::thread c(consumer, terminate);
+    std::thread c(consumer);
     c.detach();
 
     std::thread s(sender, options);
@@ -135,19 +135,18 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
     }
 }
 
-[[noreturn]] void Manager::consumer(bool terminate) {
+[[noreturn]] void Manager::consumer() {
     while (true) {
-
-        if (terminate) {
-            break;
-        }
-
-        if (sky_shm != nullptr) {
+        if (sky_shm != nullptr && sky_shm->shm_id > 0) {
             sky_sem_p(sky_shm->sem_id);
             std::string full = sky_shm_read(sky_shm->shm_addr);
             sky_sem_v(sky_shm->sem_id);
 
             if (full.length() > 0) {
+
+                if (full == "terminate") {
+                    break;
+                }
                 pthread_mutex_lock(&mx);
                 messageQueue.push(full);
                 pthread_mutex_unlock(&mx);
@@ -254,8 +253,4 @@ std::string Manager::generateUUID() {
     }
 
     return res;
-}
-
-void Manager::shutdown() {
-    terminate = true;
 }

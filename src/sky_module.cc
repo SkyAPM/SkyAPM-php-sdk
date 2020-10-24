@@ -18,7 +18,6 @@
 #include "sky_utils.h"
 #include "sky_curl.h"
 #include "sky_execute.h"
-#include "sys/mman.h"
 #include "manager.h"
 #include "sky_shm.h"
 
@@ -37,7 +36,7 @@ extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
-Manager* sky_module_init() {
+void sky_module_init() {
     ori_execute_ex = zend_execute_ex;
     zend_execute_ex = sky_execute_ex;
 
@@ -82,11 +81,6 @@ Manager* sky_module_init() {
                 sky_shm->shm_addr = shm_addr;
                 sky_shm_memset(shm_addr);
 
-                int protection = PROT_READ | PROT_WRITE;
-                int visibility = MAP_SHARED | MAP_ANONYMOUS;
-
-                s_info = (struct service_info *) mmap(nullptr, sizeof(struct service_info), protection, visibility, -1, 0);
-
                 ManagerOptions opt;
                 opt.version = SKYWALKING_G(version);
                 opt.code = SKYWALKING_G(app_code);
@@ -96,12 +90,10 @@ Manager* sky_module_init() {
                 opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
                 opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
 
-                return new Manager(opt, s_info);
-
+                new Manager(opt, s_info);
             }
         }
     }
-    return nullptr;
 }
 
 void sky_request_init(zval *request) {

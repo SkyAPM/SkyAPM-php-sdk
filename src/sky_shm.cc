@@ -71,7 +71,7 @@ int sky_sem_p(int sem_id) {
     struct sembuf sem_buf{};
     sem_buf.sem_num = 0;
     sem_buf.sem_op = -1;
-    sem_buf.sem_op = SEM_UNDO;
+    sem_buf.sem_flg = SEM_UNDO;
 
     if (semop(sem_id, &sem_buf, 1) < 0) {
         return -1;
@@ -85,7 +85,7 @@ int sky_sem_v(int sem_id) {
     struct sembuf sem_buf{};
     sem_buf.sem_num = 0;
     sem_buf.sem_op = 1;
-    sem_buf.sem_op = SEM_UNDO;
+    sem_buf.sem_flg = SEM_UNDO;
 
     if (semop(sem_id, &sem_buf, 1) < 0) {
         return -1;

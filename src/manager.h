@@ -50,8 +50,6 @@ public:
 
     static std::string generateUUID();
 
-    void shutdown();
-
 private:
 
     static void login(const ManagerOptions &options, struct service_info *info);
@@ -60,13 +58,11 @@ private:
 
     [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &serviceInstance);
 
-    [[noreturn]] static void consumer(bool terminate);
+    [[noreturn]] static void consumer();
 
     static std::vector<std::string> getIps();
 
     static std::shared_ptr<grpc::ChannelCredentials> getCredentials(const ManagerOptions &options);
-
-    bool terminate = false;
 };
 
 

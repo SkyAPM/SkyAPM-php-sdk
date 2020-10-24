@@ -20,7 +20,7 @@
 
 #define SKY_OLD_FN(n) static_cast<zend_function *>(zend_hash_str_find_ptr(CG(function_table), n, sizeof(n) - 1))
 
-Manager *sky_module_init();
+void sky_module_init();
 
 void sky_request_init(zval *request);
 
