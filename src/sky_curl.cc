@@ -29,7 +29,7 @@ void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     if (SKYWALKING_G(segment) == NULL) {
-        orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+        orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
 
