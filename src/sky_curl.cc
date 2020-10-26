@@ -29,7 +29,7 @@ void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     if (SKYWALKING_G(segment) == NULL) {
-        orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+        orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
 
@@ -62,9 +62,7 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
         return;
     }
 
-    zval *zid, *arr, *entry;
-    zend_ulong option;
-    zend_string *string_key;
+    zval *zid, *arr;
 
     ZEND_PARSE_PARAMETERS_START(2, 2)
             Z_PARAM_RESOURCE(zid)
@@ -118,7 +116,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     // set header
     Span *span;
     int is_emalloc = 0;
-    zval *option = nullptr;
+    zval *option;
     option = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), Z_RES_HANDLE_P(zid));
     if (is_record) {
         if (option == NULL) {
@@ -133,16 +131,14 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         char *php_url_scheme = ZSTR_VAL(url_parse->scheme);
         char *php_url_host = ZSTR_VAL(url_parse->host);
         char *php_url_path = ZSTR_VAL(url_parse->path);
-        char *php_url_query = ZSTR_VAL(url_parse->query);
 #else
         char *php_url_scheme = url_parse->scheme;
         char *php_url_host = url_parse->host;
         char *php_url_path = url_parse->path;
-        char *php_url_query = url_parse->query;
 #endif
-        char *peer = NULL;
+        char *peer = nullptr;
 
-        int peer_port = 0;
+        int peer_port;
         if (url_parse->port) {
             peer_port = url_parse->port;
         } else {

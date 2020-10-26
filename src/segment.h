@@ -30,7 +30,9 @@ public:
 
     Span *createSpan(SkySpanType type, SkySpanLayer layer, int componentId);
 
-    std::string marshal(int status_code);
+    std::string marshal();
+
+    void setStatusCode(int code);
 
     std::string createHeader(Span *span);
 
@@ -51,6 +53,8 @@ private:
     std::string _serviceId;
     std::string _serviceInstanceId;
     bool isSizeLimited = false;
+
+    int _status_code = 200;
 };
 
 

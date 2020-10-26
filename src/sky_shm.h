@@ -12,29 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_COMMON_H
-#define SKYWALKING_COMMON_H
+#ifndef SKYWALKING_SKY_SHM_H
+#define SKYWALKING_SKY_SHM_H
 
-#ifdef __cplusplus
-#define SKY_BEGIN_EXTERN_C() extern "C" {
-#define SKY_END_EXTERN_C() }
-#else
-#define SKY_BEGIN_EXTERN_C()
-#define SKY_END_EXTERN_C()
+#include "string"
+
+#define ACCESS_BIT 0666
+#define SEM_EXIST (-2)
+
+#if !defined(__APPLE__) && !defined(__MACH__)
+union semun {
+    int val;
+    struct semid_ds *buf;
+    unsigned short *array;
+};
 #endif
 
-struct service_info {
-    char service[0x400];
-    char service_instance[0x400];
-    int sem_id;
+int sky_sem_new();
 
-    pthread_mutex_t cond_mx;
-    pthread_mutex_t mx;
-    pthread_cond_t cond;
+int sky_sem_get();
 
-    char message[0x400000];
+int sky_sem_p(int sem_id);
 
-    bool real_exit;
-};
+int sky_sem_v(int sem_id);
 
-#endif //SKYWALKING_COMMON_H
+int sky_sem_del(int sem_id);
+
+
+#endif //SKYWALKING_SKY_SHM_H

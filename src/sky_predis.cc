@@ -74,7 +74,7 @@ Span *sky_predis(zend_execute_data *execute_data, char *class_name, char *functi
     return nullptr;
 }
 
-static std::string sky_predis_peer(zend_execute_data *execute_data) {
+std::string sky_predis_peer(zend_execute_data *execute_data) {
     zval *connection = sky_read_property(&(execute_data->This), "connection", 0);
 
     if (SKY_PREDIS_IS_STREAM_CONNECTION(connection)) {
@@ -98,7 +98,7 @@ static std::string sky_predis_peer(zend_execute_data *execute_data) {
     return nullptr;
 }
 
-static std::string sky_predis_command(zval *id, zval *arguments) {
+std::string sky_predis_command(zval *id, zval *arguments) {
     if (arguments != nullptr && Z_TYPE_P(arguments) == IS_ARRAY) {
         zend_ulong key;
         zval *value, dup_value;

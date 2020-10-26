@@ -21,10 +21,14 @@
 #include "grpc/grpc.h"
 #include "grpc++/grpc++.h"
 
-#if defined(__linux__)
+#if (defined(unix) || defined(__unix__) || defined(__unix)) && !defined(__APPLE__)
+#define PLATFORM_NAME "Unix"
+#elif defined(__linux__)
 #define PLATFORM_NAME "Linux"
 #elif defined(__APPLE__) && defined(__MACH__)
-#define PLATFORM_NAME "osx"
+#define PLATFORM_NAME "MacOS"
+#elif defined(__FreeBSD__)
+#define PLATFORM_NAME "FreeBSD"
 #else
 #define PLATFORM_NAME ""
 #endif
@@ -42,19 +46,21 @@ struct ManagerOptions {
 class Manager {
 
 public:
-    Manager(const ManagerOptions &options, struct service_info *info, int *fd);
+    Manager(const ManagerOptions &options, struct service_info *info);
 
     static std::string generateUUID();
 
 private:
 
-    static void login(const ManagerOptions &options, struct service_info *info, int *fd);
+    static void login(const ManagerOptions &options, struct service_info *info);
 
     [[noreturn]] static void sender(const ManagerOptions &options);
 
     [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &serviceInstance);
 
-    [[noreturn]] static void consumer(int *fd);
+    static void consumer();
+
+    static void logger(const std::string &log);
 
     static std::vector<std::string> getIps();
 

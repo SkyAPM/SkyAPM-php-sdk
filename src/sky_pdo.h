@@ -21,6 +21,10 @@
 
 Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
-static std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data);
+std::string sky_pdo_statement_peer(Span *span, zend_execute_data *execute_data);
+
+std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data);
+
+std::string sky_pdo_dbh_peer(Span *span, pdo_dbh_t *dbh);
 
 #endif //SKYWALKING_SKY_PDO_H

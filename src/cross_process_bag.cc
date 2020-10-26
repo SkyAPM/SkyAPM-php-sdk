@@ -23,10 +23,11 @@ CrossProcessBag::CrossProcessBag(std::string serviceId,
                                  std::string serviceInstanceId,
                                  std::string segmentId,
                                  int version,
-                                 const std::string &header) : currentTraceId(std::move(segmentId)),
-                                                              currentServiceId(std::move(serviceId)),
-                                                              currentServiceInstance(std::move(serviceInstanceId)),
-                                                              version(version) {
+                                 const std::string &header) : version(version),
+                                 currentTraceId(std::move(segmentId)),
+                                 currentServiceId(std::move(serviceId)),
+                                 currentServiceInstance(std::move(serviceInstanceId))
+{
     sample = 0;
     parentSpanId = 0;
     decode(header);

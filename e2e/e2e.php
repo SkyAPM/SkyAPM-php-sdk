@@ -101,18 +101,24 @@ GRAPHQL;
                 return false;
             }
 
+            $found = false;
             foreach ($data['data']['services'] as $service) {
 
-                if (!$this->verifyServiceMetrics($service)) {
-                    return false;
-                }
+                if ($service['label'] == "skywalking") {
+                    $found = true;
+                    if (!$this->verifyServiceMetrics($service)) {
+                        return false;
+                    }
 
-                $instances = $this->verifyServiceInstances($service);
-                if ($instances === false) {
-                    return false;
+                    $instances = $this->verifyServiceInstances($service);
+                    if ($instances === false) {
+                        return false;
+                    }
                 }
             }
-
+            if (!$found) {
+                return false;
+            }
             return true;
         }
 
