@@ -60,6 +60,8 @@ private:
 
     [[noreturn]] static void consumer();
 
+    static void logger(const std::string &log);
+
     static std::vector<std::string> getIps();
 
     static std::shared_ptr<grpc::ChannelCredentials> getCredentials(const ManagerOptions &options);

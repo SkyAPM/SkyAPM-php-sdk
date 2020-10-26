@@ -82,6 +82,10 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     char *grpc_tls_pem_root_certs;
     char *grpc_tls_pem_private_key;
     char *grpc_tls_pem_cert_chain;
+
+    // log
+    zend_bool log_enable;
+    char *log_path;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

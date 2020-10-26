@@ -52,6 +52,11 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_root_certs", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_root_certs, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_private_key", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_private_key, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_cert_chain", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_cert_chain, zend_skywalking_globals, skywalking_globals)
+
+	STD_PHP_INI_ENTRY("skywalking.log_enable", "0", PHP_INI_ALL, OnUpdateBool, log_enable, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp/skywalking-php.log", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
+
+
 PHP_INI_END()
 
 static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_globals) {
@@ -66,6 +71,10 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     skywalking_globals->grpc_tls_pem_root_certs = nullptr;
     skywalking_globals->grpc_tls_pem_private_key = nullptr;
     skywalking_globals->grpc_tls_pem_cert_chain = nullptr;
+
+    // log
+    skywalking_globals->log_enable = 0;
+    skywalking_globals->log_path = nullptr;
 }
 
 PHP_FUNCTION (skywalking_trace_id) {

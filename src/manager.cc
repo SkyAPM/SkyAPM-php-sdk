@@ -33,7 +33,9 @@
 #include "common.h"
 #include "sky_shm.h"
 
-std::ofstream sky_log;
+#include "php_skywalking.h"
+
+static std::ofstream sky_log;
 std::queue<std::string> messageQueue;
 static pthread_mutex_t mx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -43,7 +45,9 @@ extern struct service_info *s_info;
 
 Manager::Manager(const ManagerOptions &options, struct service_info *info) {
 
-    sky_log.open("/tmp/skywalking-php.log", std::ios::app);
+    if (SKYWALKING_G(log_enable)) {
+        sky_log.open(SKYWALKING_G(log_path), std::ios::app);
+    }
 
     std::thread th(login, options, info);
     th.detach();
@@ -54,7 +58,7 @@ Manager::Manager(const ManagerOptions &options, struct service_info *info) {
     std::thread s(sender, options);
     s.detach();
 
-    sky_log << "the apache skywalking php plugin mounted" << std::endl;
+    logger("the apache skywalking php plugin mounted");
 }
 
 void Manager::login(const ManagerOptions &options, struct service_info *info) {
@@ -193,7 +197,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
             opt.preserve_proto_field_names = true;
             google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
             writer->Write(msg);
-            sky_log << json_str << std::endl;
+            logger(json_str);
         }
     }
 }
@@ -259,4 +263,11 @@ std::string Manager::generateUUID() {
     }
 
     return res;
+}
+
+
+void Manager::logger(const std::string &log) {
+    if (SKYWALKING_G(log_enable) && sky_log.is_open()) {
+        sky_log << log << std::endl;
+    }
 }
