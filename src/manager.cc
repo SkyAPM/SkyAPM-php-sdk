@@ -75,7 +75,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         Commands commands;
 
         // timeout
-        std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::seconds(timeout);
+        std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
         context.set_deadline(deadline);
 
         auto ips = getIps();
@@ -138,7 +138,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         Commands commands;
 
         // timeout
-        std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::seconds(timeout);
+        std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
         context.set_deadline(deadline);
 
         ping.set_service(options.code);
@@ -183,39 +183,50 @@ void Manager::consumer() {
 
 [[noreturn]] void Manager::sender(const ManagerOptions &options) {
 
-    std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
-    std::unique_ptr<TraceSegmentReportService::Stub> stub(TraceSegmentReportService::NewStub(channel));
-    grpc::ClientContext context;
-    Commands commands;
-
-    // timeout
-    unsigned int timeout = SKYWALKING_G(grpc_deadline);
-    std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::seconds(timeout);
-    context.set_deadline(deadline);
-
-    auto writer = stub->collect(&context, &commands);
-
     while (true) {
-        pthread_mutex_lock(&cond_mx);
-        pthread_cond_wait(&cond, &cond_mx);
-        pthread_mutex_unlock(&cond_mx);
+        std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
+        std::unique_ptr<TraceSegmentReportService::Stub> stub(TraceSegmentReportService::NewStub(channel));
+        grpc::ClientContext context;
+        Commands commands;
 
-        while (!messageQueue.empty()) {
-            pthread_mutex_lock(&mx);
-            std::string data = messageQueue.front();
-            messageQueue.pop();
-            pthread_mutex_unlock(&mx);
+        bool is_break = false;
 
-            // todo sender
-            std::string json_str;
-            SegmentObject msg;
-            msg.ParseFromString(data);
-            google::protobuf::util::JsonPrintOptions opt;
-            opt.always_print_primitive_fields = true;
-            opt.preserve_proto_field_names = true;
-            google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
-            writer->Write(msg);
-            logger(json_str);
+        logger("connect report service");
+        auto writer = stub->collect(&context, &commands);
+
+        while (true) {
+
+            if (is_break) {
+                break;
+            }
+
+            pthread_mutex_lock(&cond_mx);
+            pthread_cond_wait(&cond, &cond_mx);
+            pthread_mutex_unlock(&cond_mx);
+
+            while (!messageQueue.empty()) {
+                pthread_mutex_lock(&mx);
+                std::string data = messageQueue.front();
+                messageQueue.pop();
+                pthread_mutex_unlock(&mx);
+
+                std::string json_str;
+                SegmentObject msg;
+                msg.ParseFromString(data);
+                google::protobuf::util::JsonPrintOptions opt;
+                opt.always_print_primitive_fields = true;
+                opt.preserve_proto_field_names = true;
+                google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
+                bool status = writer->Write(msg);
+                if (status) {
+                    logger("write success");
+                } else {
+                    logger("write fail");
+                    is_break = true;
+                    break;
+                }
+                logger(json_str);
+            }
         }
     }
 }
