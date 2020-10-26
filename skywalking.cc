@@ -98,6 +98,8 @@ PHP_MINIT_FUNCTION (skywalking) {
 
         s_info = (struct service_info *) mmap(nullptr, sizeof(struct service_info), protection, visibility, -1, 0);
 
+        s_info->real_exit = true;
+
         pthread_mutexattr_t cond_mutexattr;
         pthread_mutexattr_init(&cond_mutexattr);
         pthread_mutexattr_setpshared(&cond_mutexattr, PTHREAD_PROCESS_SHARED);
@@ -132,6 +134,7 @@ PHP_MSHUTDOWN_FUNCTION (skywalking) {
     if (SKYWALKING_G(enable)) {
 
         if (s_info->sem_id != -1) {
+            s_info->real_exit = false;
             std::string msg("terminate");
             char *buf = new char[msg.length() + 1];
             strcpy(buf, msg.c_str());
@@ -145,6 +148,27 @@ PHP_MSHUTDOWN_FUNCTION (skywalking) {
             pthread_mutex_unlock(&s_info->cond_mx);
 
         }
+
+        int i = 0;
+        do {
+            if (s_info->real_exit) {
+                pthread_mutex_destroy(&s_info->cond_mx);
+                pthread_mutex_destroy(&s_info->mx);
+                pthread_cond_destroy(&s_info->cond);
+
+                sky_sem_del(s_info->sem_id);
+
+                munmap(s_info, sizeof(struct service_info));
+                break;
+            } else {
+                struct timespec ts;
+                long msec = 10;
+                ts.tv_sec = msec / 1000;
+                ts.tv_nsec = (msec % 1000) * 1000000;
+                nanosleep(&ts, &ts);
+                i++;
+            }
+        } while (i < 10);
     }
     return SUCCESS;
 }

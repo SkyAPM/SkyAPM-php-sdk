@@ -33,6 +33,8 @@ struct service_info {
     pthread_cond_t cond;
 
     char message[0x400000];
+
+    bool real_exit;
 };
 
 #endif //SKYWALKING_COMMON_H

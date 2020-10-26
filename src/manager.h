@@ -58,7 +58,7 @@ private:
 
     [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &serviceInstance);
 
-    [[noreturn]] static void consumer();
+    static void consumer();
 
     static void logger(const std::string &log);
 

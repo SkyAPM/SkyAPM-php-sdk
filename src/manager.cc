@@ -110,7 +110,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         }
         std::string msg = properties.SerializeAsString();
         auto rc = stub->reportInstanceProperties(&context, properties, &commands);
-        if (rc.ok()) {
+        if (rc.ok() && info != nullptr) {
             strcpy(info->service, options.code.c_str());
             strcpy(info->service_instance, instance.c_str());
             std::thread h(heartbeat, options, instance);
@@ -139,7 +139,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
     }
 }
 
-[[noreturn]] void Manager::consumer() {
+void Manager::consumer() {
     while (true) {
         pthread_mutex_lock(&s_info->cond_mx);
         pthread_cond_wait(&s_info->cond, &s_info->cond_mx);
@@ -167,6 +167,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
             }
         }
     }
+    s_info->real_exit = true;
 }
 
 [[noreturn]] void Manager::sender(const ManagerOptions &options) {

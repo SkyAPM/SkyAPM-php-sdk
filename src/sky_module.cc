@@ -90,6 +90,8 @@ void sky_request_init(zval *request) {
 
         if (SKYWALKING_G(version) == 8) {
             sw = zend_hash_str_find(Z_ARRVAL_P(swoole_header), "sw8", sizeof("sw8") - 1);
+        } else {
+            sw = nullptr;
         }
 
         header = (sw != nullptr ? Z_STRVAL_P(sw) : "");
