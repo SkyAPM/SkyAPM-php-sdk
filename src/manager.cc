@@ -67,7 +67,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
 
     bool status = false;
-    unsigned int timeout = 2;
+    unsigned int timeout = SKYWALKING_G(grpc_deadline);
 
     while (!status) {
         grpc::ClientContext context;
@@ -129,7 +129,8 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
 [[noreturn]] void Manager::heartbeat(const ManagerOptions &options, const std::string &serviceInstance) {
     std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
-    unsigned int timeout = 1;
+
+    unsigned int timeout = SKYWALKING_G(grpc_deadline);
 
     while (true) {
         grpc::ClientContext context;
@@ -188,7 +189,7 @@ void Manager::consumer() {
     Commands commands;
 
     // timeout
-    unsigned int timeout = 2;
+    unsigned int timeout = SKYWALKING_G(grpc_deadline);
     std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::seconds(timeout);
     context.set_deadline(deadline);
 
