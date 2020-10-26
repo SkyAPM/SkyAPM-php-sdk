@@ -67,16 +67,11 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
 
     bool status = false;
-    unsigned int timeout = SKYWALKING_G(grpc_deadline);
 
     while (!status) {
         grpc::ClientContext context;
         InstanceProperties properties;
         Commands commands;
-
-        // timeout
-        std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
-        context.set_deadline(deadline);
 
         auto ips = getIps();
 
@@ -130,16 +125,10 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
     std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
     std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
 
-    unsigned int timeout = SKYWALKING_G(grpc_deadline);
-
     while (true) {
         grpc::ClientContext context;
         InstancePingPkg ping;
         Commands commands;
-
-        // timeout
-        std::chrono::system_clock::time_point deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
-        context.set_deadline(deadline);
 
         ping.set_service(options.code);
         ping.set_serviceinstance(serviceInstance);

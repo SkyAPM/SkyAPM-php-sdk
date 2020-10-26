@@ -78,7 +78,6 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     void *segment;
 
     // tls
-    zend_long grpc_deadline;
     zend_bool grpc_tls_enable;
     char *grpc_tls_pem_root_certs;
     char *grpc_tls_pem_private_key;

@@ -48,7 +48,6 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.authentication", "", PHP_INI_ALL, OnUpdateString, authentication, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.grpc_deadline", "1500", PHP_INI_ALL, OnUpdateLong, grpc_deadline, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_enable", "0", PHP_INI_ALL, OnUpdateBool, grpc_tls_enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_root_certs", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_root_certs, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_private_key", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_private_key, zend_skywalking_globals, skywalking_globals)
@@ -68,7 +67,6 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 
     // tls
     skywalking_globals->grpc = nullptr;
-    skywalking_globals->grpc_deadline = 0;
     skywalking_globals->grpc_tls_enable = 0;
     skywalking_globals->grpc_tls_pem_root_certs = nullptr;
     skywalking_globals->grpc_tls_pem_private_key = nullptr;
