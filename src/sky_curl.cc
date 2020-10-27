@@ -71,7 +71,7 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     zval *http_header = zend_hash_index_find(Z_ARRVAL_P(arr), CURLOPT_HTTPHEADER);
 
-    if (http_header != NULL) {
+    if (http_header != nullptr) {
         zval copy_header;
         ZVAL_DUP(&copy_header, http_header);
         add_index_zval(&SKYWALKING_G(curl_header), Z_RES_HANDLE_P(zid), &copy_header);
@@ -98,17 +98,17 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     zval url_info;
     ZVAL_COPY(&args[0], zid);
     ZVAL_STRING(&func, "curl_getinfo");
-    call_user_function(CG(function_table), NULL, &func, &url_info, 1, args);
+    call_user_function(CG(function_table), nullptr, &func, &url_info, 1, args);
     zval_dtor(&func);
     zval_dtor(&args[0]);
 
     // check
-    php_url *url_parse = NULL;
+    php_url *url_parse = nullptr;
     zval *z_url = zend_hash_str_find(Z_ARRVAL(url_info), ZEND_STRL("url"));
     char *url_str = Z_STRVAL_P(z_url);
     if (strlen(url_str) > 0 && (starts_with("http://", url_str) || starts_with("https://", url_str))) {
         url_parse = php_url_parse(url_str);
-        if (url_parse->scheme != NULL && url_parse->host != NULL) {
+        if (url_parse->scheme != nullptr && url_parse->host != nullptr) {
             is_record = 1;
         }
     }
@@ -119,7 +119,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     zval *option;
     option = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), Z_RES_HANDLE_P(zid));
     if (is_record) {
-        if (option == NULL) {
+        if (option == nullptr) {
             option = (zval *) emalloc(sizeof(zval));
             bzero(option, sizeof(zval));
             array_init(option);
@@ -136,7 +136,6 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         char *php_url_host = url_parse->host;
         char *php_url_path = url_parse->path;
 #endif
-        char *peer = nullptr;
 
         int peer_port;
         if (url_parse->port) {
@@ -149,11 +148,10 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
             }
         }
 
-        spprintf(&peer, 0, "%s:%d", php_url_host, peer_port);
         auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
         span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
-        span->setPeer(peer);
-        span->setOperationName(php_url_path);
+        span->setPeer(std::string(php_url_host) + std::to_string(peer_port));
+        span->setOperationName(php_url_path == nullptr ? "/" : php_url_path);
         span->addTag("url", url_str);
 
         std::string sw_header = segment->createHeader(span);
