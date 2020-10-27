@@ -17,6 +17,11 @@
 
 #include "php_skywalking.h"
 
+#define SKY_STRCMP(s1, s2) s1 != nullptr && strcmp(s1, s2) == 0
+
+#define SKY_IS_SWOOLE(func_name) (SKY_STRCMP(func_name, "{closure}"))
+#define SKY_IS_HYPERF(class_name, func_name) (SKY_STRCMP(class_name, "Hyperf\\HttpServer\\Server") && SKY_STRCMP(func_name, "onRequest"))
+
 void sky_execute_ex(zend_execute_data *execute_data);
 
 void sky_execute_internal(zend_execute_data *execute_data, zval *return_value);
