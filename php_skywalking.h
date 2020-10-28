@@ -47,6 +47,13 @@ extern zend_module_entry skywalking_module_entry;
 #define SKY_DEBUG 0
 #define PHP_SKYWALKING_VERSION "4.0.0"
 
+
+#define SKY_STRCMP(s1, s2) s1 != nullptr && strcmp(s1, s2) == 0
+
+#define SKY_IS_SWOOLE(func_name) (SKY_STRCMP(func_name, "{closure}"))
+#define SKY_IS_HYPERF(class_name, func_name) (SKY_STRCMP(class_name, "Hyperf\\HttpServer\\Server") && SKY_STRCMP(func_name, "onRequest"))
+
+
 #ifdef PHP_WIN32
 #	define PHP_SKYWALKING_API __declspec(dllexport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
