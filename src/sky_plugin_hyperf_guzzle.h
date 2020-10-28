@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_SKY_EXECUTE_H
-#define SKYWALKING_SKY_EXECUTE_H
+#ifndef SKYWALKING_SKY_PLUGIN_HYPERF_GUZZLE_H
+#define SKYWALKING_SKY_PLUGIN_HYPERF_GUZZLE_H
 
 #include "php_skywalking.h"
+#include "span.h"
 
-void sky_execute_ex(zend_execute_data *execute_data);
+Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
-void sky_execute_internal(zend_execute_data *execute_data, zval *return_value);
-
-#endif //SKYWALKING_SKY_EXECUTE_H
+#endif //SKYWALKING_SKY_PLUGIN_HYPERF_GUZZLE_H

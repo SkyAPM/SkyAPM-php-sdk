@@ -150,7 +150,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
         auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
         span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
-        span->setPeer(std::string(php_url_host) + std::to_string(peer_port));
+        span->setPeer(std::string(php_url_host) + ":" + std::to_string(peer_port));
         span->setOperationName(php_url_path == nullptr ? "/" : php_url_path);
         span->addTag("url", url_str);
 
