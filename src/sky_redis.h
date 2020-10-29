@@ -18,6 +18,7 @@
 #include "php_skywalking.h"
 #include "sky_utils.h"
 #include <string>
+#include <functional>
 #include <map>
 #include "span.h"
 #include "segment.h"
