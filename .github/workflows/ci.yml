@@ -19,6 +19,11 @@ jobs:
         php-version: ['7.0', '7.1', '7.2', '7.3', '7.4']
         skywalking-version: ['8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
     name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -35,7 +40,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: curl, json
+          extensions: curl, json, redis
           tools: php-config, phpize, composer
 
       - name: Install library
