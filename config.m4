@@ -148,10 +148,10 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/sky_execute.cc \
       src/sky_grpc.cc \
       src/sky_predis.cc \
-      src/sky_redis.cc \
       src/sky_module.cc \
       src/sky_pdo.cc \
       src/sky_plugin_rabbit_mq.cc \
+      src/sky_plugin_redis.cc \
       src/sky_shm.cc \
       src/sky_utils.cc \
       src/span.cc \
