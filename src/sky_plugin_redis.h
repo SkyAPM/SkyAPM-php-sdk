@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_SKY_REDIS_H
-#define SKYWALKING_SKY_REDIS_H
+#ifndef SKYWALKING_SKY_PLUGIN_REDIS_H
+#define SKYWALKING_SKY_PLUGIN_REDIS_H
 
 #include "php_skywalking.h"
 #include "sky_utils.h"
@@ -23,13 +23,14 @@
 #include "span.h"
 #include "segment.h"
 
-Span *sky_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
-
-std::string sky_redis_key_cmd(zend_execute_data *execute_data, std::string cmd);
 
 typedef std::function<std::string(zend_execute_data *execute_data, std::string)> redis_cmd_cb;
 
-std::string sky_redis_peer(zend_execute_data *execute_data);
+Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
+
+std::string sky_plugin_redis_peer(zend_execute_data *execute_data);
+
+std::string sky_plugin_redis_key_cmd(zend_execute_data *execute_data, std::string cmd);
 
 
-#endif // SKYWALKING_SKY_REDIS_H
+#endif // SKYWALKING_SKY_PLUGIN_REDIS_H

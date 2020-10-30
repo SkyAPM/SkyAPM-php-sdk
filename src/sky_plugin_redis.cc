@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "sky_redis.h"
+#include "sky_plugin_redis.h"
 
 std::map<std::string, redis_cmd_cb> commands = {
-        {"DECR",   sky_redis_key_cmd},
-        {"GET",    sky_redis_key_cmd},
-        {"INCR",   sky_redis_key_cmd},
-        {"STRLEN", sky_redis_key_cmd},
+        {"DECR",   sky_plugin_redis_key_cmd},
+        {"GET",    sky_plugin_redis_key_cmd},
+        {"INCR",   sky_plugin_redis_key_cmd},
+        {"STRLEN", sky_plugin_redis_key_cmd},
 };
 
-Span *sky_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
     auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
     auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 7);
@@ -29,7 +29,7 @@ Span *sky_redis(zend_execute_data *execute_data, const std::string &class_name, 
     span->addTag("db.type", "redis");
 
     // peer
-    auto peer = sky_redis_peer(execute_data);
+    auto peer = sky_plugin_redis_peer(execute_data);
     if (!peer.empty()) {
         span->setPeer(peer);
     }
@@ -43,7 +43,7 @@ Span *sky_redis(zend_execute_data *execute_data, const std::string &class_name, 
     return span;
 }
 
-std::string sky_redis_peer(zend_execute_data *execute_data) {
+std::string sky_plugin_redis_peer(zend_execute_data *execute_data) {
     zval *command = &(execute_data->This);
     zval host;
     zval port;
@@ -55,15 +55,24 @@ std::string sky_redis_peer(zend_execute_data *execute_data) {
     zend_call_method(Z_OBJCE_P(command), Z_OBJCE_P(command), nullptr, ZEND_STRL("getport"), &port, 0, nullptr, nullptr);
 #endif
 
-    if (!Z_ISUNDEF(host) && !Z_ISUNDEF(port) && Z_TYPE(host) == IS_STRING && Z_TYPE(port) == IS_LONG) {
-        const char *char_host = ZSTR_VAL(Z_STR(host));
-        return std::string(char_host) + ":" + std::to_string(Z_LVAL(port));
+    if (!Z_ISUNDEF(host) && !Z_ISUNDEF(port) && Z_TYPE(host) == IS_STRING) {
+        std::string peer(Z_STRVAL(host));
+
+        if (Z_TYPE(port) == IS_LONG) {
+            peer += ":" + std::to_string(Z_LVAL(port));
+        } else if (Z_TYPE(port) == IS_STRING) {
+            peer += ":" + std::string(Z_STRVAL(port));
+        } else {
+            peer += ":6379";
+        }
+
+        return peer;
     }
 
     return nullptr;
 }
 
-std::string sky_redis_key_cmd(zend_execute_data *execute_data, std::string cmd) {
+std::string sky_plugin_redis_key_cmd(zend_execute_data *execute_data, std::string cmd) {
     uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
     if (arg_count == 1) {
         zval *key = ZEND_CALL_ARG(execute_data, 1);
