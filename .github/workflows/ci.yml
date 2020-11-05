@@ -19,6 +19,25 @@ jobs:
         php-version: ['7.0', '7.1', '7.2', '7.3', '7.4']
         skywalking-version: ['8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
     name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
+    services:
+      skywalking:
+        image: apache/skywalking-oap-server:${{ matrix.skywalking-version }}
+        ports:
+          - 11800:11800
+          - 12800:12800
+      mysql:
+        image: mysql:5
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: "skywalking"
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -35,7 +54,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: curl, json
+          extensions: curl, json, redis, pdo_mysql
           tools: php-config, phpize, composer
 
       - name: Install library
@@ -48,12 +67,6 @@ jobs:
           cd e2e
           composer install
           cd ..
-
-      - name: Start docker-compose
-        run: |
-          sudo sed -i "s/VERSION/${{ matrix.skywalking-version }}/g" e2e/docker-compose.yml
-          docker-compose -f e2e/docker-compose.yml up -d
-          docker ps
 
       - name: Build GRPC
         run: |
@@ -83,6 +96,9 @@ jobs:
           sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/fpm/conf.d/
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
+          sudo cp -r e2e/vendor /var/www/html/
+          sudo cp -r e2e/tests /var/www/html/
+          sudo cp e2e/tests.php /var/www/html/
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl restart php${{ matrix.php-version }}-fpm
           sudo nginx -s reload

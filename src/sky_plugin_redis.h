@@ -32,5 +32,11 @@ std::string sky_plugin_redis_peer(zend_execute_data *execute_data);
 
 std::string sky_plugin_redis_key_cmd(zend_execute_data *execute_data, std::string cmd);
 
+std::string sky_plugin_redis_bit_count_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_key_value_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_todo_cmd(zend_execute_data *execute_data, std::string cmd);
+
 
 #endif // SKYWALKING_SKY_PLUGIN_REDIS_H
