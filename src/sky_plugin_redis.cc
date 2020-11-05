@@ -15,14 +15,38 @@
 #include "sky_plugin_redis.h"
 
 std::map<std::string, redis_cmd_cb> commands = {
-        {"APPEND",   sky_plugin_redis_key_value_cmd},
-        {"BITCOUNT", sky_plugin_redis_bit_count_cmd},
-        {"DECR",     sky_plugin_redis_key_cmd},
-        {"GET",      sky_plugin_redis_key_cmd},
-        {"GETSET",   sky_plugin_redis_key_value_cmd},
-        {"INCR",     sky_plugin_redis_key_cmd},
-        {"SETNX",    sky_plugin_redis_key_value_cmd},
-        {"STRLEN",   sky_plugin_redis_key_cmd},
+        {"APPEND",      sky_plugin_redis_key_value_cmd},
+
+        {"BITCOUNT",    sky_plugin_redis_bit_count_cmd},
+        {"BITFIELD",    sky_plugin_redis_todo_cmd},
+        {"BITOP",       sky_plugin_redis_todo_cmd},
+        {"BITPOS",      sky_plugin_redis_todo_cmd},
+
+        {"DECR",        sky_plugin_redis_key_cmd},
+        {"DECRBY",      sky_plugin_redis_todo_cmd},
+
+        {"GET",         sky_plugin_redis_key_cmd},
+        {"GETBIT",      sky_plugin_redis_todo_cmd},
+        {"GETRANGE",    sky_plugin_redis_todo_cmd},
+        {"GETSET",      sky_plugin_redis_key_value_cmd},
+
+        {"INCR",        sky_plugin_redis_key_cmd},
+        {"INCRBY",      sky_plugin_redis_todo_cmd},
+        {"INCRBYFLOAT", sky_plugin_redis_todo_cmd},
+
+        {"MGET",        sky_plugin_redis_todo_cmd},
+        {"MSET",        sky_plugin_redis_todo_cmd},
+        {"MSETNX",      sky_plugin_redis_todo_cmd},
+        {"PSETEX",      sky_plugin_redis_todo_cmd},
+
+        {"SET",         sky_plugin_redis_todo_cmd},
+        {"SETBIT",      sky_plugin_redis_todo_cmd},
+        {"SETEX",       sky_plugin_redis_todo_cmd},
+        {"SETNX",       sky_plugin_redis_key_value_cmd},
+        {"SETRANGE",    sky_plugin_redis_todo_cmd},
+
+        {"STRALGO",     sky_plugin_redis_todo_cmd},
+        {"STRLEN",      sky_plugin_redis_key_cmd},
 };
 
 Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
@@ -101,6 +125,10 @@ std::string sky_plugin_redis_key_value_cmd(zend_execute_data *execute_data, std:
             return cmd + " " + std::string(Z_STRVAL_P(key)) + " " + std::string(Z_STRVAL_P(value));
         }
     }
+    return "";
+}
+
+std::string sky_plugin_redis_todo_cmd(zend_execute_data *execute_data, std::string cmd) {
     return "";
 }
 
