@@ -145,7 +145,6 @@ void Manager::consumer() {
         pthread_cond_wait(&s_info->cond, &s_info->cond_mx);
         pthread_mutex_unlock(&s_info->cond_mx);
 
-
         if (s_info->sem_id != -1) {
             sky_sem_p(s_info->sem_id);
             std::string full(s_info->message);
@@ -153,10 +152,6 @@ void Manager::consumer() {
             sky_sem_v(s_info->sem_id);
 
             if (full.length() > 0) {
-
-                if (full == "terminate") {
-                    break;
-                }
                 pthread_mutex_lock(&mx);
                 messageQueue.push(full);
                 pthread_mutex_unlock(&mx);
@@ -167,7 +162,6 @@ void Manager::consumer() {
             }
         }
     }
-    s_info->real_exit = true;
 }
 
 [[noreturn]] void Manager::sender(const ManagerOptions &options) {
