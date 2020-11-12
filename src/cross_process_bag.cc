@@ -72,7 +72,7 @@ std::string CrossProcessBag::encode(int spanId, const std::string &peer) {
     tmp.emplace_back(Base64::encode(currentOperationName));
     tmp.emplace_back(Base64::encode(peer));
 
-    std::string header = "sw8: ";
+    std::string header;
 
     for (const auto &val:tmp) {
         header.append(val);

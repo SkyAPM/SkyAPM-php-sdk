@@ -155,7 +155,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         span->addTag("url", url_str);
 
         std::string sw_header = segment->createHeader(span);
-        add_next_index_string(option, sw_header.c_str());
+        add_next_index_string(option, ("sw8: " + sw_header).c_str());
     }
 
     zval argv[3];

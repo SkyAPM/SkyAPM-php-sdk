@@ -50,6 +50,16 @@ Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::strin
                     span->setPeer(std::string(Z_STRVAL(host)) + ":" + std::to_string(_port));
                     span->setOperationName(Z_TYPE(path) == IS_NULL ? "/" : std::string(Z_STRVAL(path)));
                     span->addTag("url", std::string(Z_STRVAL(to_string)));
+
+                    // with header
+                    std::string header = segment->createHeader(span);
+                    zval name, value;
+                    ZVAL_STRING(&name, "sw8");
+                    ZVAL_STRING(&value, header.c_str());
+                    zend_call_method(request, Z_OBJCE_P(request), nullptr, ZEND_STRL("withheader"), nullptr, 2, &name, &value);
+                    zval_dtor(&name);
+                    zval_dtor(&value);
+
                     return span;
                 }
             }
