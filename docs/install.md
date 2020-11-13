@@ -50,9 +50,9 @@ sudo ldconfig
 
 ## Install PHP Extension
 ```shell script
-curl -Lo v4.0.0.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.0.0.tar.gz
-tar zxvf v4.0.0.tar.gz
-cd SkyAPM-php-sdk-4.0.0
+curl -Lo v4.1.0.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.1.0.tar.gz
+tar zxvf v4.1.0.tar.gz
+cd SkyAPM-php-sdk-4.1.0
 phpize && ./configure && make && make install
 ```
 

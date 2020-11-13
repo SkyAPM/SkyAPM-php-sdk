@@ -1,7 +1,7 @@
 import xml.dom.minidom
 import time, os
 
-version = '4.0.0'
+version = '4.1.0'
 
 git = os.popen('git ls-files')
 res = git.read()
@@ -64,7 +64,7 @@ config = [
     {'key': 'license', 'value': 'Apache2.0', 'attr': [
         {'key': 'uri', 'value': 'http://www.apache.org/licenses/LICENSE-2.0.html'}
     ]},
-    {'key': 'notes', 'value': 'newly designed agent, modular design'},
+    {'key': 'notes', 'value': 'Fix bugs, Support swoole'},
     {'key': 'contents', 'child': [
         {'key': 'dir', 'attr': [
             {'key': 'name', 'value': '/'},
@@ -85,8 +85,20 @@ config = [
     {'key': 'changelog', 'child': [
         {'key': 'release', 'child': [
             {'key': 'version', 'child': [
-                {'key': 'release', 'value': '4.4.0'},
-                {'key': 'api', 'value': '4.4.0'}
+                {'key': 'release', 'value': '4.1.0'},
+                {'key': 'api', 'value': '4.1.0'}
+            ]},
+            {'key': 'stability', 'child': [
+                {'key': 'release', 'value': 'stable'},
+                {'key': 'api', 'value': 'stable'}
+            ]},
+            {'key': 'notes', 'value': 'Fix bugs, Support swoole'}
+        ]},
+
+        {'key': 'release', 'child': [
+            {'key': 'version', 'child': [
+                {'key': 'release', 'value': '4.0.0'},
+                {'key': 'api', 'value': '4.0.0'}
             ]},
             {'key': 'stability', 'child': [
                 {'key': 'release', 'value': 'stable'},
