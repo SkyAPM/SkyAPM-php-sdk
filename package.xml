@@ -10,17 +10,17 @@
 		<email>yanlong@php.net</email>
 		<active>yes</active>
 	</lead>
-	<date>2020-10-15</date>
+	<date>2020-11-13</date>
 	<version>
-		<release>4.0.0</release>
-		<api>4.0.0</api>
+		<release>4.1.0</release>
+		<api>4.1.0</api>
 	</version>
 	<stability>
 		<release>stable</release>
 		<api>stable</api>
 	</stability>
 	<license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
-	<notes>newly designed agent, modular design</notes>
+	<notes>Fix bugs, Support swoole</notes>
 	<contents>
 		<dir name="/">
 			<file role="doc" name="CREDITS"/>
@@ -44,6 +44,8 @@
 			<file role="src" name="e2e/init.sql"/>
 			<file role="src" name="e2e/nginx.conf"/>
 			<file role="src" name="e2e/override.conf"/>
+			<file role="src" name="e2e/tests.php"/>
+			<file role="src" name="e2e/tests/redis.php"/>
 			<file role="src" name="php.ini"/>
 			<file role="src" name="php_skywalking.h"/>
 			<file role="src" name="scripts/package.py"/>
@@ -81,16 +83,23 @@
 			<file role="src" name="src/sky_module.h"/>
 			<file role="src" name="src/sky_pdo.cc"/>
 			<file role="src" name="src/sky_pdo.h"/>
+			<file role="src" name="src/sky_plugin_hyperf_guzzle.cc"/>
+			<file role="src" name="src/sky_plugin_hyperf_guzzle.h"/>
 			<file role="src" name="src/sky_plugin_rabbit_mq.cc"/>
 			<file role="src" name="src/sky_plugin_rabbit_mq.h"/>
+			<file role="src" name="src/sky_plugin_redis.cc"/>
+			<file role="src" name="src/sky_plugin_redis.h"/>
 			<file role="src" name="src/sky_predis.cc"/>
 			<file role="src" name="src/sky_predis.h"/>
+			<file role="src" name="src/sky_shm.cc"/>
+			<file role="src" name="src/sky_shm.h"/>
 			<file role="src" name="src/sky_utils.cc"/>
 			<file role="src" name="src/sky_utils.h"/>
 			<file role="src" name="src/span.cc"/>
 			<file role="src" name="src/span.h"/>
 			<file role="src" name="src/tag.cc"/>
 			<file role="src" name="src/tag.h"/>
+			<file role="src" name="swoole.php"/>
 		</dir>
 	</contents>
 	<dependencies>
@@ -108,8 +117,19 @@
 	<changelog>
 		<release>
 			<version>
-				<release>4.4.0</release>
-				<api>4.4.0</api>
+				<release>4.1.0</release>
+				<api>4.1.0</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Fix bugs, Support swoole</notes>
+		</release>
+		<release>
+			<version>
+				<release>4.0.0</release>
+				<api>4.0.0</api>
 			</version>
 			<stability>
 				<release>stable</release>
