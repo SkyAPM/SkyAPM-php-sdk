@@ -29,18 +29,30 @@ Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::strin
     if (arg_count >= 1) {
         zval *request = ZEND_CALL_ARG(execute_data, 1);
         zval uri;
+#if PHP_VERSION_ID < 80000
         zend_call_method(request, Z_OBJCE_P(request), nullptr, ZEND_STRL("geturi"), &uri, 0, nullptr, nullptr);
+#else
+        zend_call_method(Z_OBJ_P(request), Z_OBJCE_P(request), nullptr, ZEND_STRL("geturi"), &uri, 0, nullptr, nullptr);
+#endif
 
         if (!Z_ISUNDEF(uri)) {
             zval scheme, host, port, path, query, to_string;
             int _port = 80;
+#if PHP_VERSION_ID < 80000
             zend_call_method(&uri, Z_OBJCE_P(&uri), nullptr, ZEND_STRL("getscheme"), &scheme, 0, nullptr, nullptr);
             zend_call_method(&uri, Z_OBJCE_P(&uri), nullptr, ZEND_STRL("gethost"), &host, 0, nullptr, nullptr);
             zend_call_method(&uri, Z_OBJCE_P(&uri), nullptr, ZEND_STRL("getport"), &port, 0, nullptr, nullptr);
             zend_call_method(&uri, Z_OBJCE_P(&uri), nullptr, ZEND_STRL("getpath"), &path, 0, nullptr, nullptr);
             zend_call_method(&uri, Z_OBJCE_P(&uri), nullptr, ZEND_STRL("getquery"), &query, 0, nullptr, nullptr);
             zend_call_method(&uri, Z_OBJCE_P(&uri), nullptr, ZEND_STRL("__tostring"), &to_string, 0, nullptr, nullptr);
-
+#else
+            zend_call_method(Z_OBJ(uri), Z_OBJCE(uri), nullptr, ZEND_STRL("getscheme"), &scheme, 0, nullptr, nullptr);
+            zend_call_method(Z_OBJ(uri), Z_OBJCE(uri), nullptr, ZEND_STRL("gethost"), &host, 0, nullptr, nullptr);
+            zend_call_method(Z_OBJ(uri), Z_OBJCE(uri), nullptr, ZEND_STRL("getport"), &port, 0, nullptr, nullptr);
+            zend_call_method(Z_OBJ(uri), Z_OBJCE(uri), nullptr, ZEND_STRL("getpath"), &path, 0, nullptr, nullptr);
+            zend_call_method(Z_OBJ(uri), Z_OBJCE(uri), nullptr, ZEND_STRL("getquery"), &query, 0, nullptr, nullptr);
+            zend_call_method(Z_OBJ(uri), Z_OBJCE(uri), nullptr, ZEND_STRL("__tostring"), &to_string, 0, nullptr, nullptr);
+#endif
             if (!Z_ISUNDEF(scheme) && Z_TYPE(scheme) == IS_STRING) {
 
                 if (strcmp(Z_STRVAL(scheme), "http") == 0 || strcmp(Z_STRVAL(scheme), "https") == 0) {

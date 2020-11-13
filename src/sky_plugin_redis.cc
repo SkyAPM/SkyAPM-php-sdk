@@ -80,8 +80,8 @@ std::string sky_plugin_redis_peer(zend_execute_data *execute_data) {
     zend_call_method(command, Z_OBJCE_P(command), nullptr, ZEND_STRL("gethost"), &host, 0, nullptr, nullptr);
     zend_call_method(command, Z_OBJCE_P(command), nullptr, ZEND_STRL("getport"), &port, 0, nullptr, nullptr);
 #else
-    zend_call_method(Z_OBJCE_P(command), Z_OBJCE_P(command), nullptr, ZEND_STRL("gethost"), &host, 0, nullptr, nullptr);
-    zend_call_method(Z_OBJCE_P(command), Z_OBJCE_P(command), nullptr, ZEND_STRL("getport"), &port, 0, nullptr, nullptr);
+    zend_call_method(Z_OBJ_P(command), Z_OBJCE_P(command), nullptr, ZEND_STRL("gethost"), &host, 0, nullptr, nullptr);
+    zend_call_method(Z_OBJ_P(command), Z_OBJCE_P(command), nullptr, ZEND_STRL("getport"), &port, 0, nullptr, nullptr);
 #endif
 
     if (!Z_ISUNDEF(host) && !Z_ISUNDEF(port) && Z_TYPE(host) == IS_STRING) {
@@ -136,7 +136,7 @@ std::string sky_plugin_redis_bit_count_cmd(zend_execute_data *execute_data, std:
     uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
 
     if (arg_count >= 1) {
-        for (int i = 1; i <= 3; ++i) {
+        for (uint32_t i = 1; i <= 3; ++i) {
             if (i <= arg_count) {
                 zval *value = ZEND_CALL_ARG(execute_data, i);
                 if (Z_TYPE_P(value) == IS_LONG) {
