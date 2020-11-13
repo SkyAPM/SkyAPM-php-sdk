@@ -39,6 +39,7 @@ void sky_execute_ex(zend_execute_data *execute_data) {
 
     // swoole
     bool swoole = false;
+    bool afterExec = true;
     zval *sw_response;
     if (SKY_IS_SWOOLE(function_name) || SKY_IS_HYPERF(class_name, function_name)) {
         uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
@@ -73,13 +74,17 @@ void sky_execute_ex(zend_execute_data *execute_data) {
         } else if ((SKY_STRCMP(class_name, "Hyperf\\Guzzle\\CoroutineHandler") ||
                    SKY_STRCMP(class_name, "Hyperf\\Guzzle\\PoolHandler")) &&
                    SKY_STRCMP(function_name, "__invoke")) {
+            afterExec = false;
             span = sky_plugin_hyperf_guzzle(execute_data, class_name, function_name);
         }
     }
 
+
     if (span != nullptr) {
-        ori_execute_ex(execute_data);
-        span->setEndTIme();
+        if (afterExec) {
+            ori_execute_ex(execute_data);
+            span->setEndTIme();
+        }
     } else {
         ori_execute_ex(execute_data);
     }

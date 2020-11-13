@@ -15,6 +15,9 @@
 #include "sky_plugin_hyperf_guzzle.h"
 #include "php_skywalking.h"
 #include "segment.h"
+#include "sky_utils.h"
+
+extern void (*ori_execute_ex)(zend_execute_data *execute_data);
 
 Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
@@ -55,11 +58,15 @@ Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::strin
                     std::string header = segment->createHeader(span);
                     zval name, value;
                     ZVAL_STRING(&name, "sw8");
-                    ZVAL_STRING(&value, header.c_str());
-                    zend_call_method(request, Z_OBJCE_P(request), nullptr, ZEND_STRL("withheader"), nullptr, 2, &name, &value);
-                    zval_dtor(&name);
-                    zval_dtor(&value);
+                    array_init(&value);
+                    add_index_string(&value, 0, header.c_str());
 
+                    zval *headers = sky_read_property(request, "headers", 0);
+                    zval *headerNames = sky_read_property(request, "headerNames", 0);
+                    add_assoc_zval_ex(headers, ZEND_STRL("sw8"), &value);
+                    add_assoc_zval_ex(headerNames, ZEND_STRL("sw8"), &name);
+                    ori_execute_ex(execute_data);
+                    span->setEndTIme();
                     return span;
                 }
             }
