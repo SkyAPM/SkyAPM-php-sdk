@@ -156,23 +156,23 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
         std::string sw_header = segment->createHeader(span);
         add_next_index_string(option, ("sw8: " + sw_header).c_str());
-    }
 
-    zval argv[3];
-    zval ret;
-    ZVAL_STRING(&func, "curl_setopt");
-    ZVAL_COPY(&argv[0], zid);
-    ZVAL_LONG(&argv[1], SKY_CURLOPT_HTTPHEADER);
-    ZVAL_COPY(&argv[2], option);
-    call_user_function(CG(function_table), NULL, &func, &ret, 3, argv);
-    zval_dtor(&func);
-    zval_dtor(&ret);
-    zval_dtor(&argv[0]);
-    zval_dtor(&argv[1]);
-    zval_dtor(&argv[2]);
-    if (is_emalloc) {
-        zval_ptr_dtor(option);
-        efree(option);
+        zval argv[3];
+        zval ret;
+        ZVAL_STRING(&func, "curl_setopt");
+        ZVAL_COPY(&argv[0], zid);
+        ZVAL_LONG(&argv[1], SKY_CURLOPT_HTTPHEADER);
+        ZVAL_COPY(&argv[2], option);
+        call_user_function(CG(function_table), NULL, &func, &ret, 3, argv);
+        zval_dtor(&func);
+        zval_dtor(&ret);
+        zval_dtor(&argv[0]);
+        zval_dtor(&argv[1]);
+        zval_dtor(&argv[2]);
+        if (is_emalloc) {
+            zval_ptr_dtor(option);
+            efree(option);
+        }
     }
 
     orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
