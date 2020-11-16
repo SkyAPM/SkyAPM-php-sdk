@@ -190,8 +190,11 @@ zend_module_dep skywalking_deps[] = {
         ZEND_MOD_END
 };
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_trace_id, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry skywalking_functions[] = {
-        PHP_FE (skywalking_trace_id, NULL)
+        PHP_FE (skywalking_trace_id, arginfo_skywalking_trace_id)
         PHP_FE_END
 };
 
