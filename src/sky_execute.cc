@@ -41,7 +41,7 @@ void sky_execute_ex(zend_execute_data *execute_data) {
     bool swoole = false;
     bool afterExec = true;
     zval *sw_response;
-    if (SKY_IS_SWOOLE(function_name) || SKY_IS_HYPERF(class_name, function_name)) {
+    if (SKY_IS_SWOOLE(function_name) || SKY_IS_SWOOLE_FRAMEWORK(class_name, function_name)) {
         uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
         if (arg_count == 2) {
             zval *sw_request = ZEND_CALL_ARG(execute_data, 1);
