@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=4.1.0
+VERSION=4.1.1
 OS=`uname`
 
 echo "OS: $OS"

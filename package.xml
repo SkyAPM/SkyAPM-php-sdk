@@ -10,17 +10,17 @@
 		<email>yanlong@php.net</email>
 		<active>yes</active>
 	</lead>
-	<date>2020-11-13</date>
+	<date>2020-11-18</date>
 	<version>
-		<release>4.1.0</release>
-		<api>4.1.0</api>
+		<release>4.1.1</release>
+		<api>4.1.1</api>
 	</version>
 	<stability>
 		<release>stable</release>
 		<api>stable</api>
 	</stability>
 	<license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
-	<notes>Fix bugs, Support swoole</notes>
+	<notes>Fix bugs</notes>
 	<contents>
 		<dir name="/">
 			<file role="doc" name="CREDITS"/>
@@ -115,6 +115,17 @@
 	<providesextension>skywalking</providesextension>
 	<extsrcrelease/>
 	<changelog>
+		<release>
+			<version>
+				<release>4.1.1</release>
+				<api>4.1.1</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Fix bugs</notes>
+		</release>
 		<release>
 			<version>
 				<release>4.1.0</release>
