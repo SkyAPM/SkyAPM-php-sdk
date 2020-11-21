@@ -22,6 +22,7 @@
 #include "sky_plugin_redis.h"
 #include "sky_plugin_rabbit_mq.h"
 #include "sky_plugin_hyperf_guzzle.h"
+#include "sky_plugin_swoole_curl.h"
 #include "sky_pdo.h"
 #include "sky_module.h"
 #include "segment.h"
@@ -64,7 +65,7 @@ void sky_execute_ex(zend_execute_data *execute_data) {
 
     Span *span = nullptr;
 
-    if (class_name != nullptr) {
+    if (class_name != nullptr && function_name != nullptr) {
         if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "executeCommand") == 0) {
             span = sky_predis(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
@@ -77,16 +78,18 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             afterExec = false;
             span = sky_plugin_hyperf_guzzle(execute_data, class_name, function_name);
         }
+    } else if (function_name != nullptr) {
+        if (SKY_STRCMP(function_name, "swoole_curl_exec")) {
+            afterExec = false;
+            sky_plugin_swoole_curl(execute_data, "", function_name);
+        }
     }
 
-
-    if (span != nullptr) {
-        if (afterExec) {
-            ori_execute_ex(execute_data);
+    if (afterExec) {
+        ori_execute_ex(execute_data);
+        if (span != nullptr) {
             span->setEndTIme();
         }
-    } else {
-        ori_execute_ex(execute_data);
     }
 
     if (swoole) {
