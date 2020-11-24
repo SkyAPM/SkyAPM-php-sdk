@@ -55,6 +55,13 @@ extern zend_module_entry skywalking_module_entry;
 #define SKY_IS_TARS(class_name, func_name) (SKY_STRCMP(class_name, "Tars\\core\\Server") && SKY_STRCMP(func_name, "onRequest"))
 #define SKY_IS_SWOOLE_FRAMEWORK(class_name, func_name) SKY_IS_HYPERF(class_name, func_name) || SKY_IS_TARS(class_name, func_name)
 
+#if PHP_VERSION_ID < 80000
+#define SKY_ZEND_CALL_METHOD(obj, fn, func, ret, param, arg1, arg2) zend_call_method(obj, Z_OBJCE_P(obj), fn, ZEND_STRL(func), ret, param, arg1, arg2);
+#else
+#define SKY_ZEND_CALL_METHOD(obj, fn, func, ret, param, arg1, arg2) zend_call_method(Z_OBJ_P(obj), Z_OBJCE_P(obj), fn, ZEND_STRL(func), ret, param, arg1, arg2);
+#endif
+
+
 #ifdef PHP_WIN32
 #	define PHP_SKYWALKING_API __declspec(dllexport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
