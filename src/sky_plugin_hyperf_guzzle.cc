@@ -73,10 +73,25 @@ Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::strin
                     array_init(&value);
                     add_index_string(&value, 0, header.c_str());
 
-                    zval *headers = sky_read_property(request, "headers", 0);
-                    zval *headerNames = sky_read_property(request, "headerNames", 0);
-                    add_assoc_zval_ex(headers, ZEND_STRL("sw8"), &value);
-                    add_assoc_zval_ex(headerNames, ZEND_STRL("sw8"), &name);
+                    zend_object *object = request->value.obj;
+                    std::string request_name(ZSTR_VAL(object->ce->name));
+                    zval *headers, *headerNames;
+                    if (request_name == "GuzzleHttp\\Psr7\\ServerRequest") {
+                        headers = sky_read_property(request, "headers", 1);
+                        headerNames = sky_read_property(request, "headerNames", 1);
+                    } else if (request_name == "GuzzleHttp\\Psr7\\Request") {
+                        headers = sky_read_property(request, "headers", 0);
+                        headerNames = sky_read_property(request, "headerNames", 0);
+                    }
+
+                    if (headers != nullptr && headerNames != nullptr) {
+                        add_assoc_zval_ex(headers, ZEND_STRL("sw8"), &value);
+                        add_assoc_zval_ex(headerNames, ZEND_STRL("sw8"), &name);
+                    } else {
+                        zval_ptr_dtor(&name);
+                        zval_ptr_dtor(&value);
+                    }
+
                     ori_execute_ex(execute_data);
                     span->setEndTIme();
                     return span;
