@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <iostream>
 #include "sky_curl.h"
 #include "php_skywalking.h"
 
@@ -130,7 +131,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 #if PHP_VERSION_ID >= 70300
         char *php_url_scheme = ZSTR_VAL(url_parse->scheme);
         char *php_url_host = ZSTR_VAL(url_parse->host);
-        char *php_url_path = ZSTR_VAL(url_parse->path);
+        char *php_url_path = url_parse->path != nullptr ? ZSTR_VAL(url_parse->path) : nullptr;
 #else
         char *php_url_scheme = url_parse->scheme;
         char *php_url_host = url_parse->host;

@@ -33,8 +33,6 @@ void sky_plugin_swoole_curl(zend_execute_data *execute_data, const std::string &
         zval *host = zend_hash_str_find(Z_ARRVAL_P(urlInfo), ZEND_STRL("host"));
         zval *port = zend_hash_str_find(Z_ARRVAL_P(urlInfo), ZEND_STRL("port"));
         zval *path = zend_hash_str_find(Z_ARRVAL_P(urlInfo), ZEND_STRL("path"));
-        zval url;
-        SKY_ZEND_CALL_METHOD(handle, nullptr, "geturl", &url, 0, nullptr, nullptr);
 
         if (!Z_ISUNDEF_P(scheme) && Z_TYPE_P(scheme) == IS_STRING) {
             std::string _scheme(Z_STRVAL_P(scheme));
@@ -43,12 +41,17 @@ void sky_plugin_swoole_curl(zend_execute_data *execute_data, const std::string &
             std::string _path;
             std::string _url;
 
+            zval url;
+            SKY_ZEND_CALL_METHOD(handle, nullptr, "geturl", &url, 0, nullptr, nullptr);
+
             if (!Z_ISUNDEF(url) && Z_TYPE(url) == IS_STRING) {
                 _url = std::string(Z_STRVAL(url));
             }
 
-            if (!Z_ISUNDEF_P(path) && Z_TYPE_P(path) == IS_STRING) {
+            if (path != nullptr && !Z_ISUNDEF_P(path) && Z_TYPE_P(path) == IS_STRING) {
                 _path = std::string(Z_STRVAL_P(path));
+            } else {
+                _path = "/";
             }
 
             if (_scheme == "http" || _scheme == "https") {
@@ -74,7 +77,7 @@ void sky_plugin_swoole_curl(zend_execute_data *execute_data, const std::string &
             zval *info = sky_read_property(handle, "info", 0);
             zval *http_code = zend_hash_str_find(Z_ARRVAL_P(info), ZEND_STRL("http_code"));
 
-            if (!Z_ISUNDEF_P(path) && Z_TYPE_P(http_code) == IS_LONG) {
+            if (!Z_ISUNDEF_P(http_code) && Z_TYPE_P(http_code) == IS_LONG) {
                 span->addTag("status_code", std::to_string(Z_LVAL_P(http_code)));
                 if (Z_LVAL_P(http_code) >= 400) {
                     span->setIsError(true);
