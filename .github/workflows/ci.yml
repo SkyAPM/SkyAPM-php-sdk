@@ -63,7 +63,10 @@ jobs:
           sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
-          sudo apt-get install -y php${{ matrix.php-version }}-fpm
+          if ! [ -e /usr/bin/php-fpm ]; then
+            sudo apt-get install -y php${{ matrix.php-version }}-fpm
+            sudo cp /usr/sbin/php-fpm${{ matrix.php-version }} /usr/bin/php-fpm
+          fi
           cd e2e
           composer install
           cd ..
@@ -92,8 +95,8 @@ jobs:
 
       - name: Start FPM and Nginx
         run: |
-          sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/cli/conf.d/
-          sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/fpm/conf.d/
+          sudo cp e2e/99-skywalking.ini $(php -i | grep additional | sed -e "s|.*=> s*||")
+          sudo cp e2e/99-skywalking.ini $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
           sudo cp -r e2e/vendor /var/www/html/
