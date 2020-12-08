@@ -37,6 +37,9 @@ SKY_BEGIN_EXTERN_C()
 #include "zend_API.h"
 #include <curl/curl.h>
 #include "ext/standard/url.h"
+#if PHP_VERSION_ID >= 80000
+#include "ext/curl/php_curl.h"
+#endif
 #include "zend_interfaces.h"
 #include "ext/pdo/php_pdo_driver.h"
 #include "ext/standard/php_var.h"
