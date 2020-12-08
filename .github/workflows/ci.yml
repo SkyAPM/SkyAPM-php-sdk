@@ -115,9 +115,10 @@ jobs:
 
   publish:
     needs: [build]
-    runs-on: [ubuntu-latest]
+    runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
+        operating-system: [ubuntu-latest]
         php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
     name: Publish PHP ${{ matrix.php-version }}
     steps:
