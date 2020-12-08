@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_SKY_CURL_H
-#define SKYWALKING_SKY_CURL_H
+#ifndef SKYWALKING_SKY_PLUGIN_CURL_H
+#define SKYWALKING_SKY_PLUGIN_CURL_H
 
 #include "php_skywalking.h"
 
@@ -27,4 +27,4 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS);
 
 void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS);
 
-#endif //SKYWALKING_SKY_CURL_H
+#endif //SKYWALKING_SKY_PLUGIN_CURL_H

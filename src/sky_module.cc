@@ -16,7 +16,7 @@
 
 #include "segment.h"
 #include "sky_utils.h"
-#include "sky_curl.h"
+#include "sky_plugin_curl.h"
 #include "sky_execute.h"
 #include "manager.h"
 #include "sky_shm.h"

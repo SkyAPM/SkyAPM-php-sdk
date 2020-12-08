@@ -16,8 +16,8 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4']
-        skywalking-version: ['8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
+        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
+        skywalking-version: ['8.3.0-es6', '8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
     name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
     services:
       skywalking:
@@ -63,7 +63,10 @@ jobs:
           sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
-          sudo apt-get install -y php${{ matrix.php-version }}-fpm
+          if ! [ -e /usr/bin/php-fpm ]; then
+            sudo apt-get install -y php${{ matrix.php-version }}-fpm
+            sudo cp /usr/sbin/php-fpm${{ matrix.php-version }} /usr/bin/php-fpm
+          fi
           cd e2e
           composer install
           cd ..
@@ -92,8 +95,8 @@ jobs:
 
       - name: Start FPM and Nginx
         run: |
-          sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/cli/conf.d/
-          sudo cp e2e/99-skywalking.ini /etc/php/${{ matrix.php-version }}/fpm/conf.d/
+          sudo cp e2e/99-skywalking.ini $(php -i | grep additional | sed -e "s|.*=> s*||")
+          sudo cp e2e/99-skywalking.ini $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
           sudo cp -r e2e/vendor /var/www/html/
@@ -112,7 +115,12 @@ jobs:
 
   publish:
     needs: [build]
-    runs-on: [ubuntu-latest]
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
+        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
+    name: Publish PHP ${{ matrix.php-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -121,8 +129,8 @@ jobs:
         if: github.event_name == 'push'
         uses: elgohr/Publish-Docker-Github-Action@2.13
         with:
-          name: skyapm/skywalking-php
+          name: skyapm/skywalking-php-${{ matrix.php-version }}-fpm-alpine
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tag_names: true
-          dockerfile: docker/Dockerfile
+          dockerfile: docker/Dockerfile.${{ matrix.php-version }}

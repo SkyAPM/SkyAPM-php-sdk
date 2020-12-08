@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <iostream>
-#include "sky_curl.h"
+#include "sky_plugin_curl.h"
 #include "php_skywalking.h"
 
 #include "segment.h"
@@ -36,10 +36,19 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     zval *zid, *zvalue;
     zend_long options;
-
+#if PHP_VERSION_ID >= 80000
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+            Z_PARAM_OBJECT_OF_CLASS(zid, curl_ce)
+            Z_PARAM_LONG(options)
+            Z_PARAM_ZVAL(zvalue)
+    ZEND_PARSE_PARAMETERS_END();
+    zend_ulong cid = Z_OBJ_HANDLE_P(zid);
+#else
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "rlz", &zid, &options, &zvalue) == FAILURE) {
         return;
     }
+    zend_ulong cid = Z_RES_HANDLE_P(zid);
+#endif
 
     if (SKY_CURLOPT_HTTPHEADER == options) {
         zval *header = ZEND_CALL_ARG(execute_data, 2);
@@ -49,7 +58,7 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
         if (CURLOPT_HTTPHEADER == options && Z_TYPE_P(zvalue) == IS_ARRAY) {
             zval dup_header;
             ZVAL_DUP(&dup_header, zvalue);
-            add_index_zval(&SKYWALKING_G(curl_header), Z_RES_HANDLE_P(zid), &dup_header);
+            add_index_zval(&SKYWALKING_G(curl_header), cid, &dup_header);
         } else {
             orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         }
@@ -64,18 +73,26 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
     }
 
     zval *zid, *arr;
-
+#if PHP_VERSION_ID >= 80000
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+            Z_PARAM_OBJECT_OF_CLASS(zid, curl_ce)
+            Z_PARAM_ARRAY(arr)
+    ZEND_PARSE_PARAMETERS_END();
+    zend_ulong cid = Z_OBJ_HANDLE_P(zid);
+#else
     ZEND_PARSE_PARAMETERS_START(2, 2)
             Z_PARAM_RESOURCE(zid)
             Z_PARAM_ARRAY(arr)
     ZEND_PARSE_PARAMETERS_END();
+    zend_ulong cid = Z_RES_HANDLE_P(zid);
+#endif
 
     zval *http_header = zend_hash_index_find(Z_ARRVAL_P(arr), CURLOPT_HTTPHEADER);
 
     if (http_header != nullptr) {
         zval copy_header;
         ZVAL_DUP(&copy_header, http_header);
-        add_index_zval(&SKYWALKING_G(curl_header), Z_RES_HANDLE_P(zid), &copy_header);
+        add_index_zval(&SKYWALKING_G(curl_header), cid, &copy_header);
     }
 
     orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
@@ -88,9 +105,18 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     }
 
     zval *zid;
+
+#if PHP_VERSION_ID >= 80000
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_OBJECT_OF_CLASS(zid, curl_ce)
+    ZEND_PARSE_PARAMETERS_END();
+    zend_ulong cid = Z_OBJ_HANDLE_P(zid);
+#else
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zid) == FAILURE) {
         return;
     }
+    zend_ulong cid = Z_RES_HANDLE_P(zid);
+#endif
 
     int is_record = 0;
 
@@ -118,7 +144,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     Span *span;
     int is_emalloc = 0;
     zval *option;
-    option = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), Z_RES_HANDLE_P(zid));
+    option = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), cid);
     if (is_record) {
         if (option == nullptr) {
             option = (zval *) emalloc(sizeof(zval));
@@ -164,7 +190,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         ZVAL_COPY(&argv[0], zid);
         ZVAL_LONG(&argv[1], SKY_CURLOPT_HTTPHEADER);
         ZVAL_COPY(&argv[2], option);
-        call_user_function(CG(function_table), NULL, &func, &ret, 3, argv);
+        call_user_function(CG(function_table), nullptr, &func, &ret, 3, argv);
         zval_dtor(&func);
         zval_dtor(&ret);
         zval_dtor(&argv[0]);
@@ -185,7 +211,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         zval url_response;
         ZVAL_COPY(&args[0], zid);
         ZVAL_STRING(&func, "curl_getinfo");
-        call_user_function(CG(function_table), NULL, &func, &url_response, 1, args);
+        call_user_function(CG(function_table), nullptr, &func, &url_response, 1, args);
         zval_dtor(&func);
         zval_dtor(&args[0]);
 
@@ -210,20 +236,28 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
 void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
-    if (SKYWALKING_G(segment) == NULL) {
+    if (SKYWALKING_G(segment) == nullptr) {
         orig_curl_close(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
 
     zval *zid;
 
+#if PHP_VERSION_ID >= 80000
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT_OF_CLASS(zid, curl_ce)
+    ZEND_PARSE_PARAMETERS_END();
+    zend_ulong cid = Z_OBJ_HANDLE_P(zid);
+#else
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zid) == FAILURE) {
         return;
     }
+    zend_ulong cid = Z_RES_HANDLE_P(zid);
+#endif
 
-    zval *http_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), Z_RES_HANDLE_P(zid));
-    if (http_header != NULL) {
-        zend_hash_index_del(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), Z_RES_HANDLE_P(zid));
+    zval *http_header = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), cid);
+    if (http_header != nullptr) {
+        zend_hash_index_del(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), cid);
     }
 
     orig_curl_close(INTERNAL_FUNCTION_PARAM_PASSTHRU);
