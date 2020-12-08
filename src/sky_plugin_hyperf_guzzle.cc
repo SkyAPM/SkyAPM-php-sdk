@@ -75,7 +75,7 @@ Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::strin
 
                     zend_object *object = request->value.obj;
                     std::string request_name(ZSTR_VAL(object->ce->name));
-                    zval *headers, *headerNames;
+                    zval *headers = nullptr, *headerNames;
                     if (request_name == "GuzzleHttp\\Psr7\\ServerRequest") {
                         headers = sky_read_property(request, "headers", 1);
                         headerNames = sky_read_property(request, "headerNames", 1);
