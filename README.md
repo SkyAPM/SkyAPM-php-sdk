@@ -32,9 +32,9 @@ SkyAPM PHP
 * [Documents in English](docs/README.md)
 
 ## Docker image (Quick start)
-Go to Docker hub -> [https://hub.docker.com/r/skyapm/skywalking-php](https://hub.docker.com/r/skyapm/skywalking-php)
+Go to Docker hub -> [https://hub.docker.com/u/skyapm](https://hub.docker.com/u/skyapm)
 ```shell script
-docker run -d -e SW_OAP_ADDRESS=127.0.0.1:11800 skywalking-php
+docker run -d -e SW_OAP_ADDRESS=127.0.0.1:11800 skyapm/skywalking-php-0.8-fpm-alpine
 ```
 
 ## Downloads
