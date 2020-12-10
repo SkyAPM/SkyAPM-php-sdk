@@ -76,3 +76,6 @@ skywalking.app_code = MyProjectName
 ; Set grpc address
 skywalking.grpc=127.0.0.1:11800
 ```
+### Trouble Shooting
+#### Nothing Receiving in OapService?
+Check your php-fpm start mode. It must start with "--nodaemonize" to stay php-fpm in foreground.
