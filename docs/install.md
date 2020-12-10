@@ -43,6 +43,8 @@ sudo ldconfig
 
 #### Alpine
 ```shell script
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64
+export LD_RUN_PATH=$LD_RUN_PATH:/usr/local/lib:/usr/local/lib64
 apk --update add --no-cache git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx
 git clone --depth 1 -b v1.34.x https://github.com/grpc/grpc.git /var/local/git/grpc
 cd grpc
@@ -53,7 +55,7 @@ cd /var/local/git/grpc/third_party/protobuf
 ./autogen.sh
 ./configure
 make -j$(nproc)
-make install
+sudo make install
 make clean
 
 # grpc
@@ -62,7 +64,7 @@ mkdir -p cmake/build
 cd cmake/build
 cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
 make -j$(nproc)
-make install
+sudo make install
 make clean
 ```
 
