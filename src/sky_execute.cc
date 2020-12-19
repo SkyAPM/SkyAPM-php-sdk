@@ -24,6 +24,7 @@
 #include "sky_plugin_hyperf_guzzle.h"
 #include "sky_plugin_swoole_curl.h"
 #include "sky_pdo.h"
+#include "sky_mysqli.h"
 #include "sky_module.h"
 #include "segment.h"
 
@@ -128,6 +129,8 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
         if (class_name != nullptr) {
             if (strcmp(class_name, "PDO") == 0 || strcmp(class_name, "PDOStatement") == 0) {
                 span = sky_pdo(execute_data, class_name, function_name);
+            } else if (strcmp(class_name, "mysqli") == 0 || strcmp(function_name, "mysqli_query") == 0){
+                span = sky_mysqli(execute_data, class_name, function_name);                                
             } else if (strcmp(class_name, "Redis") == 0) {
                 span = sky_plugin_redis(execute_data, class_name, function_name);
             }

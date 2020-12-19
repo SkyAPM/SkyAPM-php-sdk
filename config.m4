@@ -147,6 +147,7 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/sky_execute.cc \
       src/sky_grpc.cc \
       src/sky_module.cc \
+      src/sky_mysqli.cc \
       src/sky_pdo.cc \
       src/sky_plugin_curl.cc \
       src/sky_plugin_hyperf_guzzle.cc \
