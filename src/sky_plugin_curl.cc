@@ -29,7 +29,8 @@ void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
 
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
-    if (SKYWALKING_G(segment) == NULL) {
+    auto *segment = sky_get_segment(execute_data, -1);
+    if (segment == nullptr) {
         orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -67,7 +68,8 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
 void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
-    if (SKYWALKING_G(segment) == NULL) {
+    auto *segment = sky_get_segment(execute_data, -1);
+    if (segment == nullptr) {
         orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -99,7 +101,8 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 }
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
-    if (SKYWALKING_G(segment) == NULL) {
+    auto *segment = sky_get_segment(execute_data, -1);
+    if (segment == nullptr) {
         orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -175,7 +178,6 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
             }
         }
 
-        auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
         span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
         span->setPeer(std::string(php_url_host) + ":" + std::to_string(peer_port));
         span->setOperationName(php_url_path == nullptr ? "/" : php_url_path);
@@ -236,7 +238,8 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
 void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
-    if (SKYWALKING_G(segment) == nullptr) {
+    auto *segment = sky_get_segment(execute_data, -1);
+    if (segment == nullptr) {
         orig_curl_close(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }

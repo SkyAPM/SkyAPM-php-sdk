@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <map>
+#include <iostream>
 #include "sky_module.h"
+#include <boost/interprocess/ipc/message_queue.hpp>
 
 #include "segment.h"
 #include "sky_utils.h"
@@ -61,21 +64,27 @@ void sky_module_init() {
         old_function->internal_function.handler = sky_curl_close_handler;
     }
 
-    if (s_info->sem_id != -1) {
-        ManagerOptions opt;
-        opt.version = SKYWALKING_G(version);
-        opt.code = SKYWALKING_G(app_code);
-        opt.grpc = SKYWALKING_G(grpc);
-        opt.grpc_tls = SKYWALKING_G(grpc_tls_enable);
-        opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
-        opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
-        opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
+    ManagerOptions opt;
+    opt.version = SKYWALKING_G(version);
+    opt.code = SKYWALKING_G(app_code);
+    opt.grpc = SKYWALKING_G(grpc);
+    opt.grpc_tls = SKYWALKING_G(grpc_tls_enable);
+    opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
+    opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
+    opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
 
-        new Manager(opt, s_info);
+    try {
+        boost::interprocess::message_queue::remove("skywalking_queue");
+        boost::interprocess::message_queue(boost::interprocess::create_only, "skywalking_queue", 1024, 20480);
+        std::cout << "create" << std::endl;
+    } catch(boost::interprocess::interprocess_exception &ex) {
+        std::cout << "create" << ex.what() << std::endl;
     }
+
+    new Manager(opt, s_info);
 }
 
-void sky_request_init(zval *request) {
+void sky_request_init(zval *request, uint64_t request_id) {
     array_init(&SKYWALKING_G(curl_header));
 
     zval *carrier = nullptr;
@@ -123,37 +132,44 @@ void sky_request_init(zval *request) {
         peer = get_page_request_peer();
     }
 
-    auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
-    SKYWALKING_G(segment) = segment;
+    std::map<uint64_t, Segment*> *segments;
+    if (SKYWALKING_G(segment) == nullptr) {
+        segments = new std::map<uint64_t, Segment*>;
+        SKYWALKING_G(segment) = segments;
+    } else {
+        segments = static_cast<std::map<uint64_t, Segment *> *>SKYWALKING_G(segment);
+    }
 
-    auto *span = segment->createSpan(SkySpanType::Entry, SkySpanLayer::Http, 8001);
+    auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
+    auto const result = segments->insert(std::pair<uint64_t, Segment*>(request_id, segment));
+    if (not result.second) {
+        result.first->second = segment;
+    }
+
+    auto *span = segments->at(request_id)->createSpan(SkySpanType::Entry, SkySpanLayer::Http, 8001);
     span->setOperationName(uri);
     span->setPeer(peer);
     span->addTag("url", uri);
-    segment->createRefs();
+    segments->at(request_id)->createRefs();
 
 }
 
-void sky_request_flush(zval *response) {
-    auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+
+
+void sky_request_flush(zval *response, uint64_t request_id) {
+    auto *segment = sky_get_segment(nullptr, request_id);
 
     if (response == nullptr) {
         segment->setStatusCode(SG(sapi_headers).http_response_code);
     }
     std::string msg = segment->marshal();
     delete segment;
-    SKYWALKING_G(segment) = nullptr;
 
-    char *buf = new char[msg.length() + 1];
-    strcpy(buf, msg.c_str());
-
-    sky_sem_p(s_info->sem_id);
-    strncpy(s_info->message, buf, strlen(buf) + 1);
-    sky_sem_v(s_info->sem_id);
-
-    pthread_mutex_lock(&s_info->cond_mx);
-    pthread_cond_signal(&s_info->cond);
-    pthread_mutex_unlock(&s_info->cond_mx);
-
-    delete [] buf;
+    try {
+        boost::interprocess::message_queue mq(boost::interprocess::open_or_create, "skywalking_queue", 1024, 20480);
+        std::cout << msg.length() << std::endl;
+        mq.send(msg.data(), msg.size(), 0);
+    } catch(boost::interprocess::interprocess_exception &ex) {
+        std::cout << "send" << ex.what() << std::endl;
+    }
 }

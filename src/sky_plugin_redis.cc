@@ -54,7 +54,7 @@ Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class
     std::string cmd = function_name;
     std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::toupper);
     if (commands.count(cmd) > 0) {
-        auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+        auto *segment = sky_get_segment(execute_data, -1);
         auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 7);
         span->setOperationName(class_name + "->" + function_name);
         span->addTag("db.type", "redis");

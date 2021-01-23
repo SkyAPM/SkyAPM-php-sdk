@@ -16,6 +16,7 @@
 #define SKYWALKING_SKY_UTILS_H
 
 #include "php_skywalking.h"
+#include "segment.h"
 
 #include <string>
 
@@ -28,6 +29,10 @@ std::string get_page_request_uri();
 std::string get_page_request_peer();
 
 zval *sky_read_property(zval *obj, const char *property, int parent);
+
+int64_t sky_find_swoole_fd(zend_execute_data *execute_data);
+
+Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id);
 
 std::string sky_get_class_name(zval *obj);
 

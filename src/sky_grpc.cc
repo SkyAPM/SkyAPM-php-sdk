@@ -26,7 +26,7 @@ Span *sky_grpc(zend_execute_data *execute_data, char *class_name, char *function
     if (_function_name == "_simpleRequest" || _function_name == "_clientStreamRequest" ||
         _function_name == "_serverStreamRequest" || _function_name == "_bidiRequest") {
 
-        auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+        auto *segment = sky_get_segment(execute_data, -1);
         auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::RPCFramework, 23);
         span->setOperationName(_class_name + "->" + _function_name);
         span->addTag("rpc.type", "grpc");
