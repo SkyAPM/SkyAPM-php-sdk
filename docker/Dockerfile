@@ -7,7 +7,7 @@ RUN set -ex \
     && apt-get update && apt-get install -y \
         autoconf automake libtool curl make g++ unzip \
         build-essential autoconf libtool pkg-config cmake \
-        git ca-certificates libcurl4-openssl-dev nginx re2c \
+        git ca-certificates libcurl4-openssl-dev nginx re2c libboost-dev \
     && rm -fr /var/lib/apt/lists/* \
     && echo "--- clone grpc ---" \
     && git clone --depth 1 -b ${GRPC_RELEASE_TAG} https://github.com/grpc/grpc /var/local/git/grpc \
