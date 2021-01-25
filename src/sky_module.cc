@@ -70,6 +70,7 @@ void sky_module_init() {
         opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
         opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
         opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
+        opt.authentication = SKYWALKING_G(authentication);
 
         new Manager(opt, s_info);
     }
