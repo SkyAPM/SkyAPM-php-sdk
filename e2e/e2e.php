@@ -57,6 +57,7 @@ GRAPHQL;
     public function query($query, $variables) {
         $client = new \GuzzleHttp\Client();
         $res = $client->request("POST", $this->url, [
+            'debug' => true,
             'json' => [
                 'query' => $query,
                 'variables' => $variables
@@ -69,7 +70,7 @@ GRAPHQL;
         }
 
         $body = $res->getBody()->getContents();
-        $this->info($body);
+        $this->info("query response body: " . $body);
         return $body;
     }
 
