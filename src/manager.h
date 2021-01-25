@@ -41,6 +41,7 @@ struct ManagerOptions {
     std::string root_certs;
     std::string private_key;
     std::string cert_chain;
+    std::string authentication;
 };
 
 class Manager {
