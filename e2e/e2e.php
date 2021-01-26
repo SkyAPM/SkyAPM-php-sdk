@@ -56,12 +56,16 @@ GRAPHQL;
 
     public function query($query, $variables) {
         $client = new \GuzzleHttp\Client();
+
+        $json = [
+                    'query' => $query,
+                    'variables' => $variables
+                ];
+
+        $this->info("query request body: " . json_encode($json));
         $res = $client->request("POST", $this->url, [
             'debug' => true,
-            'json' => [
-                'query' => $query,
-                'variables' => $variables
-            ]
+            'json' => $json
         ]);
 
         $this->info("query response status code: " . $res->getStatusCode());
