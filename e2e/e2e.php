@@ -129,15 +129,15 @@ GRAPHQL;
                             'start' => date("Y-m-d Hi", $this->startTime),
                             'end' => date("Y-m-d Hi"),
                             'step' => 'MINUTE'
-                        ]
-                    ],
-                    'traceState' => 'ALL',
-                    'paging' => [
-                        'pageNum' => 1,
-                        'pageSize' => 15,
-                        'needTotal' => true
-                    ],
-                    'queryOrder' => 'BY_START_TIME'
+                        ],
+                        'traceState' => 'ALL',
+                        'paging' => [
+                            'pageNum' => 1,
+                            'pageSize' => 15,
+                            'needTotal' => true
+                        ],
+                        'queryOrder' => 'BY_START_TIME'
+                    ]
                 ]);
 
                 if ($service['label'] == "skywalking") {
