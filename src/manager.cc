@@ -149,6 +149,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
 
         logger("connect report service");
         auto writer = stub->collect(&context, &commands);
+        logger("connect report service success");
 
         try {
             boost::interprocess::message_queue mq(boost::interprocess::open_only, "skywalking_queue");
