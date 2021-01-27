@@ -150,39 +150,44 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         logger("connect report service");
         auto writer = stub->collect(&context, &commands);
 
-        boost::interprocess::message_queue mq(boost::interprocess::open_only, "skywalking_queue");
+        try {
+            boost::interprocess::message_queue mq(boost::interprocess::open_only, "skywalking_queue");
 
-        while (true) {
+            while (true) {
 
-            std::cout << "consumer" << std::endl;
-            try {
-                std::string data;
-                data.resize(20480);
-                size_t msg_size;
-                unsigned msg_priority;
-                mq.receive(&data[0], data.size(), msg_size, msg_priority);
-                std::cout << "len" << msg_size << std::endl;
-                data.resize(msg_size);
+                std::cout << "consumer" << std::endl;
+                try {
+                    std::string data;
+                    data.resize(20480);
+                    size_t msg_size;
+                    unsigned msg_priority;
+                    mq.receive(&data[0], data.size(), msg_size, msg_priority);
+                    std::cout << "len" << msg_size << std::endl;
+                    data.resize(msg_size);
 
-                std::string json_str;
-                SegmentObject msg;
-                msg.ParseFromString(data);
-                google::protobuf::util::JsonPrintOptions opt;
-                opt.always_print_primitive_fields = true;
-                opt.preserve_proto_field_names = true;
-                google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
-                bool status = writer->Write(msg);
-                if (status) {
-                    logger("write success " + json_str);
-                } else {
-                    logger("write fail " + json_str);
-                    break;
+                    std::string json_str;
+                    SegmentObject msg;
+                    msg.ParseFromString(data);
+                    google::protobuf::util::JsonPrintOptions opt;
+                    opt.always_print_primitive_fields = true;
+                    opt.preserve_proto_field_names = true;
+                    google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
+                    bool status = writer->Write(msg);
+                    if (status) {
+                        logger("write success " + json_str);
+                    } else {
+                        logger("write fail " + json_str);
+                        break;
+                    }
+
+                } catch (boost::interprocess::interprocess_exception &ex) {
+                    std::cout << ex.what() << std::endl;
+                    logger(ex.what());
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
                 }
-
-            } catch (boost::interprocess::interprocess_exception &ex) {
-                std::cout << ex.what() << std::endl;
-                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
+        } catch(boost::interprocess::interprocess_exception &ex) {
+            logger(ex.what());
         }
     }
 }
