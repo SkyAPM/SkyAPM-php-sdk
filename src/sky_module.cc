@@ -16,6 +16,7 @@
 #include <iostream>
 #include "sky_module.h"
 #include <boost/interprocess/ipc/message_queue.hpp>
+#include <fstream>
 
 #include "segment.h"
 #include "sky_utils.h"
@@ -168,8 +169,16 @@ void sky_request_flush(zval *response, uint64_t request_id) {
     try {
         boost::interprocess::message_queue mq(boost::interprocess::open_or_create, "skywalking_queue", 1024, 20480);
         std::cout << msg.length() << std::endl;
+        std::ofstream sky_log;
+        sky_log.open(SKYWALKING_G(log_path), std::ios::app);
+        sky_log << "send" << msg.length() << std::endl;
+        sky_log.close();
         mq.send(msg.data(), msg.size(), 0);
     } catch(boost::interprocess::interprocess_exception &ex) {
+        std::ofstream sky_log;
+        sky_log.open(SKYWALKING_G(log_path), std::ios::app);
+        sky_log << "send" << ex.what() << std::endl;
+        sky_log.close();
         std::cout << "send" << ex.what() << std::endl;
     }
 }

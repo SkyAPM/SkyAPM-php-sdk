@@ -41,21 +41,6 @@ query queryInstances($serviceId: ID!, $duration: Duration!) {
 }
 GRAPHQL;
 
-    public $tracesQuery = <<<'GRAPHQL'
-query queryTraces($condition: TraceQueryCondition) {
-    data: queryBasicTraces(condition: $condition) {
-        traces {
-              key: segmentId
-                   endpointNames
-                   duration
-                   start
-                   isError
-                   traceIds
-        }
-        total
-    }
-}
-GRAPHQL;
 
     public $startTime;
 
@@ -123,22 +108,6 @@ GRAPHQL;
 
             $found = false;
             foreach ($data['data']['services'] as $service) {
-                $this->query($this->tracesQuery, [
-                    'condition' => [
-                        'queryDuration' => [
-                            'start' => date("Y-m-d Hi", $this->startTime),
-                            'end' => date("Y-m-d Hi"),
-                            'step' => 'MINUTE'
-                        ],
-                        'traceState' => 'ALL',
-                        'paging' => [
-                            'pageNum' => 1,
-                            'pageSize' => 15,
-                            'needTotal' => true
-                        ],
-                        'queryOrder' => 'BY_START_TIME'
-                    ]
-                ]);
 
                 if ($service['label'] == "skywalking") {
                     $found = true;
