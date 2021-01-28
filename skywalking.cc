@@ -106,6 +106,10 @@ PHP_RINIT_FUNCTION(skywalking)
 #if defined(COMPILE_DL_SKYWALKING) && defined(ZTS)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
+    std::ofstream sky_log;
+    sky_log.open(SKYWALKING_G(log_path), std::ios::app);
+    sky_log << "debug ri" << sapi_module.name << std::endl;
+    sky_log.close();
     if (SKYWALKING_G(enable)) {
         if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
             if (strlen(s_info->service_instance) == 0) {
@@ -120,6 +124,10 @@ PHP_RINIT_FUNCTION(skywalking)
 
 PHP_RSHUTDOWN_FUNCTION(skywalking)
 {
+    std::ofstream sky_log;
+    sky_log.open(SKYWALKING_G(log_path), std::ios::app);
+    sky_log << "debug rd" << sapi_module.name << std::endl;
+    sky_log.close();
 	if (SKYWALKING_G(enable)) {
         std::ofstream sky_log;
         sky_log.open(SKYWALKING_G(log_path), std::ios::app);
