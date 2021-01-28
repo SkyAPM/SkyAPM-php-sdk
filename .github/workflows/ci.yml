@@ -62,7 +62,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
-          sudo apt-get install -y autoconf automake libtool curl make g++ unzip libboost-dev
+          sudo apt-get install -y autoconf automake libtool curl make g++ unzip libboost-all-dev
           if ! [ -e /usr/bin/php-fpm ]; then
             sudo apt-get install -y php${{ matrix.php-version }}-fpm
             sudo cp /usr/sbin/php-fpm${{ matrix.php-version }} /usr/bin/php-fpm
@@ -110,6 +110,7 @@ jobs:
       - name: E2E tests
         run: |
           cd e2e
+          php -dskywalking.enable=0 --ri skywalking
           php -dskywalking.enable=0 e2e.php
           sudo cat /tmp/skywalking-php.log
 
