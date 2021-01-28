@@ -17,6 +17,7 @@
 */
 
 #include <src/sky_shm.h>
+#include <fstream>
 #include "php_skywalking.h"
 
 #include "src/sky_utils.h"
@@ -120,6 +121,11 @@ PHP_RINIT_FUNCTION(skywalking)
 PHP_RSHUTDOWN_FUNCTION(skywalking)
 {
 	if (SKYWALKING_G(enable)) {
+        std::ofstream sky_log;
+        sky_log.open(SKYWALKING_G(log_path), std::ios::app);
+        sky_log << "debug" << sapi_module.name << std::endl;
+        sky_log << "debug == null" << (SKYWALKING_G(segment) == nullptr) << std::endl;
+        sky_log.close();
         if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
             if (SKYWALKING_G(segment) == nullptr) {
                 return SUCCESS;
