@@ -169,18 +169,10 @@ void sky_request_flush(zval *response, uint64_t request_id) {
     delete segment;
 
     try {
+        php_printf("msg %s", msg.c_str());
         boost::interprocess::message_queue mq(boost::interprocess::open_or_create, "skywalking_queue", 1024, 20480);
-        std::cout << msg.length() << std::endl;
-        std::ofstream sky_log;
-        sky_log.open(SKYWALKING_G(log_path), std::ios::app);
-        sky_log << "send" << msg.length() << std::endl;
-        sky_log.close();
         mq.send(msg.data(), msg.size(), 0);
     } catch(boost::interprocess::interprocess_exception &ex) {
-        std::ofstream sky_log;
-        sky_log.open(SKYWALKING_G(log_path), std::ios::app);
-        sky_log << "send" << ex.what() << std::endl;
-        sky_log.close();
-        std::cout << "send" << ex.what() << std::endl;
+        php_printf("msg exception %s", ex.what());
     }
 }
