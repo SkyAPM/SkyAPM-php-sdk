@@ -134,12 +134,14 @@ void sky_request_init(zval *request, uint64_t request_id) {
     }
 
     std::map<uint64_t, Segment*> *segments;
+    php_printf("sky_request_init is null %d", (SKYWALKING_G(segment) == nullptr));
     if (SKYWALKING_G(segment) == nullptr) {
         segments = new std::map<uint64_t, Segment*>;
         SKYWALKING_G(segment) = segments;
     } else {
         segments = static_cast<std::map<uint64_t, Segment *> *>SKYWALKING_G(segment);
     }
+    php_printf("sky_request_init is null1 %d", (SKYWALKING_G(segment) == nullptr));
 
     auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
     auto const result = segments->insert(std::pair<uint64_t, Segment*>(request_id, segment));
