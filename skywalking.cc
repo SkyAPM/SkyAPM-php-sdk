@@ -106,12 +106,11 @@ PHP_RINIT_FUNCTION(skywalking)
 #if defined(COMPILE_DL_SKYWALKING) && defined(ZTS)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
-    std::ofstream sky_log;
-    sky_log.open(SKYWALKING_G(log_path), std::ios::app);
-    sky_log << "debug ri" << sapi_module.name << std::endl;
-    sky_log.close();
+    php_printf("RINIT enable %d \n", SKYWALKING_G(enable));
     if (SKYWALKING_G(enable)) {
+        php_printf("RINIT sapi %s \n", sapi_module.name);
         if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
+            php_printf("RINIT service_instance %s \n", s_info->service_instance);
             if (strlen(s_info->service_instance) == 0) {
                 return SUCCESS;
             }
@@ -124,17 +123,9 @@ PHP_RINIT_FUNCTION(skywalking)
 
 PHP_RSHUTDOWN_FUNCTION(skywalking)
 {
-    std::ofstream sky_log;
-    sky_log.open(SKYWALKING_G(log_path), std::ios::app);
-    sky_log << "debug rd" << sapi_module.name << std::endl;
-    sky_log.close();
 	if (SKYWALKING_G(enable)) {
-        std::ofstream sky_log;
-        sky_log.open(SKYWALKING_G(log_path), std::ios::app);
-        sky_log << "debug" << sapi_module.name << std::endl;
-        sky_log << "debug == null" << (SKYWALKING_G(segment) == nullptr) << std::endl;
-        sky_log.close();
         if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
+            php_printf("PHP_RSHUTDOWN_FUNCTION is null %d \n", (SKYWALKING_G(segment) == nullptr));
             if (SKYWALKING_G(segment) == nullptr) {
                 return SUCCESS;
             }
