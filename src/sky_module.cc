@@ -170,7 +170,13 @@ void sky_request_flush(zval *response, uint64_t request_id) {
 
     try {
         php_printf("msg %s", msg.c_str());
-        boost::interprocess::message_queue mq(boost::interprocess::open_or_create, "skywalking_queue", 1024, 20480);
+        boost::interprocess::message_queue mq(
+                boost::interprocess::open_or_create,
+                "skywalking_queue",
+                1024,
+                20480,
+                boost::interprocess::permissions(666)
+                );
         mq.send(msg.data(), msg.size(), 0);
     } catch(boost::interprocess::interprocess_exception &ex) {
         php_printf("msg exception %s", ex.what());
