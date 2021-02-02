@@ -103,3 +103,8 @@ skywalking.grpc=127.0.0.1:11800
 ## Important
 
 1. Make sure php-fpm is running in foreground mode
+
+
+## Trouble Shooting
+### Nothing Receiving in OapService?
+Check your php-fpm start mode. It must start with "--nodaemonize" to stay php-fpm in foreground.
