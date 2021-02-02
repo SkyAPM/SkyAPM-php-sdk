@@ -130,6 +130,15 @@ Span *Segment::createSpan(SkySpanType type, SkySpanLayer layer, int componentId)
     return span;
 }
 
+Span* Segment::getCurrentSpan() {
+    if (spans.empty()) {
+        return nullptr;
+    }
+
+    auto span = spans.back();
+    return span;
+}
+
 std::string Segment::createHeader(Span *span) {
     return bag->encode(span->getSpanId(), span->getPeer());
 }

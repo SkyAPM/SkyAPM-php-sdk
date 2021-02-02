@@ -30,6 +30,8 @@ public:
 
     Span *createSpan(SkySpanType type, SkySpanLayer layer, int componentId);
 
+    Span* getCurrentSpan();
+
     std::string marshal();
 
     void setStatusCode(int code);

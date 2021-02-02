@@ -78,6 +78,7 @@ extern zend_module_entry skywalking_module_entry;
 #endif
 
 PHP_FUNCTION (skywalking_trace_id);
+PHP_FUNCTION (skywalking_get_current_header);
 PHP_MINIT_FUNCTION (skywalking);
 PHP_MSHUTDOWN_FUNCTION (skywalking);
 PHP_RINIT_FUNCTION (skywalking);

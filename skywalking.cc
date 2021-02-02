@@ -87,6 +87,21 @@ PHP_FUNCTION (skywalking_trace_id) {
     }
 }
 
+PHP_FUNCTION (skywalking_get_current_header) {
+    if (SKYWALKING_G(enable) && SKYWALKING_G(segment) != nullptr) {
+        auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+        auto span = segment->getCurrentSpan();
+        if (span == nullptr) {
+            RETURN_STRING("");
+        } else {
+            std::string sw_header = segment->createHeader(span);
+            RETURN_STRING(sw_header.c_str());
+        }
+    } else {
+        RETURN_STRING("");
+    }
+}
+
 PHP_MINIT_FUNCTION (skywalking) {
 	ZEND_INIT_MODULE_GLOBALS(skywalking, php_skywalking_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
@@ -192,9 +207,12 @@ zend_module_dep skywalking_deps[] = {
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_trace_id, 0, 0, 0)
 ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_get_current_header, 0, 0, 0)
+ZEND_END_ARG_INFO()
 
 const zend_function_entry skywalking_functions[] = {
         PHP_FE (skywalking_trace_id, arginfo_skywalking_trace_id)
+        PHP_FE (skywalking_get_current_header, arginfo_skywalking_get_current_header)
         PHP_FE_END
 };
 
