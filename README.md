@@ -32,16 +32,16 @@ SkyAPM PHP
 * [Documents in English](docs/README.md)
 
 ## Docker image (Quick start)
-Go to Docker hub -> [https://hub.docker.com/r/skyapm/skywalking-php](https://hub.docker.com/r/skyapm/skywalking-php)
+Go to Docker hub -> [https://hub.docker.com/u/skyapm](https://hub.docker.com/u/skyapm)
 ```shell script
-docker run -d -e SW_OAP_ADDRESS=127.0.0.1:11800 skywalking-php
+docker run -d -e SW_OAP_ADDRESS=127.0.0.1:11800 skyapm/skywalking-php-8.0-fpm-alpine
 ```
 
 ## Downloads
 Please head to the [releases page](https://pecl.php.net/package/skywalking) to download a release of SkyAPM PHP.
 
 ## Live Demo
-Host in Beijing. Go to [demo](http://122.112.182.72:8080/).
+Find the [demo](https://skywalking.apache.org/#demo) and [screenshots](https://skywalking.apache.org/#arch) on our website.
 
 **Video on youtube.com**
 

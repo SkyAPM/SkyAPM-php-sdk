@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "sky_predis.h"
+#include "sky_plugin_predis.h"
 
 #include "php_skywalking.h"
 
 #include "segment.h"
 #include "sky_utils.h"
 
-Span *sky_predis(zend_execute_data *execute_data, char *class_name, char *function_name) {
-    std::string _class_name(class_name);
-    std::string _function_name(function_name);
+Span *sky_predis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+    if (class_name != "Predis\\Connection\\AbstractConnection") {
+        return nullptr;
+    }
 
     uint32_t args = ZEND_CALL_NUM_ARGS(execute_data);
     if (args) {
@@ -44,7 +45,7 @@ Span *sky_predis(zend_execute_data *execute_data, char *class_name, char *functi
 #endif
 
         if (id != nullptr && Z_TYPE_P(id) == IS_STRING) {
-            span->setOperationName(_class_name + "->" + std::string(Z_STRVAL_P(id)));
+            span->setOperationName(class_name + "->" + std::string(Z_STRVAL_P(id)));
             span->addTag("db.type", "redis");
             // other
             auto peer = sky_predis_peer(execute_data);
@@ -75,27 +76,24 @@ Span *sky_predis(zend_execute_data *execute_data, char *class_name, char *functi
 }
 
 std::string sky_predis_peer(zend_execute_data *execute_data) {
-    zval *connection = sky_read_property(&(execute_data->This), "connection", 0);
 
-    if (SKY_PREDIS_IS_STREAM_CONNECTION(connection)) {
-        zval *parameters_class = sky_read_property(connection, "parameters", 0);
-        if (SKY_PREDIS_IS_PARAMETERS(parameters_class)) {
-            zval *parameters = sky_read_property(parameters_class, "parameters", 0);
-            zval *predis_host = zend_hash_str_find(Z_ARRVAL_P(parameters), "host", sizeof("host") - 1);
-            zval *predis_port = zend_hash_str_find(Z_ARRVAL_P(parameters), "port", sizeof("port") - 1);
-            zval port;
-            ZVAL_COPY(&port, predis_port);
-            if (Z_TYPE(port) != IS_LONG) {
-                convert_to_long(&port);
-            }
+    zval *parameters_class = sky_read_property(&(execute_data->This), "parameters", 0);
+    if (SKY_PREDIS_IS_PARAMETERS(parameters_class)) {
+        zval *parameters = sky_read_property(parameters_class, "parameters", 0);
+        zval *predis_host = zend_hash_str_find(Z_ARRVAL_P(parameters), "host", sizeof("host") - 1);
+        zval *predis_port = zend_hash_str_find(Z_ARRVAL_P(parameters), "port", sizeof("port") - 1);
+        zval port;
+        ZVAL_COPY(&port, predis_port);
+        if (Z_TYPE(port) != IS_LONG) {
+            convert_to_long(&port);
+        }
 
-            if (Z_TYPE_P(predis_host) == IS_STRING && Z_TYPE(port) == IS_LONG) {
-                char *host = ZSTR_VAL(Z_STR_P(predis_host));
-                return std::string(host) + ":" + std::to_string(Z_LVAL(port));
-            }
+        if (Z_TYPE_P(predis_host) == IS_STRING && Z_TYPE(port) == IS_LONG) {
+            char *host = ZSTR_VAL(Z_STR_P(predis_host));
+            return std::string(host) + ":" + std::to_string(Z_LVAL(port));
         }
     }
-    return nullptr;
+    return "";
 }
 
 std::string sky_predis_command(zval *id, zval *arguments) {
@@ -124,5 +122,5 @@ std::string sky_predis_command(zval *id, zval *arguments) {
         return command;
     }
 
-    return nullptr;
+    return "";
 }

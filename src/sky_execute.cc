@@ -17,7 +17,7 @@
 
 #include "php_skywalking.h"
 
-#include "sky_predis.h"
+#include "sky_plugin_predis.h"
 #include "sky_grpc.h"
 #include "sky_plugin_redis.h"
 #include "sky_plugin_rabbit_mq.h"
@@ -66,7 +66,7 @@ void sky_execute_ex(zend_execute_data *execute_data) {
     Span *span = nullptr;
 
     if (class_name != nullptr && function_name != nullptr) {
-        if (strcmp(class_name, "Predis\\Client") == 0 && strcmp(function_name, "executeCommand") == 0) {
+        if (strcmp(function_name, "executeCommand") == 0) {
             span = sky_predis(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
             span = sky_grpc(execute_data, class_name, function_name);

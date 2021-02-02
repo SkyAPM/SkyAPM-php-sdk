@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_SKY_PREDIS_H
-#define SKYWALKING_SKY_PREDIS_H
+#ifndef SKYWALKING_SKY_PLUGIN_PREDIS_H
+#define SKYWALKING_SKY_PLUGIN_PREDIS_H
 
 #include "php_skywalking.h"
 
@@ -24,12 +24,13 @@
 #define SKY_PREDIS_IS_PARAMETERS(p) SKY_IS_OBJECT(p) && sky_get_class_name(p) == "Predis\\Connection\\Parameters"
 
 #define SKY_PREDIS_IS_STREAM_CONNECTION(c) SKY_IS_OBJECT(c) && sky_get_class_name(c) == "Predis\\Connection\\StreamConnection"
+#define SKY_PREDIS_IS_ABSTRACT_CONNECTION(c) SKY_IS_OBJECT(c) && sky_get_class_name(c) == "Predis\\Connection\\AbstractConnection"
 
 
-Span *sky_predis(zend_execute_data *execute_data, char *class_name, char *function_name);
+Span *sky_predis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
 std::string sky_predis_peer(zend_execute_data *execute_data);
 
 std::string sky_predis_command(zval *id, zval *arguments);
 
-#endif //SKYWALKING_SKY_PREDIS_H
+#endif //SKYWALKING_SKY_PLUGIN_PREDIS_H
