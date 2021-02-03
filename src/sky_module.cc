@@ -72,7 +72,7 @@ void sky_module_init() {
     opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
     opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
     opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
-
+    opt.authentication = SKYWALKING_G(authentication);
     try {
         boost::interprocess::message_queue::remove("skywalking_queue");
         boost::interprocess::message_queue(

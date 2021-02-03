@@ -81,6 +81,9 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
             // todo port
             instance = generateUUID() + "@" + ips[0];
         }
+        if (!options.authentication.empty()) {
+           context.AddMetadata("authentication", options.authentication);
+        }
 
         properties.set_service(options.code);
         properties.set_serviceinstance(instance);
@@ -130,7 +133,9 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         grpc::ClientContext context;
         InstancePingPkg ping;
         Commands commands;
-
+        if (!options.authentication.empty()) {
+           context.AddMetadata("authentication", options.authentication);
+        }
         ping.set_service(options.code);
         ping.set_serviceinstance(serviceInstance);
 
@@ -146,6 +151,11 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         std::unique_ptr<TraceSegmentReportService::Stub> stub(TraceSegmentReportService::NewStub(channel));
         grpc::ClientContext context;
         Commands commands;
+
+        if (!options.authentication.empty()) {
+           context.AddMetadata("authentication", options.authentication);
+        }
+        bool is_break = false;
 
         logger("connect report service");
         auto writer = stub->collect(&context, &commands);
