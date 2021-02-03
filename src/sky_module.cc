@@ -23,7 +23,6 @@
 #include "sky_plugin_curl.h"
 #include "sky_execute.h"
 #include "manager.h"
-#include "sky_shm.h"
 
 extern struct service_info *s_info;
 
@@ -76,8 +75,13 @@ void sky_module_init() {
 
     try {
         boost::interprocess::message_queue::remove("skywalking_queue");
-        boost::interprocess::message_queue(boost::interprocess::create_only, "skywalking_queue", 1024, 20480);
-        std::cout << "create" << std::endl;
+        boost::interprocess::message_queue(
+                boost::interprocess::create_only,
+                "skywalking_queue",
+                1024,
+                20480,
+                boost::interprocess::permissions(666)
+                );
     } catch(boost::interprocess::interprocess_exception &ex) {
         std::cout << "create" << ex.what() << std::endl;
     }
@@ -174,8 +178,7 @@ void sky_request_flush(zval *response, uint64_t request_id) {
                 boost::interprocess::open_or_create,
                 "skywalking_queue",
                 1024,
-                20480,
-                boost::interprocess::permissions(666)
+                20480
                 );
         mq.send(msg.data(), msg.size(), 0);
     } catch(boost::interprocess::interprocess_exception &ex) {
