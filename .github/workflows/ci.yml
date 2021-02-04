@@ -111,6 +111,8 @@ jobs:
       - name: E2E tests
         run: |
           cd e2e
+          sudo find /tmp
+          sudo ps aux | grep php
           sudo systemctl -l status php${{ matrix.php-version }}-fpm
           php -dskywalking.enable=0 e2e.php
           sudo systemctl -l status php${{ matrix.php-version }}-fpm
