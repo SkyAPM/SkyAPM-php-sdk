@@ -80,8 +80,9 @@ void sky_module_init() {
                 "skywalking_queue",
                 1024,
                 20480,
-                boost::interprocess::permissions(666)
+                boost::interprocess::permissions(777)
                 );
+        std::cout << "create success" << std::endl;
     } catch(boost::interprocess::interprocess_exception &ex) {
         std::cout << "create" << ex.what() << std::endl;
     }
