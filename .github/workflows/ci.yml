@@ -104,18 +104,13 @@ jobs:
           sudo cp e2e/tests.php /var/www/html/
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl restart php${{ matrix.php-version }}-fpm
-          sudo systemctl -l status php${{ matrix.php-version }}-fpm
           sudo nginx -s reload
 
 
       - name: E2E tests
         run: |
           cd e2e
-          sudo find /tmp
-          sudo ps aux | grep php
-          sudo systemctl -l status php${{ matrix.php-version }}-fpm
           php -dskywalking.enable=0 e2e.php
-          sudo systemctl -l status php${{ matrix.php-version }}-fpm
           sudo cat /tmp/skywalking-php.log
 
   publish:

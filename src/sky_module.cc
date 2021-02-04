@@ -80,9 +80,8 @@ void sky_module_init() {
                 "skywalking_queue",
                 1024,
                 20480,
-                boost::interprocess::permissions(0777)
+                boost::interprocess::permissions(0666)
                 );
-        std::cout << "create success" << std::endl;
     } catch(boost::interprocess::interprocess_exception &ex) {
         std::cout << "create" << ex.what() << std::endl;
     }
@@ -139,14 +138,12 @@ void sky_request_init(zval *request, uint64_t request_id) {
     }
 
     std::map<uint64_t, Segment*> *segments;
-    php_printf("sky_request_init is null %d", (SKYWALKING_G(segment) == nullptr));
     if (SKYWALKING_G(segment) == nullptr) {
         segments = new std::map<uint64_t, Segment*>;
         SKYWALKING_G(segment) = segments;
     } else {
         segments = static_cast<std::map<uint64_t, Segment *> *>SKYWALKING_G(segment);
     }
-    php_printf("sky_request_init is null1 %d", (SKYWALKING_G(segment) == nullptr));
 
     auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
     auto const result = segments->insert(std::pair<uint64_t, Segment*>(request_id, segment));
@@ -174,12 +171,9 @@ void sky_request_flush(zval *response, uint64_t request_id) {
     delete segment;
 
     try {
-        php_printf("msg %s", msg.c_str());
         boost::interprocess::message_queue mq(
                 boost::interprocess::open_only,
                 "skywalking_queue"
-//                1024,
-//                20480
                 );
         mq.send(msg.data(), msg.size(), 0);
     } catch(boost::interprocess::interprocess_exception &ex) {
