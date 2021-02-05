@@ -106,11 +106,8 @@ PHP_RINIT_FUNCTION(skywalking)
 #if defined(COMPILE_DL_SKYWALKING) && defined(ZTS)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
-    php_printf("RINIT enable %d \n", SKYWALKING_G(enable));
     if (SKYWALKING_G(enable)) {
-        php_printf("RINIT sapi %s \n", sapi_module.name);
         if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
-            php_printf("RINIT service_instance %s \n", s_info->service_instance);
             if (strlen(s_info->service_instance) == 0) {
                 return SUCCESS;
             }
@@ -125,7 +122,6 @@ PHP_RSHUTDOWN_FUNCTION(skywalking)
 {
 	if (SKYWALKING_G(enable)) {
         if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
-            php_printf("PHP_RSHUTDOWN_FUNCTION is null %d \n", (SKYWALKING_G(segment) == nullptr));
             if (SKYWALKING_G(segment) == nullptr) {
                 return SUCCESS;
             }

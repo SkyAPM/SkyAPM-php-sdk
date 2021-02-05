@@ -224,7 +224,6 @@ foreach($check as $func) {
          $e2e->info("test $func $i/10...");
          $e2e->call();
          sleep(1);
-         $e2e->info("log: " . file_get_contents('/tmp/skywalking-php.log'));
          $status = $e2e->$func();
          if ($status === true) {
              $status = true;
@@ -235,7 +234,7 @@ foreach($check as $func) {
 
     if (!$status) {
         $e2e->info("test $func fail...");
-        exit(0);
+        exit(2);
     }
 
     $e2e->info("test $func success...");
