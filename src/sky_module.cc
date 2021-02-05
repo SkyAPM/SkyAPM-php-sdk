@@ -81,9 +81,9 @@ void sky_module_init() {
                 1024,
                 20480,
                 boost::interprocess::permissions(0666)
-                );
-    } catch(boost::interprocess::interprocess_exception &ex) {
-        std::cout << "create" << ex.what() << std::endl;
+        );
+    } catch (boost::interprocess::interprocess_exception &ex) {
+        php_error(E_WARNING, "%s %s", "[skywalking] create queue fail ", ex.what());
     }
 
     new Manager(opt, s_info);
@@ -137,16 +137,16 @@ void sky_request_init(zval *request, uint64_t request_id) {
         peer = get_page_request_peer();
     }
 
-    std::map<uint64_t, Segment*> *segments;
+    std::map<uint64_t, Segment *> *segments;
     if (SKYWALKING_G(segment) == nullptr) {
-        segments = new std::map<uint64_t, Segment*>;
+        segments = new std::map<uint64_t, Segment *>;
         SKYWALKING_G(segment) = segments;
     } else {
         segments = static_cast<std::map<uint64_t, Segment *> *>SKYWALKING_G(segment);
     }
 
     auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
-    auto const result = segments->insert(std::pair<uint64_t, Segment*>(request_id, segment));
+    auto const result = segments->insert(std::pair<uint64_t, Segment *>(request_id, segment));
     if (not result.second) {
         result.first->second = segment;
     }
@@ -158,7 +158,6 @@ void sky_request_init(zval *request, uint64_t request_id) {
     segments->at(request_id)->createRefs();
 
 }
-
 
 
 void sky_request_flush(zval *response, uint64_t request_id) {
@@ -174,9 +173,9 @@ void sky_request_flush(zval *response, uint64_t request_id) {
         boost::interprocess::message_queue mq(
                 boost::interprocess::open_only,
                 "skywalking_queue"
-                );
+        );
         mq.send(msg.data(), msg.size(), 0);
-    } catch(boost::interprocess::interprocess_exception &ex) {
-        php_printf("msg exception %s", ex.what());
+    } catch (boost::interprocess::interprocess_exception &ex) {
+        php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
     }
 }

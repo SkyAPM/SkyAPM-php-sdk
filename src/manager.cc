@@ -73,6 +73,9 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         grpc::ClientContext context;
         InstanceProperties properties;
         Commands commands;
+        if (!options.authentication.empty()) {
+            context.AddMetadata("authentication", options.authentication);
+        }
 
         auto ips = getIps();
 
@@ -80,9 +83,6 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         if (!ips.empty()) {
             // todo port
             instance = generateUUID() + "@" + ips[0];
-        }
-        if (!options.authentication.empty()) {
-           context.AddMetadata("authentication", options.authentication);
         }
 
         properties.set_service(options.code);
@@ -134,7 +134,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         InstancePingPkg ping;
         Commands commands;
         if (!options.authentication.empty()) {
-           context.AddMetadata("authentication", options.authentication);
+            context.AddMetadata("authentication", options.authentication);
         }
         ping.set_service(options.code);
         ping.set_serviceinstance(serviceInstance);
@@ -153,52 +153,39 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         Commands commands;
 
         if (!options.authentication.empty()) {
-           context.AddMetadata("authentication", options.authentication);
+            context.AddMetadata("authentication", options.authentication);
         }
-        bool is_break = false;
-
-        logger("connect report service");
         auto writer = stub->collect(&context, &commands);
-        logger("connect report service success");
 
         try {
             boost::interprocess::message_queue mq(boost::interprocess::open_only, "skywalking_queue");
 
             while (true) {
+                std::string data;
+                data.resize(20480);
+                size_t msg_size;
+                unsigned msg_priority;
+                mq.receive(&data[0], data.size(), msg_size, msg_priority);
+                data.resize(msg_size);
 
-                std::cout << "consumer" << std::endl;
-                try {
-                    std::string data;
-                    data.resize(20480);
-                    size_t msg_size;
-                    unsigned msg_priority;
-                    mq.receive(&data[0], data.size(), msg_size, msg_priority);
-                    std::cout << "len" << msg_size << std::endl;
-                    data.resize(msg_size);
-
-                    std::string json_str;
-                    SegmentObject msg;
-                    msg.ParseFromString(data);
-                    google::protobuf::util::JsonPrintOptions opt;
-                    opt.always_print_primitive_fields = true;
-                    opt.preserve_proto_field_names = true;
-                    google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
-                    bool status = writer->Write(msg);
-                    if (status) {
-                        logger("write success " + json_str);
-                    } else {
-                        logger("write fail " + json_str);
-                        break;
-                    }
-
-                } catch (boost::interprocess::interprocess_exception &ex) {
-                    std::cout << ex.what() << std::endl;
-                    logger(ex.what());
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                std::string json_str;
+                SegmentObject msg;
+                msg.ParseFromString(data);
+                google::protobuf::util::JsonPrintOptions opt;
+                opt.always_print_primitive_fields = true;
+                opt.preserve_proto_field_names = true;
+                google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
+                bool status = writer->Write(msg);
+                if (status) {
+                    logger("write success " + json_str);
+                } else {
+                    logger("write fail " + json_str);
+                    break;
                 }
             }
-        } catch(boost::interprocess::interprocess_exception &ex) {
+        } catch (boost::interprocess::interprocess_exception &ex) {
             logger(ex.what());
+            php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
         }
     }
 }

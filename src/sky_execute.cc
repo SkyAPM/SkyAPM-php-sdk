@@ -86,7 +86,7 @@ void sky_execute_ex(zend_execute_data *execute_data) {
         } else if (strcmp(class_name, "PhpAmqpLib\\Channel\\AMQPChannel") == 0) {
             span = sky_plugin_rabbit_mq(execute_data, class_name, function_name);
         } else if ((SKY_STRCMP(class_name, "Hyperf\\Guzzle\\CoroutineHandler") ||
-                   SKY_STRCMP(class_name, "Hyperf\\Guzzle\\PoolHandler")) &&
+                    SKY_STRCMP(class_name, "Hyperf\\Guzzle\\PoolHandler")) &&
                    SKY_STRCMP(function_name, "__invoke")) {
             afterExec = false;
             span = sky_plugin_hyperf_guzzle(execute_data, class_name, function_name);
@@ -106,7 +106,6 @@ void sky_execute_ex(zend_execute_data *execute_data) {
     }
 
     if (swoole) {
-        std::cout << "end" << request_id << std::endl;
         sky_request_flush(sw_response, request_id);
         zval_dtor(&SKYWALKING_G(curl_header));
     }
@@ -141,7 +140,7 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
 
     if (class_name != nullptr && function_name != nullptr) {
         if (strcmp(class_name, "Swoole\\Http\\Response") == 0 && strcmp(function_name, "status") == 0) {
-            auto *segment =  sky_get_segment(execute_data, -1);;
+            auto *segment = sky_get_segment(execute_data, -1);;
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
             if (arg_count >= 1) {
                 zval *status = ZEND_CALL_ARG(execute_data, 1);
