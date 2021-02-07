@@ -27,6 +27,9 @@ Span *sky_predis(zend_execute_data *execute_data, const std::string &class_name,
     uint32_t args = ZEND_CALL_NUM_ARGS(execute_data);
     if (args) {
         auto *segment = sky_get_segment(execute_data, -1);
+        if (segment == nullptr) {
+            return nullptr;
+        }
         auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 8006);
 
         zval *command = ZEND_CALL_ARG(execute_data, 1);

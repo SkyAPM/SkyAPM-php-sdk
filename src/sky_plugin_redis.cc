@@ -55,18 +55,20 @@ Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class
     std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::toupper);
     if (commands.count(cmd) > 0) {
         auto *segment = sky_get_segment(execute_data, -1);
-        auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 7);
-        span->setOperationName(class_name + "->" + function_name);
-        span->addTag("db.type", "redis");
+        if (segment) {
+            auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 7);
+            span->setOperationName(class_name + "->" + function_name);
+            span->addTag("db.type", "redis");
 
-        // peer
-        auto peer = sky_plugin_redis_peer(execute_data);
-        if (!peer.empty()) {
-            span->setPeer(peer);
+            // peer
+            auto peer = sky_plugin_redis_peer(execute_data);
+            if (!peer.empty()) {
+                span->setPeer(peer);
+            }
+
+            span->addTag("redis.command", commands[cmd](execute_data, cmd));
+            return span;
         }
-
-        span->addTag("redis.command", commands[cmd](execute_data, cmd));
-        return span;
     }
 
     return nullptr;

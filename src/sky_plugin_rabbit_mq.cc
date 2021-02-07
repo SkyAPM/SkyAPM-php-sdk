@@ -20,6 +20,9 @@ Span *sky_plugin_rabbit_mq(zend_execute_data *execute_data, const std::string &c
 
     if (function_name == "basic_publish") {
         auto *segment = sky_get_segment(execute_data, -1);
+        if (segment == nullptr) {
+            return nullptr;
+        }
         auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::MQ, 52);
 
         span->setOperationName(class_name + "->" + function_name);
