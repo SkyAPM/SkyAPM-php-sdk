@@ -41,6 +41,7 @@ query queryInstances($serviceId: ID!, $duration: Duration!) {
 }
 GRAPHQL;
 
+
     public $startTime;
 
     public $allServiceMetrics = [
@@ -56,11 +57,15 @@ GRAPHQL;
 
     public function query($query, $variables) {
         $client = new \GuzzleHttp\Client();
+
+        $json = [
+            'query' => $query,
+            'variables' => $variables
+        ];
+
+        $this->info("query request body: " . json_encode($json));
         $res = $client->request("POST", $this->url, [
-            'json' => [
-                'query' => $query,
-                'variables' => $variables
-            ]
+            'json' => $json
         ]);
 
         $this->info("query response status code: " . $res->getStatusCode());
@@ -69,7 +74,7 @@ GRAPHQL;
         }
 
         $body = $res->getBody()->getContents();
-        $this->info($body);
+        $this->info("query response body: " . $body);
         return $body;
     }
 
@@ -134,7 +139,7 @@ GRAPHQL;
 
             $variables = [
                 'duration' => [
-                    "start" => date("Y-m-d Hi", time() - 15 * 60),
+                    "start" => date("Y-m-d Hi", $this->startTime),
                     "end" => date("Y-m-d Hi"),
                     "step" => "MINUTE"
                 ],

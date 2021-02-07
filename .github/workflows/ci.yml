@@ -62,7 +62,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
-          sudo apt-get install -y autoconf automake libtool curl make g++ unzip
+          sudo apt-get install -y autoconf automake libtool curl make g++ unzip libboost-all-dev
           if ! [ -e /usr/bin/php-fpm ]; then
             sudo apt-get install -y php${{ matrix.php-version }}-fpm
             sudo cp /usr/sbin/php-fpm${{ matrix.php-version }} /usr/bin/php-fpm
@@ -104,7 +104,7 @@ jobs:
           sudo cp e2e/tests.php /var/www/html/
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl restart php${{ matrix.php-version }}-fpm
-          sudo nginx -s reload
+          sudo systemctl restart nginx
 
 
       - name: E2E tests

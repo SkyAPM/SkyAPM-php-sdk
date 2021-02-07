@@ -55,19 +55,21 @@ void sky_plugin_swoole_curl(zend_execute_data *execute_data, const std::string &
             }
 
             if (_scheme == "http" || _scheme == "https") {
-                auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
-                span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
-                span->setPeer(_host + ":" + std::to_string(_port));
-                span->setOperationName(_path);
-                span->addTag("url", _scheme + "://" + _host + ":" + std::to_string(_port) + _url);
-                std::string header = segment->createHeader(span);
+                auto *segment = sky_get_segment(execute_data, -1);
+                if (segment) {
+                    span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
+                    span->setPeer(_host + ":" + std::to_string(_port));
+                    span->setOperationName(_path);
+                    span->addTag("url", _scheme + "://" + _host + ":" + std::to_string(_port) + _url);
+                    std::string header = segment->createHeader(span);
 
-                zval opt, value;
-                ZVAL_LONG(&opt, CURLOPT_HTTPHEADER);
-                array_init(&value);
-                add_index_string(&value, 0, ("sw8: " + header).c_str());
+                    zval opt, value;
+                    ZVAL_LONG(&opt, CURLOPT_HTTPHEADER);
+                    array_init(&value);
+                    add_index_string(&value, 0, ("sw8: " + header).c_str());
 
-                SKY_ZEND_CALL_METHOD(handle, nullptr, "setopt", nullptr, 2, &opt, &value);
+                    SKY_ZEND_CALL_METHOD(handle, nullptr, "setopt", nullptr, 2, &opt, &value);
+                }
             }
         }
 

@@ -80,7 +80,6 @@ std::string CrossProcessBag::encode(int spanId, const std::string &peer) {
     }
 
     header.erase(header.end() - 1);
-//    std::cout << header << std::endl;
 
     return header;
 }

@@ -14,6 +14,7 @@
 
 #include <regex>
 #include "sky_pdo.h"
+#include "sky_utils.h"
 
 #include "segment.h"
 
@@ -25,7 +26,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
         if (function_name == "exec" || function_name == "query" ||
             function_name == "prepare" || function_name == "commit" ||
             function_name == "begintransaction" || function_name == "rollback") {
-            auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+            auto *segment = sky_get_segment(execute_data, -1);
             auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8003);
             span->setOperationName(class_name + "->" + function_name);
 
@@ -44,7 +45,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
         }
     } else {
         if (function_name == "execute") {
-            auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+            auto *segment = sky_get_segment(execute_data, -1);
             auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8003);
             span->setOperationName(class_name + "->" + function_name);
 

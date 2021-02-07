@@ -55,11 +55,9 @@ private:
 
     static void login(const ManagerOptions &options, struct service_info *info);
 
-    [[noreturn]] static void sender(const ManagerOptions &options);
-
     [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &serviceInstance);
 
-    static void consumer();
+    [[noreturn]] static void consumer(const ManagerOptions &options);
 
     static void logger(const std::string &log);
 

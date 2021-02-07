@@ -47,7 +47,6 @@ SKY_BEGIN_EXTERN_C()
 extern zend_module_entry skywalking_module_entry;
 #define phpext_skywalking_ptr &skywalking_module_entry
 
-#define SKY_DEBUG 0
 #define PHP_SKYWALKING_VERSION "4.1.1"
 
 
@@ -93,7 +92,9 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     zval context;
     zval curl_header;
     int version;
+
     void *segment;
+    zend_bool is_swoole;
 
     // tls
     zend_bool grpc_tls_enable;

@@ -32,6 +32,7 @@
 #include <google/protobuf/util/json_util.h>
 #include "common.h"
 #include "sky_shm.h"
+#include <boost/interprocess/ipc/message_queue.hpp>
 
 #include "php_skywalking.h"
 
@@ -52,11 +53,11 @@ Manager::Manager(const ManagerOptions &options, struct service_info *info) {
     std::thread th(login, options, info);
     th.detach();
 
-    std::thread c(consumer);
+    std::thread c(consumer, options);
     c.detach();
 
-    std::thread s(sender, options);
-    s.detach();
+//    std::thread s(sender, options);
+//    s.detach();
 
     logger("the apache skywalking php plugin mounted");
 }
@@ -72,6 +73,9 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         grpc::ClientContext context;
         InstanceProperties properties;
         Commands commands;
+        if (!options.authentication.empty()) {
+            context.AddMetadata("authentication", options.authentication);
+        }
 
         auto ips = getIps();
 
@@ -79,9 +83,6 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         if (!ips.empty()) {
             // todo port
             instance = generateUUID() + "@" + ips[0];
-        }
-        if (!options.authentication.empty()) {
-           context.AddMetadata("authentication", options.authentication);
         }
 
         properties.set_service(options.code);
@@ -133,7 +134,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         InstancePingPkg ping;
         Commands commands;
         if (!options.authentication.empty()) {
-           context.AddMetadata("authentication", options.authentication);
+            context.AddMetadata("authentication", options.authentication);
         }
         ping.set_service(options.code);
         ping.set_serviceinstance(serviceInstance);
@@ -144,61 +145,28 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
     }
 }
 
-void Manager::consumer() {
-    while (true) {
-        pthread_mutex_lock(&s_info->cond_mx);
-        pthread_cond_wait(&s_info->cond, &s_info->cond_mx);
-        pthread_mutex_unlock(&s_info->cond_mx);
-
-        if (s_info->sem_id != -1) {
-            sky_sem_p(s_info->sem_id);
-            std::string full(s_info->message);
-            s_info->message[0] = '\0';
-            sky_sem_v(s_info->sem_id);
-
-            if (full.length() > 0) {
-                pthread_mutex_lock(&mx);
-                messageQueue.push(full);
-                pthread_mutex_unlock(&mx);
-
-                pthread_mutex_lock(&cond_mx);
-                pthread_cond_signal(&cond);
-                pthread_mutex_unlock(&cond_mx);
-            }
-        }
-    }
-}
-
-[[noreturn]] void Manager::sender(const ManagerOptions &options) {
-
+[[noreturn]] void Manager::consumer(const ManagerOptions &options) {
     while (true) {
         std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
         std::unique_ptr<TraceSegmentReportService::Stub> stub(TraceSegmentReportService::NewStub(channel));
         grpc::ClientContext context;
         Commands commands;
-        if (!options.authentication.empty()) {
-           context.AddMetadata("authentication", options.authentication);
-        }
-        bool is_break = false;
 
-        logger("connect report service");
+        if (!options.authentication.empty()) {
+            context.AddMetadata("authentication", options.authentication);
+        }
         auto writer = stub->collect(&context, &commands);
 
-        while (true) {
+        try {
+            boost::interprocess::message_queue mq(boost::interprocess::open_only, "skywalking_queue");
 
-            if (is_break) {
-                break;
-            }
-
-            pthread_mutex_lock(&cond_mx);
-            pthread_cond_wait(&cond, &cond_mx);
-            pthread_mutex_unlock(&cond_mx);
-
-            while (!messageQueue.empty()) {
-                pthread_mutex_lock(&mx);
-                std::string data = messageQueue.front();
-                messageQueue.pop();
-                pthread_mutex_unlock(&mx);
+            while (true) {
+                std::string data;
+                data.resize(20480);
+                size_t msg_size;
+                unsigned msg_priority;
+                mq.receive(&data[0], data.size(), msg_size, msg_priority);
+                data.resize(msg_size);
 
                 std::string json_str;
                 SegmentObject msg;
@@ -209,14 +177,15 @@ void Manager::consumer() {
                 google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
                 bool status = writer->Write(msg);
                 if (status) {
-                    logger("write success");
+                    logger("write success " + json_str);
                 } else {
-                    logger("write fail");
-                    is_break = true;
+                    logger("write fail " + json_str);
                     break;
                 }
-                logger(json_str);
             }
+        } catch (boost::interprocess::interprocess_exception &ex) {
+            logger(ex.what());
+            php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
         }
     }
 }
