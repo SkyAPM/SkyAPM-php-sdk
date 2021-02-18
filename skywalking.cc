@@ -88,8 +88,8 @@ PHP_FUNCTION (skywalking_trace_id) {
 }
 
 PHP_FUNCTION (skywalking_get_current_header) {
-    if (SKYWALKING_G(enable) && SKYWALKING_G(segment) != nullptr) {
-        auto *segment = static_cast<Segment *>(SKYWALKING_G(segment));
+    auto *segment = sky_get_segment(execute_data, -1);
+    if (SKYWALKING_G(enable) && segment != nullptr) {
         auto span = segment->getCurrentSpan();
         if (span == nullptr) {
             RETURN_STRING("");
