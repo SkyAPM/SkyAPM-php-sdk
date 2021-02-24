@@ -40,6 +40,10 @@ public:
 
     std::string getTraceId();
 
+    void addErrorLog(std::string level, std::string msg, bool isError);
+
+    void addTag(const std::string &key, const std::string &value);
+
     ~Segment();
 
 private:

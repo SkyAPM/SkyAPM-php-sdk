@@ -146,3 +146,9 @@ std::string sky_get_class_name(zval *obj) {
     }
     return "";
 }
+
+long getUnixTimeStamp() {
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch());
+    return ms.count();
+}

@@ -115,3 +115,20 @@ std::string sky_pdo_dbh_peer(Span *span, pdo_dbh_t *dbh) {
     }
     return nullptr;
 }
+
+void sky_pdo_check_errors(zend_execute_data *execute_data, Span *span) {    
+    zval *obj = &(execute_data)->This, property, return_ptr;
+    ZVAL_STRING(&property, "errorInfo");
+    
+    call_user_function(CG(function_table), obj, &property, &return_ptr, 0, nullptr);
+    if (Z_TYPE(return_ptr) == IS_ARRAY) {
+        Span_Log *log = new Span_Log();
+        log->addItem("SQLSTATE",   Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 0)));
+        log->addItem("Error Code", std::to_string(Z_LVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 1))));
+        log->addItem("Error",      Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 2)));
+        span->pushLog(log);
+    }
+
+    zval_dtor(&return_ptr);
+    zval_dtor(&property);
+}

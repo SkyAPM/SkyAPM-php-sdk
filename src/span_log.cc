@@ -12,30 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_SKY_UTILS_H
-#define SKYWALKING_SKY_UTILS_H
+#include "span_log.h"
 
-#include "php_skywalking.h"
-#include "segment.h"
-
+#include <utility>
 #include <string>
+#include <map>
+#include <sky_utils.h>
 
-#define SKY_IS_OBJECT(p) p != nullptr && Z_TYPE_P(p) == IS_OBJECT
+Span_Log::Span_Log()  {
+    _time = getUnixTimeStamp();
+}
 
-bool starts_with(const char *pre, const char *str);
+std::int64_t Span_Log::getTime() {
+    return _time;
+}
 
-std::string get_page_request_uri();
+std::map<std::string, std::string> Span_Log::getData() {
+    return _data;
+}
 
-std::string get_page_request_peer();
-
-zval *sky_read_property(zval *obj, const char *property, int parent);
-
-int64_t sky_find_swoole_fd(zend_execute_data *execute_data);
-
-Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id);
-
-std::string sky_get_class_name(zval *obj);
-
-long getUnixTimeStamp();
-
-#endif //SKYWALKING_SKY_UTILS_H
+void Span_Log::addItem(std::string key, std::string value) {
+    _data[key] = value;
+}

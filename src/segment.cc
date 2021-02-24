@@ -95,7 +95,17 @@ std::string Segment::marshal() {
             _tag->set_value(tag->getValue());
         }
 
-        // todo logs
+        for (auto log:span->getLogs()) {
+            auto _log = _span->add_logs();
+            _log->set_time(log->getTime());
+
+            for (auto logData:log->getData()) {
+                auto _data = _log->add_data();
+                _data->set_key(logData.first);
+                _data->set_value(logData.second);
+            }
+        }
+
         _span->set_skipanalysis(span->getSkipAnalysis());
     }
 
@@ -156,4 +166,21 @@ void Segment::createRefs() {
 
 std::string Segment::getTraceId() {
     return _traceId;
+}
+
+void Segment::addErrorLog(std::string key, std::string msg, bool isError) {
+    if (!spans.empty()) {
+        auto span = spans.front();
+        if (isError) {
+            span->setIsError(true);
+        }        
+        span->addLog(key, msg);
+    }
+}
+
+void Segment::addTag(const std::string &key, const std::string &value) {
+    if (!spans.empty()) {
+        auto span = spans.front();
+        span->addTag(key, value);
+    }
 }

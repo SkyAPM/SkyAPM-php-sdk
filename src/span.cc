@@ -13,10 +13,10 @@
 // limitations under the License.
 
 #include "span.h"
+#include "span_log.h"
 
-#include <ctime>
-#include <chrono>
 #include <iostream>
+#include <sky_utils.h>
 
 Span::Span() {
     startTime = getUnixTimeStamp();
@@ -27,6 +27,8 @@ Span::Span() {
 Span::~Span() {
     tags.clear();
     tags.shrink_to_fit();
+    logs.clear();
+    logs.shrink_to_fit();
 }
 
 // get
@@ -78,6 +80,10 @@ std::vector<Tag *> Span::getTags() {
     return tags;
 }
 
+std::vector<Span_Log *> Span::getLogs() {
+    return logs;
+}
+
 bool Span::getSkipAnalysis() const {
     return skipAnalysis;
 }
@@ -124,16 +130,20 @@ void Span::pushTag(Tag *tag) {
     tags.push_back(tag);
 }
 
+void Span::pushLog(Span_Log *log) {
+    logs.push_back(log);
+}
+
 void Span::addTag(const std::string &key, const std::string &value) {
     tags.push_back(new Tag(key, value));
 }
 
-void Span::pushRefs(SkySegmentReference *ref) {
-    refs.push_back(ref);
+void Span::addLog(const std::string &key, const std::string &value) {
+    Span_Log *log = new Span_Log();
+    log->addItem(key, value);
+    logs.push_back(log);
 }
 
-long Span::getUnixTimeStamp() {
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch());
-    return ms.count();
+void Span::pushRefs(SkySegmentReference *ref) {
+    refs.push_back(ref);
 }

@@ -73,6 +73,8 @@
 			<file role="src" name="src/segment.h"/>
 			<file role="src" name="src/segment_reference.cc"/>
 			<file role="src" name="src/segment_reference.h"/>
+			<file role="src" name="src/span_log.cc"/>
+			<file role="src" name="src/span_log.h"/>
 			<file role="src" name="src/sky_curl.cc"/>
 			<file role="src" name="src/sky_curl.h"/>
 			<file role="src" name="src/sky_execute.cc"/>
@@ -81,6 +83,8 @@
 			<file role="src" name="src/sky_grpc.h"/>
 			<file role="src" name="src/sky_module.cc"/>
 			<file role="src" name="src/sky_module.h"/>
+			<file role="src" name="src/sky_plugin_mysqli.cc"/>
+			<file role="src" name="src/sky_plugin_mysqli.h"/>
 			<file role="src" name="src/sky_pdo.cc"/>
 			<file role="src" name="src/sky_pdo.h"/>
 			<file role="src" name="src/sky_plugin_hyperf_guzzle.cc"/>

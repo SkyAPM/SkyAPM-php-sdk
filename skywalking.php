@@ -134,6 +134,9 @@ namespace {
     $hello = new \Grpc\HelloClient("127.0.0.1:8888");
     $hello->hello();
     var_dump(skywalking_trace_id());
+
+    skywalking_tag("foo", "bar");
+    skywalking_log('info', 'skywalking custom log function skywalking_log(string $key, string $msg[, bool $is_error])', false);
 //
 //     // test pdo
 //     $dbh = new \PDO("mysql:host=127.0.0.1;port=3306;dbname=mock", "root", "111111");

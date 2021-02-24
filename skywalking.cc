@@ -48,6 +48,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("skywalking.log_enable", "0", PHP_INI_ALL, OnUpdateBool, log_enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp/skywalking-php.log", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
 
+    STD_PHP_INI_ENTRY("skywalking.error_handler_enable", "0", PHP_INI_ALL, OnUpdateBool, error_handler_enable, zend_skywalking_globals, skywalking_globals)
 
 PHP_INI_END()
 
@@ -67,6 +68,9 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     // log
     skywalking_globals->log_enable = 0;
     skywalking_globals->log_path = nullptr;
+
+    // php error log
+    skywalking_globals->error_handler_enable = 0;
 }
 
 PHP_FUNCTION (skywalking_trace_id) {
@@ -76,6 +80,51 @@ PHP_FUNCTION (skywalking_trace_id) {
         RETURN_STRING(trace_id.c_str());
     } else {
         RETURN_STRING("");
+    }
+}
+
+/* {{{ proto void skywalking_log(string key, string log [, bool is_error]) */
+PHP_FUNCTION(skywalking_log)
+{
+    zend_string *key;
+    zend_string *log;
+    zend_bool   is_error = 0;
+
+    ZEND_PARSE_PARAMETERS_START(2, 3)
+        Z_PARAM_STR(key)
+        Z_PARAM_STR(log)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_BOOL(is_error)
+    ZEND_PARSE_PARAMETERS_END();
+
+    auto *segment = sky_get_segment(execute_data, -1);
+    if (!SKYWALKING_G(enable) || segment == nullptr) {
+        return;
+    }
+
+    if (ZSTR_LEN(key) > 0 && ZSTR_LEN(log) > 0) {
+        segment->addErrorLog(key->val, log->val, is_error);
+    }
+}
+
+/* {{{ proto void skywalking_tag(string key, string value) */
+PHP_FUNCTION(skywalking_tag)
+{
+    zend_string *key;
+    zend_string *value;
+
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_STR(key)
+        Z_PARAM_STR(value)
+    ZEND_PARSE_PARAMETERS_END();
+
+    auto *segment = sky_get_segment(execute_data, -1);
+    if (!SKYWALKING_G(enable) || segment == nullptr) {
+        return;
+    }
+
+    if (ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
+        segment->addTag(key->val, value->val);
     }
 }
 
@@ -154,8 +203,21 @@ zend_module_dep skywalking_deps[] = {
 ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_trace_id, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_log, 0, 0, 3)
+    ZEND_ARG_INFO(0, key)
+    ZEND_ARG_INFO(0, log)
+    ZEND_ARG_INFO(0, is_error)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_tag, 0, 0, 2)
+    ZEND_ARG_INFO(0, key)
+    ZEND_ARG_INFO(0, value)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry skywalking_functions[] = {
         PHP_FE (skywalking_trace_id, arginfo_skywalking_trace_id)
+        PHP_FE (skywalking_log,      arginfo_skywalking_log)
+        PHP_FE (skywalking_tag,      arginfo_skywalking_tag)
         PHP_FE_END
 };
 
