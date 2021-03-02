@@ -144,7 +144,7 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/manager.cc \
       src/segment.cc \
       src/segment_reference.cc \
-      src/span_log.cc \
+      src/sky_core_span_log.cc \
       src/sky_execute.cc \
       src/sky_grpc.cc \
       src/sky_module.cc \

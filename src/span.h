@@ -19,7 +19,7 @@
 #include <vector>
 #include "tag.h"
 #include "segment_reference.h"
-#include "span_log.h"
+#include "sky_core_span_log.h"
 
 enum class SkySpanType {
     Entry, Exit, Local
@@ -64,7 +64,7 @@ public:
 
     std::vector<Tag *> getTags();
 
-    std::vector<Span_Log *> getLogs();
+    std::vector<SkyCoreSpanLog *> getLogs();
 
     bool getSkipAnalysis() const;
 
@@ -89,7 +89,7 @@ public:
 
     void pushTag(Tag *tag);
 
-    void pushLog(Span_Log *log);
+    void pushLog(SkyCoreSpanLog *log);
 
     void addTag(const std::string &key, const std::string &value);
 
@@ -110,7 +110,7 @@ private:
     int componentId;
     bool isError;
     std::vector<Tag *> tags;
-    std::vector<Span_Log *> logs;
+    std::vector<SkyCoreSpanLog *> logs;
     bool skipAnalysis;
 };
 

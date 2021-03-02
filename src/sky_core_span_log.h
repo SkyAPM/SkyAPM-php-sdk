@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "span_log.h"
+#ifndef SKYWALKING_LOG_H
+#define SKYWALKING_LOG_H
 
-#include <utility>
 #include <string>
+#include <vector>
 #include <map>
-#include <sky_utils.h>
 
-Span_Log::Span_Log()  {
-    _time = getUnixTimeStamp();
-}
+class SkyCoreSpanLog {
+public:
+    SkyCoreSpanLog(std::string key, std::string value);
 
-std::int64_t Span_Log::getTime() {
-    return _time;
-}
+    long getTime();
 
-std::map<std::string, std::string> Span_Log::getData() {
-    return _data;
-}
+    std::string getKey();
 
-void Span_Log::addItem(std::string key, std::string value) {
-    _data[key] = value;
-}
+    std::string getValue();
+
+private:
+    long _time;
+    std::string _key;
+    std::string _value;
+};
+
+#endif //SKYWALKING_LOG_H

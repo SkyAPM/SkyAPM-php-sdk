@@ -86,13 +86,15 @@ PHP_FUNCTION (skywalking_trace_id) {
 /* {{{ proto void skywalking_log(string key, string log [, bool is_error]) */
 PHP_FUNCTION(skywalking_log)
 {
+    zend_string *name;
     zend_string *key;
-    zend_string *log;
+    zend_string *value;
     zend_bool   is_error = 0;
 
-    ZEND_PARSE_PARAMETERS_START(2, 3)
+    ZEND_PARSE_PARAMETERS_START(3, 4)
+        Z_PARAM_STR(name)
         Z_PARAM_STR(key)
-        Z_PARAM_STR(log)
+        Z_PARAM_STR(value)
         Z_PARAM_OPTIONAL
         Z_PARAM_BOOL(is_error)
     ZEND_PARSE_PARAMETERS_END();
@@ -102,18 +104,24 @@ PHP_FUNCTION(skywalking_log)
         return;
     }
 
-    if (ZSTR_LEN(key) > 0 && ZSTR_LEN(log) > 0) {
-        segment->addErrorLog(key->val, log->val, is_error);
+    if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
+        auto span = segment->findOrCreateSpan(name->val, SkySpanType::Local, SkySpanLayer::Unknown, 0);
+        span->addLog(key->val, value->val);
+        if (is_error) {
+            span->setIsError(true);
+        }
     }
 }
 
 /* {{{ proto void skywalking_tag(string key, string value) */
 PHP_FUNCTION(skywalking_tag)
 {
+    zend_string *name;
     zend_string *key;
     zend_string *value;
 
-    ZEND_PARSE_PARAMETERS_START(2, 2)
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_STR(name)
         Z_PARAM_STR(key)
         Z_PARAM_STR(value)
     ZEND_PARSE_PARAMETERS_END();
@@ -123,8 +131,9 @@ PHP_FUNCTION(skywalking_tag)
         return;
     }
 
-    if (ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
-        segment->addTag(key->val, value->val);
+    if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
+        auto span = segment->findOrCreateSpan(name->val, SkySpanType::Local, SkySpanLayer::Unknown, 0);
+        span->addTag(key->val, value->val);
     }
 }
 

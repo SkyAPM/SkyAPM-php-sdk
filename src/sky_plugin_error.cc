@@ -74,7 +74,8 @@ void sky_plugin_error_cb(int type, const char *error_filename, const uint32_t er
 
     if (!SKYWALKING_G(is_swoole) && SKYWALKING_G(enable) && SKYWALKING_G(segment) != nullptr) { 
         auto *segments = static_cast<std::map<uint64_t, Segment *> *>SKYWALKING_G(segment);
-        segments->at(0)->addErrorLog(level, log, isError);
+//        todo
+//        segments->at(0)->addErrorLog(level, log, isError);
     }
 
 #if PHP_VERSION_ID < 80000

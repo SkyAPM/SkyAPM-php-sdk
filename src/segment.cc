@@ -98,12 +98,9 @@ std::string Segment::marshal() {
         for (auto log:span->getLogs()) {
             auto _log = _span->add_logs();
             _log->set_time(log->getTime());
-
-            for (auto logData:log->getData()) {
-                auto _data = _log->add_data();
-                _data->set_key(logData.first);
-                _data->set_value(logData.second);
-            }
+            auto data = _log->add_data();
+            data->set_key(log->getKey());
+            data->set_value(log->getValue());
         }
 
         _span->set_skipanalysis(span->getSkipAnalysis());
@@ -140,6 +137,17 @@ Span *Segment::createSpan(SkySpanType type, SkySpanLayer layer, int componentId)
     return span;
 }
 
+Span *Segment::findOrCreateSpan(const std::string &name, SkySpanType type, SkySpanLayer layer, int componentId) {
+    if (!spans.empty()) {
+        for (auto item: spans) {
+            if (item->getOperationName() == name) {
+                return item;
+            }
+        }
+    }
+    return createSpan(type, layer, componentId);
+}
+
 std::string Segment::createHeader(Span *span) {
     return bag->encode(span->getSpanId(), span->getPeer());
 }
@@ -166,21 +174,4 @@ void Segment::createRefs() {
 
 std::string Segment::getTraceId() {
     return _traceId;
-}
-
-void Segment::addErrorLog(std::string key, std::string msg, bool isError) {
-    if (!spans.empty()) {
-        auto span = spans.front();
-        if (isError) {
-            span->setIsError(true);
-        }        
-        span->addLog(key, msg);
-    }
-}
-
-void Segment::addTag(const std::string &key, const std::string &value) {
-    if (!spans.empty()) {
-        auto span = spans.front();
-        span->addTag(key, value);
-    }
 }

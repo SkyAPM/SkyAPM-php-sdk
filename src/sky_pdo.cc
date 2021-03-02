@@ -122,11 +122,9 @@ void sky_pdo_check_errors(zend_execute_data *execute_data, Span *span) {
     
     call_user_function(CG(function_table), obj, &property, &return_ptr, 0, nullptr);
     if (Z_TYPE(return_ptr) == IS_ARRAY) {
-        Span_Log *log = new Span_Log();
-        log->addItem("SQLSTATE",   Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 0)));
-        log->addItem("Error Code", std::to_string(Z_LVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 1))));
-        log->addItem("Error",      Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 2)));
-        span->pushLog(log);
+        span->pushLog(new SkyCoreSpanLog("SQLSTATE", Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 0))));
+        span->pushLog(new SkyCoreSpanLog("Error Code", std::to_string(Z_LVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 1)))));
+        span->pushLog(new SkyCoreSpanLog("Error", Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 2))));
     }
 
     zval_dtor(&return_ptr);

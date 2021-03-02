@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "span.h"
-#include "span_log.h"
+#include "sky_core_span_log.h"
 
 #include <iostream>
 #include <sky_utils.h>
@@ -80,7 +80,7 @@ std::vector<Tag *> Span::getTags() {
     return tags;
 }
 
-std::vector<Span_Log *> Span::getLogs() {
+std::vector<SkyCoreSpanLog *> Span::getLogs() {
     return logs;
 }
 
@@ -130,7 +130,7 @@ void Span::pushTag(Tag *tag) {
     tags.push_back(tag);
 }
 
-void Span::pushLog(Span_Log *log) {
+void Span::pushLog(SkyCoreSpanLog *log) {
     logs.push_back(log);
 }
 
@@ -139,9 +139,7 @@ void Span::addTag(const std::string &key, const std::string &value) {
 }
 
 void Span::addLog(const std::string &key, const std::string &value) {
-    Span_Log *log = new Span_Log();
-    log->addItem(key, value);
-    logs.push_back(log);
+    logs.push_back(new SkyCoreSpanLog(key, value));
 }
 
 void Span::pushRefs(SkySegmentReference *ref) {

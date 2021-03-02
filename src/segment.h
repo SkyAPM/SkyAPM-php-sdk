@@ -30,6 +30,8 @@ public:
 
     Span *createSpan(SkySpanType type, SkySpanLayer layer, int componentId);
 
+    Span *findOrCreateSpan(const std::string &name, SkySpanType type, SkySpanLayer layer, int componentId);
+
     std::string marshal();
 
     void setStatusCode(int code);
@@ -39,10 +41,6 @@ public:
     void createRefs();
 
     std::string getTraceId();
-
-    void addErrorLog(std::string level, std::string msg, bool isError);
-
-    void addTag(const std::string &key, const std::string &value);
 
     ~Segment();
 

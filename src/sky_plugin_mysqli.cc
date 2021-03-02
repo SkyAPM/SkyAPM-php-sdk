@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "sky_plugin_mysqli.h"
-#include "span_log.h"
+#include "sky_core_span_log.h"
 #include "segment.h"
 #include "sky_utils.h"
 #include "php_skywalking.h"
@@ -91,18 +91,15 @@ void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, Span *span,
 
     zend_string *key;
     zval *value, *item;
-    Span_Log *log = nullptr;
     ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(&rv), item) {
-        if (Z_TYPE_P(item) == IS_ARRAY) {  
-            log = new Span_Log();          
+        if (Z_TYPE_P(item) == IS_ARRAY) {
             ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(item), key, value) {
                 if (Z_TYPE_P(value) == IS_LONG) {
-                    log->addItem(key->val, std::to_string(Z_LVAL_P(value)));
+                    span->addLog(key->val, std::to_string(Z_LVAL_P(value)));
                 } else {
-                    log->addItem(key->val, Z_STRVAL_P(value));
-                }                
+                    span->addLog(key->val, Z_STRVAL_P(value));
+                }
             } ZEND_HASH_FOREACH_END();
-            span->pushLog(log);
         }
     }ZEND_HASH_FOREACH_END();
 
