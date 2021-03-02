@@ -150,6 +150,10 @@ Span *Segment::findOrCreateSpan(const std::string &name, SkySpanType type, SkySp
     return span;
 }
 
+Span *Segment::firstSpan() {
+    return spans.at(0);
+}
+
 std::string Segment::createHeader(Span *span) {
     return bag->encode(span->getSpanId(), span->getPeer());
 }

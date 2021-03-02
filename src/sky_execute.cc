@@ -139,14 +139,6 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
     char *class_name = is_class ? ZSTR_VAL(fn->common.scope->name) : nullptr;
     char *function_name = fn->common.function_name != nullptr ? ZSTR_VAL(fn->common.function_name) : nullptr;
 
-	if (class_name == nullptr &&
-        function_name != nullptr && 
-        SKYWALKING_G(error_handler_enable) && 
-        strcmp(function_name, "set_error_handler") == 0) {
-        // php_error(E_NOTICE, "'skywalking.error_handler_enable' current congfig is 'enable', The 'set_error_handler' function will not work, The PHP error log has been handle and reporting to skywalking server.");
-        return;
-    }
-
     if (class_name != nullptr && function_name != nullptr) {
         if (strcmp(class_name, "Swoole\\Http\\Response") == 0 && strcmp(function_name, "status") == 0) {
             auto *segment = sky_get_segment(execute_data, -1);;

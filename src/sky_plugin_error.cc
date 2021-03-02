@@ -72,10 +72,14 @@ void sky_plugin_error_cb(int type, const char *error_filename, const uint32_t er
     log +=  "(" + std::to_string(error_lineno) + "): " + message->val;
 #endif
 
-    if (!SKYWALKING_G(is_swoole) && SKYWALKING_G(enable) && SKYWALKING_G(segment) != nullptr) { 
+    if (!SKYWALKING_G(is_swoole) && SKYWALKING_G(enable) && SKYWALKING_G(segment) != nullptr) {
         auto *segments = static_cast<std::map<uint64_t, Segment *> *>SKYWALKING_G(segment);
-//        todo
-//        segments->at(0)->addErrorLog(level, log, isError);
+        auto segment = segments->at(0);
+        auto span = segment->firstSpan();
+        span->addLog(level, log);
+        if (isError) {
+            span->setIsError(true);
+        }
     }
 
 #if PHP_VERSION_ID < 80000
