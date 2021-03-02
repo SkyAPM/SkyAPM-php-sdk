@@ -110,6 +110,7 @@ PHP_FUNCTION(skywalking_log)
         if (is_error) {
             span->setIsError(true);
         }
+        span->setEndTIme();
     }
 }
 
@@ -134,6 +135,7 @@ PHP_FUNCTION(skywalking_tag)
     if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
         auto span = segment->findOrCreateSpan(name->val, SkySpanType::Local, SkySpanLayer::Unknown, 0);
         span->addTag(key->val, value->val);
+        span->setEndTIme();
     }
 }
 

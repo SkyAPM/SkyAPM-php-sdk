@@ -145,7 +145,9 @@ Span *Segment::findOrCreateSpan(const std::string &name, SkySpanType type, SkySp
             }
         }
     }
-    return createSpan(type, layer, componentId);
+    auto span = createSpan(type, layer, componentId);
+    span->setOperationName(name);
+    return span;
 }
 
 std::string Segment::createHeader(Span *span) {
