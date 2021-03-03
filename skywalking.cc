@@ -214,13 +214,15 @@ zend_module_dep skywalking_deps[] = {
 ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_trace_id, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_log, 0, 0, 3)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_log, 0, 0, 4)
+    ZEND_ARG_INFO(0, name)
     ZEND_ARG_INFO(0, key)
-    ZEND_ARG_INFO(0, log)
+    ZEND_ARG_INFO(0, value)
     ZEND_ARG_INFO(0, is_error)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_tag, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_tag, 0, 0, 3)
+    ZEND_ARG_INFO(0, name)
     ZEND_ARG_INFO(0, key)
     ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
