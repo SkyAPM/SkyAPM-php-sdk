@@ -78,6 +78,8 @@ extern zend_module_entry skywalking_module_entry;
 #endif
 
 PHP_FUNCTION (skywalking_trace_id);
+PHP_FUNCTION (skywalking_log);
+PHP_FUNCTION (skywalking_tag);
 PHP_MINIT_FUNCTION (skywalking);
 PHP_MSHUTDOWN_FUNCTION (skywalking);
 PHP_RINIT_FUNCTION (skywalking);
@@ -106,6 +108,9 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // log
     zend_bool log_enable;
     char *log_path;
+
+    // php error log
+    zend_bool error_handler_enable;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

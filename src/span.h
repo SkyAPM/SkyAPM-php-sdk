@@ -17,9 +17,9 @@
 
 #include <string>
 #include <vector>
-#include "sys/time.h"
 #include "tag.h"
 #include "segment_reference.h"
+#include "sky_core_span_log.h"
 
 enum class SkySpanType {
     Entry, Exit, Local
@@ -64,6 +64,8 @@ public:
 
     std::vector<Tag *> getTags();
 
+    std::vector<SkyCoreSpanLog *> getLogs();
+
     bool getSkipAnalysis() const;
 
     // //
@@ -87,12 +89,13 @@ public:
 
     void pushTag(Tag *tag);
 
+    void pushLog(SkyCoreSpanLog *log);
+
     void addTag(const std::string &key, const std::string &value);
 
-    void pushRefs(SkySegmentReference *ref);
+    void addLog(const std::string &key, const std::string &value);
 
-private:
-    static long getUnixTimeStamp();
+    void pushRefs(SkySegmentReference *ref);
 
 private:
     int spanId;
@@ -107,6 +110,7 @@ private:
     int componentId;
     bool isError;
     std::vector<Tag *> tags;
+    std::vector<SkyCoreSpanLog *> logs;
     bool skipAnalysis;
 };
 

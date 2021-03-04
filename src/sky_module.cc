@@ -23,6 +23,7 @@
 #include "sky_plugin_curl.h"
 #include "sky_execute.h"
 #include "manager.h"
+#include "sky_plugin_error.h"
 
 extern struct service_info *s_info;
 
@@ -45,6 +46,10 @@ void sky_module_init() {
     ori_execute_internal = zend_execute_internal;
     zend_execute_internal = sky_execute_internal;
 
+    if (SKYWALKING_G(error_handler_enable)) {
+        sky_plugin_error_init();
+    }
+    
     // bind curl
     zend_function *old_function;
     if ((old_function = SKY_OLD_FN("curl_exec")) != nullptr) {
@@ -157,6 +162,10 @@ void sky_request_init(zval *request, uint64_t request_id) {
     span->addTag("url", uri);
     segments->at(request_id)->createRefs();
 
+    zval *request_method = zend_hash_str_find(Z_ARRVAL(PG(http_globals)[TRACK_VARS_SERVER]), ZEND_STRL("REQUEST_METHOD"));
+    if (request_method != NULL) {
+        span->addTag("http.method", Z_STRVAL_P(request_method));
+    }
 }
 
 

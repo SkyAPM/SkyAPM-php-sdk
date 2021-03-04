@@ -220,7 +220,21 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         zval *response_http_code;
         response_http_code = zend_hash_str_find(Z_ARRVAL(url_response), ZEND_STRL("http_code"));
         span->addTag("status_code", std::to_string(Z_LVAL_P(response_http_code)));
-        if (Z_LVAL_P(response_http_code) >= 400) {
+        if (Z_LVAL_P(response_http_code) == 0) {
+            // get errors
+            zval curl_error;
+            ZVAL_COPY(&args[0], zid);
+            ZVAL_STRING(&func, "curl_error");
+            call_user_function(CG(function_table), nullptr, &func, &curl_error, 1, args);
+                      
+            span->addLog("CURL_ERROR", Z_STRVAL(curl_error));
+            span->setIsError(true);
+
+            zval_dtor(&func);
+            zval_dtor(&args[0]);
+            zval_dtor(&curl_error);
+        } else if (Z_LVAL_P(response_http_code) >= 400) {
+            // TODO: response body set to logs
             span->setIsError(true);
         } else {
             span->setIsError(false);

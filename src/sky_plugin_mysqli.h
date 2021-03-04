@@ -12,30 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SKYWALKING_SKY_UTILS_H
-#define SKYWALKING_SKY_UTILS_H
+#ifndef SKYWALKING_SKY_MYSQLI_H
+#define SKYWALKING_SKY_MYSQLI_H
 
 #include "php_skywalking.h"
-#include "segment.h"
-
+#include "span.h"
 #include <string>
+#include "ext/mysqli/php_mysqli_structs.h"
 
-#define SKY_IS_OBJECT(p) p != nullptr && Z_TYPE_P(p) == IS_OBJECT
+Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
-bool starts_with(const char *pre, const char *str);
+void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, Span *span, int is_oop);
 
-std::string get_page_request_uri();
-
-std::string get_page_request_peer();
-
-zval *sky_read_property(zval *obj, const char *property, int parent);
-
-int64_t sky_find_swoole_fd(zend_execute_data *execute_data);
-
-Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id);
-
-std::string sky_get_class_name(zval *obj);
-
-long getUnixTimeStamp();
-
-#endif //SKYWALKING_SKY_UTILS_H
+#endif //SKYWALKING_SKY_MYSQLI_H

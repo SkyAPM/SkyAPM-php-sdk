@@ -144,11 +144,14 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/manager.cc \
       src/segment.cc \
       src/segment_reference.cc \
+      src/sky_core_span_log.cc \
       src/sky_execute.cc \
       src/sky_grpc.cc \
       src/sky_module.cc \
+      src/sky_plugin_mysqli.cc \
       src/sky_pdo.cc \
       src/sky_plugin_curl.cc \
+      src/sky_plugin_error.cc \
       src/sky_plugin_hyperf_guzzle.cc \
       src/sky_plugin_predis.cc \
       src/sky_plugin_rabbit_mq.cc \

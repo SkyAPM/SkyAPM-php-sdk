@@ -95,7 +95,14 @@ std::string Segment::marshal() {
             _tag->set_value(tag->getValue());
         }
 
-        // todo logs
+        for (auto log:span->getLogs()) {
+            auto _log = _span->add_logs();
+            _log->set_time(log->getTime());
+            auto data = _log->add_data();
+            data->set_key(log->getKey());
+            data->set_value(log->getValue());
+        }
+
         _span->set_skipanalysis(span->getSkipAnalysis());
     }
 
@@ -128,6 +135,23 @@ Span *Segment::createSpan(SkySpanType type, SkySpanLayer layer, int componentId)
 
     spans.push_back(span);
     return span;
+}
+
+Span *Segment::findOrCreateSpan(const std::string &name, SkySpanType type, SkySpanLayer layer, int componentId) {
+    if (!spans.empty()) {
+        for (auto item: spans) {
+            if (item->getOperationName() == name) {
+                return item;
+            }
+        }
+    }
+    auto span = createSpan(type, layer, componentId);
+    span->setOperationName(name);
+    return span;
+}
+
+Span *Segment::firstSpan() {
+    return spans.at(0);
 }
 
 std::string Segment::createHeader(Span *span) {
