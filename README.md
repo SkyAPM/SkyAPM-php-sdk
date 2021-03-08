@@ -27,6 +27,7 @@ SkyAPM PHP
 1. Swoole ([Swoole](https://github.com/swoole/swoole-src))
 1. Hyperf ([Hyperf](https://github.com/hyperf/hyperf))
 1. Tars-php ([Tars-php](https://github.com/TarsPHP/TarsPHP))
+1. LaravelS ([LaravelS](https://github.com/hhxsv5/laravel-s))
 
 ## Documents
 * [Documents in English](docs/README.md)
