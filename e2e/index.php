@@ -11,3 +11,5 @@ testRedis();
 testAddTag();
 
 testAddLog();
+
+testMysqli();
