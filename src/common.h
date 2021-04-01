@@ -30,7 +30,6 @@ struct service_info {
     char service_instance[0x400];
 
     boost::interprocess::message_queue *mq;
-    int mq_msg_size = 20480;
 };
 
 #endif //SKYWALKING_COMMON_H

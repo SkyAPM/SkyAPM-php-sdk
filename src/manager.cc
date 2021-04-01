@@ -35,8 +35,8 @@
 #include <boost/interprocess/ipc/message_queue.hpp>
 
 #include "php_skywalking.h"
+#include "sky_log.h"
 
-static std::ofstream sky_log;
 std::queue<std::string> messageQueue;
 static pthread_mutex_t mx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -46,9 +46,6 @@ extern struct service_info *s_info;
 
 Manager::Manager(const ManagerOptions &options, struct service_info *info) {
 
-    if (SKYWALKING_G(log_enable)) {
-        sky_log.open(SKYWALKING_G(log_path), std::ios::app);
-    }
 
     std::thread th(login, options, info);
     th.detach();
@@ -59,7 +56,7 @@ Manager::Manager(const ManagerOptions &options, struct service_info *info) {
 //    std::thread s(sender, options);
 //    s.detach();
 
-    logger("the apache skywalking php plugin mounted");
+    sky_log("the apache skywalking php plugin mounted");
 }
 
 void Manager::login(const ManagerOptions &options, struct service_info *info) {
@@ -162,7 +159,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
 
             while (true) {
                 std::string data;
-                data.resize(20480);
+                data.resize(SKYWALKING_G(mq_max_message_length));
                 size_t msg_size;
                 unsigned msg_priority;
                 mq.receive(&data[0], data.size(), msg_size, msg_priority);
@@ -177,14 +174,14 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
                 google::protobuf::util::MessageToJsonString(msg, &json_str, opt);
                 bool status = writer->Write(msg);
                 if (status) {
-                    logger("write success " + json_str);
+                    sky_log("write success " + json_str);
                 } else {
-                    logger("write fail " + json_str);
+                    sky_log("write fail " + json_str);
                     break;
                 }
             }
         } catch (boost::interprocess::interprocess_exception &ex) {
-            logger(ex.what());
+            sky_log(ex.what());
             php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
         }
     }
@@ -251,11 +248,4 @@ std::string Manager::generateUUID() {
     }
 
     return res;
-}
-
-
-void Manager::logger(const std::string &log) {
-    if (SKYWALKING_G(log_enable) && sky_log.is_open()) {
-        sky_log << log << std::endl;
-    }
 }
