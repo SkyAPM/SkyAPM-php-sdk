@@ -16,5 +16,8 @@ function testRedis() {
     $redis->incr($key);
     $redis->setnx($key, "test");
     $redis->strlen($key);
-
+    $redis->set($key, "test");
+    $redis->set($key, "test", 100);
+    $redis->set($key, "test", ["nx", "ex" => 200]);
+    $redis->setex($key, 300, "test");
 }
