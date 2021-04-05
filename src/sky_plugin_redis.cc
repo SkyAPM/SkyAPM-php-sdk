@@ -34,10 +34,11 @@ std::map<std::string, redis_cmd_cb> commands = {
         {"INCRBY",      sky_plugin_redis_todo_cmd},
         {"INCRBYFLOAT", sky_plugin_redis_todo_cmd},
 
-        {"MGET",        sky_plugin_redis_todo_cmd},
+        {"MGET",        sky_plugin_redis_multi_key_cmd},
         {"MSET",        sky_plugin_redis_todo_cmd},
         {"MSETNX",      sky_plugin_redis_todo_cmd},
         {"PSETEX",      sky_plugin_redis_todo_cmd},
+        {"GETMULTIPLE", sky_plugin_redis_multi_key_cmd},
 
         {"SET",         sky_plugin_redis_set_cmd},
         {"SETBIT",      sky_plugin_redis_todo_cmd},
@@ -47,6 +48,27 @@ std::map<std::string, redis_cmd_cb> commands = {
 
         {"STRALGO",     sky_plugin_redis_todo_cmd},
         {"STRLEN",      sky_plugin_redis_key_cmd},
+
+        {"EVAL",        sky_plugin_redis_key_cmd},
+
+        {"DEL",         sky_plugin_redis_uncertain_keys_cmd},
+        {"DELETE",      sky_plugin_redis_uncertain_keys_cmd},
+        {"UNLINK",      sky_plugin_redis_uncertain_keys_cmd},
+        {"EXISTS",      sky_plugin_redis_uncertain_keys_cmd},
+
+        // empty commands
+        {"PING",        sky_plugin_redis_todo_cmd},
+        {"PIPELINE",    sky_plugin_redis_todo_cmd},
+        {"MULTI",       sky_plugin_redis_todo_cmd},
+        {"DISCARD",     sky_plugin_redis_todo_cmd},
+        {"EXEC",        sky_plugin_redis_todo_cmd},
+
+        {"EXPIRE",      sky_plugin_redis_key_ttl_cmd},
+        {"PEXPIRE",     sky_plugin_redis_key_ttl_cmd},
+        {"EXPIREAT",    sky_plugin_redis_key_ttl_cmd},
+        {"PEXPIREAT",   sky_plugin_redis_key_ttl_cmd},
+        {"SETTIMEOUT",  sky_plugin_redis_key_ttl_cmd},
+
 };
 
 Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
@@ -176,6 +198,73 @@ std::string sky_plugin_redis_setex_cmd(zend_execute_data *execute_data, std::str
             return cmd + " " + std::string(Z_STRVAL_P(key)) + " " + std::to_string(Z_LVAL_P(ttl)) + " " + std::string(Z_STRVAL_P(value));
         }
     }
+    return "";
+}
+
+std::string sky_plugin_redis_multi_key_cmd(zend_execute_data *execute_data, std::string cmd) {
+    uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+    if (arg_count == 1) {
+        zval *keys = ZEND_CALL_ARG(execute_data, 1);
+        if (Z_TYPE_P(keys) == IS_ARRAY) {
+            std::string _cmd = cmd;
+            zend_ulong index;
+            zval *key;
+            ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(keys), index, key) {
+                if (Z_TYPE_P(key) == IS_STRING) {
+                    _cmd += " " + std::string(Z_STRVAL_P(key));
+                }
+            } ZEND_HASH_FOREACH_END();
+            return _cmd;
+        }
+    }
+    return "";
+}
+
+std::string sky_plugin_redis_key_ttl_cmd(zend_execute_data *execute_data, std::string cmd) {
+    uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+    if (arg_count == 2) {
+        zval *key = ZEND_CALL_ARG(execute_data, 1);
+        zval *ttl = ZEND_CALL_ARG(execute_data, 2);
+        if (Z_TYPE_P(key) == IS_STRING && Z_TYPE_P(ttl) == IS_LONG) {
+            return cmd + " " + std::string(Z_STRVAL_P(key)) + " " + std::to_string(Z_LVAL_P(ttl));
+        }
+    }
+    return "";
+}
+
+std::string sky_plugin_redis_uncertain_keys_cmd(zend_execute_data *execute_data, std::string cmd) {
+    uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+
+    if (arg_count == 1) {
+        zval *keys = ZEND_CALL_ARG(execute_data, 1);
+        if (Z_TYPE_P(keys) == IS_STRING) {
+            return cmd + " " + std::string(Z_STRVAL_P(keys));
+        }
+        if (Z_TYPE_P(keys) == IS_ARRAY) {
+            std::string _cmd = cmd;
+            zend_ulong index;
+            zval *key;
+            ZEND_HASH_FOREACH_NUM_KEY_VAL(Z_ARRVAL_P(keys), index, key) {
+                if (Z_TYPE_P(key) == IS_STRING) {
+                    _cmd += " " + std::string(Z_STRVAL_P(key));
+                }
+            } ZEND_HASH_FOREACH_END();
+            return _cmd;
+        }
+    }
+
+    if (arg_count > 1) {
+        uint32_t i = 0;
+        std::string _cmd = cmd;
+        for (i = 1; i <= arg_count; i++) {
+            zval *key = ZEND_CALL_ARG(execute_data, i);
+            if (Z_TYPE_P(key) == IS_STRING) {
+                _cmd += " " + std::string(Z_STRVAL_P(key));
+            }
+        }
+        return _cmd;
+    }
+
     return "";
 }
 
