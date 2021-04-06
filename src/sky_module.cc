@@ -24,6 +24,7 @@
 #include "sky_execute.h"
 #include "manager.h"
 #include "sky_plugin_error.h"
+#include "sky_log.h"
 
 extern struct service_info *s_info;
 
@@ -84,7 +85,7 @@ void sky_module_init() {
                 boost::interprocess::create_only,
                 "skywalking_queue",
                 1024,
-                20480,
+                SKYWALKING_G(mq_max_message_length),
                 boost::interprocess::permissions(0666)
         );
     } catch (boost::interprocess::interprocess_exception &ex) {
@@ -178,6 +179,13 @@ void sky_request_flush(zval *response, uint64_t request_id) {
     std::string msg = segment->marshal();
     delete segment;
 
+    int msg_length = static_cast<int>(msg.size());
+    int max_length = SKYWALKING_G(mq_max_message_length);
+    if (msg_length > max_length) {
+        sky_log("message is too big: " + std::to_string(msg_length) + ", mq_max_message_length=" + std::to_string(max_length));
+        return;
+    }
+
     try {
         boost::interprocess::message_queue mq(
                 boost::interprocess::open_only,
@@ -185,6 +193,7 @@ void sky_request_flush(zval *response, uint64_t request_id) {
         );
         mq.send(msg.data(), msg.size(), 0);
     } catch (boost::interprocess::interprocess_exception &ex) {
+        sky_log("sky_request_flush message_queue ex" + std::string(ex.what()));
         php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
     }
 }

@@ -111,6 +111,9 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
 
     // php error log
     zend_bool error_handler_enable;
+
+    // message queue
+    int mq_max_message_length;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
