@@ -155,7 +155,7 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         auto writer = stub->collect(&context, &commands);
 
         try {
-            boost::interprocess::message_queue mq(boost::interprocess::open_only, "skywalking_queue");
+            boost::interprocess::message_queue mq(boost::interprocess::open_only, s_info->mq_name);
 
             while (true) {
                 std::string data;

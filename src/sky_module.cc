@@ -40,6 +40,10 @@ extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
+void sky_module_cleanup() {
+    boost::interprocess::message_queue::remove(s_info->mq_name);
+}
+
 void sky_module_init() {
     ori_execute_ex = zend_execute_ex;
     zend_execute_ex = sky_execute_ex;
@@ -79,11 +83,15 @@ void sky_module_init() {
     opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
     opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
     opt.authentication = SKYWALKING_G(authentication);
+
+    sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
+    atexit(sky_module_cleanup);
+
     try {
-        boost::interprocess::message_queue::remove("skywalking_queue");
+        boost::interprocess::message_queue::remove(s_info->mq_name);
         boost::interprocess::message_queue(
                 boost::interprocess::create_only,
-                "skywalking_queue",
+                s_info->mq_name,
                 1024,
                 SKYWALKING_G(mq_max_message_length),
                 boost::interprocess::permissions(0666)
@@ -189,7 +197,7 @@ void sky_request_flush(zval *response, uint64_t request_id) {
     try {
         boost::interprocess::message_queue mq(
                 boost::interprocess::open_only,
-                "skywalking_queue"
+                s_info->mq_name
         );
         mq.send(msg.data(), msg.size(), 0);
     } catch (boost::interprocess::interprocess_exception &ex) {
