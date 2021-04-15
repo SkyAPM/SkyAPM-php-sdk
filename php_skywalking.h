@@ -47,7 +47,7 @@ SKY_BEGIN_EXTERN_C()
 extern zend_module_entry skywalking_module_entry;
 #define phpext_skywalking_ptr &skywalking_module_entry
 
-#define PHP_SKYWALKING_VERSION "4.1.1"
+#define PHP_SKYWALKING_VERSION "4.1.2"
 
 
 #define SKY_STRCMP(s1, s2) ((s1) != nullptr && strcmp(s1, s2) == 0)

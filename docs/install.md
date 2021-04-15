@@ -70,9 +70,9 @@ make clean
 
 ## Install PHP Extension
 ```shell script
-curl -Lo v4.1.1.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.1.1.tar.gz
-tar zxvf v4.1.1.tar.gz
-cd SkyAPM-php-sdk-4.1.1
+curl -Lo v4.1.2.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.1.2.tar.gz
+tar zxvf v4.1.2.tar.gz
+cd SkyAPM-php-sdk-4.1.2
 phpize
 ./configure
 make
