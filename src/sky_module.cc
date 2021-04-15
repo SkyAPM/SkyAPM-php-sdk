@@ -82,7 +82,7 @@ void sky_module_init() {
     try {
         boost::interprocess::message_queue::remove("skywalking_queue");
         boost::interprocess::message_queue(
-                boost::interprocess::create_only,
+                boost::interprocess::open_or_create,
                 "skywalking_queue",
                 1024,
                 SKYWALKING_G(mq_max_message_length),
