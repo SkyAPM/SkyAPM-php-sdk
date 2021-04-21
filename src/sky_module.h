@@ -22,6 +22,8 @@
 
 void sky_module_init();
 
+void sky_module_cleanup();
+
 void sky_request_init(zval *request, uint64_t request_id);
 
 void sky_request_flush(zval *response, uint64_t request_id);

@@ -40,10 +40,6 @@ extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
-void sky_module_cleanup() {
-    boost::interprocess::message_queue::remove(s_info->mq_name);
-}
-
 void sky_module_init() {
     ori_execute_ex = zend_execute_ex;
     zend_execute_ex = sky_execute_ex;
@@ -85,7 +81,6 @@ void sky_module_init() {
     opt.authentication = SKYWALKING_G(authentication);
 
     sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
-    atexit(sky_module_cleanup);
 
     try {
         boost::interprocess::message_queue::remove(s_info->mq_name);
@@ -101,6 +96,14 @@ void sky_module_init() {
     }
 
     new Manager(opt, s_info);
+}
+
+void sky_module_cleanup() {
+    char mq_name[32];
+    sprintf(mq_name, "skywalking_queue_%d", getpid());
+    if (strcmp(s_info->mq_name, mq_name) == 0) {
+        boost::interprocess::message_queue::remove(s_info->mq_name);
+    }
 }
 
 void sky_request_init(zval *request, uint64_t request_id) {

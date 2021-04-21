@@ -161,6 +161,11 @@ PHP_MINIT_FUNCTION (skywalking) {
 
 PHP_MSHUTDOWN_FUNCTION (skywalking) {
     UNREGISTER_INI_ENTRIES();
+
+    if (SKYWALKING_G(enable)) {
+        sky_module_cleanup();
+    }
+
     return SUCCESS;
 }
 
