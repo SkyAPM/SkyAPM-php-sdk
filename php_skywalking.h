@@ -55,7 +55,7 @@ extern zend_module_entry skywalking_module_entry;
 #define SKY_IS_SWOOLE(func_name) (SKY_STRCMP(func_name, "{closure}"))
 #define SKY_IS_HYPERF(class_name, func_name) (SKY_STRCMP(class_name, "Hyperf\\HttpServer\\Server") && SKY_STRCMP(func_name, "onRequest"))
 #define SKY_IS_TARS(class_name, func_name) (SKY_STRCMP(class_name, "Tars\\core\\Server") && SKY_STRCMP(func_name, "onRequest"))
-#define SKY_IS_LARAVELS(class_name, func_name) (SKY_STRCMP(class_name, "Hhxsv\\LaravelS\\LaravelS") && SKY_STRCMP(func_name, "onRequest"))
+#define SKY_IS_LARAVELS(class_name, func_name) ((SKY_STRCMP(class_name, "Hhxsv\\LaravelS\\LaravelS") || SKY_STRCMP(class_name, "Hhxsv5\\LaravelS\\LaravelS")) && SKY_STRCMP(func_name, "onRequest"))
 #define SKY_IS_SWOOLE_FRAMEWORK(class_name, func_name) SKY_IS_HYPERF(class_name, func_name) || SKY_IS_TARS(class_name, func_name) || SKY_IS_LARAVELS(class_name, func_name)
 
 #if PHP_VERSION_ID < 80000
