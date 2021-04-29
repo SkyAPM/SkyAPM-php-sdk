@@ -202,7 +202,9 @@ void sky_request_flush(zval *response, uint64_t request_id) {
                 boost::interprocess::open_only,
                 s_info->mq_name
         );
-        mq.send(msg.data(), msg.size(), 0);
+        if (!mq.try_send(msg.data(), msg.size(), 0)) {
+            sky_log("sky_request_flush message_queue is fulled");
+        }
     } catch (boost::interprocess::interprocess_exception &ex) {
         sky_log("sky_request_flush message_queue ex" + std::string(ex.what()));
         php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
