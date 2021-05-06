@@ -10,17 +10,17 @@
 		<email>yanlong@php.net</email>
 		<active>yes</active>
 	</lead>
-	<date>2020-11-18</date>
+	<date>2021-04-30</date>
 	<version>
-		<release>4.1.1</release>
-		<api>4.1.1</api>
+		<release>4.1.2</release>
+		<api>4.1.2</api>
 	</version>
 	<stability>
 		<release>stable</release>
 		<api>stable</api>
 	</stability>
 	<license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache2.0</license>
-	<notes>Fix bugs</notes>
+	<notes>Add mysqli</notes>
 	<contents>
 		<dir name="/">
 			<file role="doc" name="CREDITS"/>
@@ -30,6 +30,12 @@
 			<file role="src" name="config.m4"/>
 			<file role="src" name="config.w32"/>
 			<file role="src" name="docker/Dockerfile"/>
+			<file role="src" name="docker/Dockerfile.7.0"/>
+			<file role="src" name="docker/Dockerfile.7.1"/>
+			<file role="src" name="docker/Dockerfile.7.2"/>
+			<file role="src" name="docker/Dockerfile.7.3"/>
+			<file role="src" name="docker/Dockerfile.7.4"/>
+			<file role="src" name="docker/Dockerfile.8.0"/>
 			<file role="src" name="docker/index.php"/>
 			<file role="src" name="docker/nginx.conf"/>
 			<file role="src" name="docker/service.sh"/>
@@ -45,6 +51,8 @@
 			<file role="src" name="e2e/nginx.conf"/>
 			<file role="src" name="e2e/override.conf"/>
 			<file role="src" name="e2e/tests.php"/>
+			<file role="src" name="e2e/tests/functions.php"/>
+			<file role="src" name="e2e/tests/mysqli.php"/>
 			<file role="src" name="e2e/tests/redis.php"/>
 			<file role="src" name="php.ini"/>
 			<file role="src" name="php_skywalking.h"/>
@@ -73,28 +81,34 @@
 			<file role="src" name="src/segment.h"/>
 			<file role="src" name="src/segment_reference.cc"/>
 			<file role="src" name="src/segment_reference.h"/>
-			<file role="src" name="src/span_log.cc"/>
-			<file role="src" name="src/span_log.h"/>
-			<file role="src" name="src/sky_curl.cc"/>
-			<file role="src" name="src/sky_curl.h"/>
+			<file role="src" name="src/sky_core_span_log.cc"/>
+			<file role="src" name="src/sky_core_span_log.h"/>
 			<file role="src" name="src/sky_execute.cc"/>
 			<file role="src" name="src/sky_execute.h"/>
 			<file role="src" name="src/sky_grpc.cc"/>
 			<file role="src" name="src/sky_grpc.h"/>
+			<file role="src" name="src/sky_log.cc"/>
+			<file role="src" name="src/sky_log.h"/>
 			<file role="src" name="src/sky_module.cc"/>
 			<file role="src" name="src/sky_module.h"/>
-			<file role="src" name="src/sky_plugin_mysqli.cc"/>
-			<file role="src" name="src/sky_plugin_mysqli.h"/>
 			<file role="src" name="src/sky_pdo.cc"/>
 			<file role="src" name="src/sky_pdo.h"/>
+			<file role="src" name="src/sky_plugin_curl.cc"/>
+			<file role="src" name="src/sky_plugin_curl.h"/>
+			<file role="src" name="src/sky_plugin_error.cc"/>
+			<file role="src" name="src/sky_plugin_error.h"/>
 			<file role="src" name="src/sky_plugin_hyperf_guzzle.cc"/>
 			<file role="src" name="src/sky_plugin_hyperf_guzzle.h"/>
+			<file role="src" name="src/sky_plugin_mysqli.cc"/>
+			<file role="src" name="src/sky_plugin_mysqli.h"/>
+			<file role="src" name="src/sky_plugin_predis.cc"/>
+			<file role="src" name="src/sky_plugin_predis.h"/>
 			<file role="src" name="src/sky_plugin_rabbit_mq.cc"/>
 			<file role="src" name="src/sky_plugin_rabbit_mq.h"/>
 			<file role="src" name="src/sky_plugin_redis.cc"/>
 			<file role="src" name="src/sky_plugin_redis.h"/>
-			<file role="src" name="src/sky_predis.cc"/>
-			<file role="src" name="src/sky_predis.h"/>
+			<file role="src" name="src/sky_plugin_swoole_curl.cc"/>
+			<file role="src" name="src/sky_plugin_swoole_curl.h"/>
 			<file role="src" name="src/sky_shm.cc"/>
 			<file role="src" name="src/sky_shm.h"/>
 			<file role="src" name="src/sky_utils.cc"/>
@@ -119,6 +133,17 @@
 	<providesextension>skywalking</providesextension>
 	<extsrcrelease/>
 	<changelog>
+		<release>
+			<version>
+				<release>4.1.2</release>
+				<api>4.1.2</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Add mysqli</notes>
+		</release>
 		<release>
 			<version>
 				<release>4.1.1</release>

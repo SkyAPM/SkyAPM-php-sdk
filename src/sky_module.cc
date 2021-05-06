@@ -79,11 +79,14 @@ void sky_module_init() {
     opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
     opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
     opt.authentication = SKYWALKING_G(authentication);
+
+    sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
+
     try {
-        boost::interprocess::message_queue::remove("skywalking_queue");
+        boost::interprocess::message_queue::remove(s_info->mq_name);
         boost::interprocess::message_queue(
-                boost::interprocess::create_only,
-                "skywalking_queue",
+                boost::interprocess::open_or_create,
+                s_info->mq_name,
                 1024,
                 SKYWALKING_G(mq_max_message_length),
                 boost::interprocess::permissions(0666)
@@ -93,6 +96,14 @@ void sky_module_init() {
     }
 
     new Manager(opt, s_info);
+}
+
+void sky_module_cleanup() {
+    char mq_name[32];
+    sprintf(mq_name, "skywalking_queue_%d", getpid());
+    if (strcmp(s_info->mq_name, mq_name) == 0) {
+        boost::interprocess::message_queue::remove(s_info->mq_name);
+    }
 }
 
 void sky_request_init(zval *request, uint64_t request_id) {
@@ -189,9 +200,11 @@ void sky_request_flush(zval *response, uint64_t request_id) {
     try {
         boost::interprocess::message_queue mq(
                 boost::interprocess::open_only,
-                "skywalking_queue"
+                s_info->mq_name
         );
-        mq.send(msg.data(), msg.size(), 0);
+        if (!mq.try_send(msg.data(), msg.size(), 0)) {
+            sky_log("sky_request_flush message_queue is fulled");
+        }
     } catch (boost::interprocess::interprocess_exception &ex) {
         sky_log("sky_request_flush message_queue ex" + std::string(ex.what()));
         php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());

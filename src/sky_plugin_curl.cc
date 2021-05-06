@@ -138,7 +138,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     char *url_str = Z_STRVAL_P(z_url);
     if (strlen(url_str) > 0 && (starts_with("http://", url_str) || starts_with("https://", url_str))) {
         url_parse = php_url_parse(url_str);
-        if (url_parse->scheme != nullptr && url_parse->host != nullptr) {
+        if (url_parse != nullptr && url_parse->scheme != nullptr && url_parse->host != nullptr) {
             is_record = 1;
         }
     }

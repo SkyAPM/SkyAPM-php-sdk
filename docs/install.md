@@ -16,7 +16,7 @@ View official documents [protobuf C++ installation](https://github.com/protocolb
 
 #### Ubuntu
 ```shell script
-sudo apt-get install build-essential autoconf automake libtool curl make g++ unzip pkg-config cmake
+sudo apt-get install build-essential autoconf automake libtool curl make g++ unzip pkg-config cmake libboost-all-dev
 git clone --depth 1 -b v1.34.x https://github.com/grpc/grpc.git /var/local/git/grpc
 cd /var/local/git/grpc
 git submodule update --init --recursive
@@ -45,7 +45,7 @@ sudo ldconfig
 ```shell script
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64
 export LD_RUN_PATH=$LD_RUN_PATH:/usr/local/lib:/usr/local/lib64
-apk --update add --no-cache git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx
+apk --update add --no-cache git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx boost-dev
 git clone --depth 1 -b v1.34.x https://github.com/grpc/grpc.git /var/local/git/grpc
 cd /var/local/git/grpc
 git submodule update --init --recursive
@@ -70,9 +70,9 @@ make clean
 
 ## Install PHP Extension
 ```shell script
-curl -Lo v4.1.1.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.1.1.tar.gz
-tar zxvf v4.1.1.tar.gz
-cd SkyAPM-php-sdk-4.1.1
+curl -Lo v4.1.2.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.1.2.tar.gz
+tar zxvf v4.1.2.tar.gz
+cd SkyAPM-php-sdk-4.1.2
 phpize
 ./configure
 make

@@ -28,6 +28,7 @@
 struct service_info {
     char service[0x400];
     char service_instance[0x400];
+    char mq_name[32];
 
     boost::interprocess::message_queue *mq;
 };
