@@ -598,6 +598,16 @@ std::string sky_plugin_redis_eval_cmd(zend_execute_data *execute_data, std::stri
         zval *script = ZEND_CALL_ARG(execute_data, 1);
         if (Z_TYPE_P(script) == IS_STRING) {
             cmd += " \"" + std::string(Z_STRVAL_P(script)) + "\"";
+            if (arg_count >= 3) {
+                zval *num_keys = ZEND_CALL_ARG(execute_data, 3);
+                if (Z_TYPE_P(num_keys) == IS_LONG) {
+                    cmd += " " + std::to_string(Z_LVAL_P(num_keys));
+                } else {
+                    cmd += " 0";
+                }
+            } else {
+                cmd += " 0";
+            }
             if (arg_count >= 2) {
                 zval *args = ZEND_CALL_ARG(execute_data, 2);
                 if (Z_TYPE_P(args) == IS_ARRAY) {
@@ -614,12 +624,6 @@ std::string sky_plugin_redis_eval_cmd(zend_execute_data *execute_data, std::stri
                             cmd += " " + std::to_string(Z_DVAL_P(arg));
                         }
                     } ZEND_HASH_FOREACH_END();
-                }
-            }
-            if (arg_count >= 3) {
-                zval *num_keys = ZEND_CALL_ARG(execute_data, 3);
-                if (Z_TYPE_P(num_keys) == IS_LONG) {
-                    cmd += " " + std::to_string(Z_LVAL_P(num_keys));
                 }
             }
             return cmd;
