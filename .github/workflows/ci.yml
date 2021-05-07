@@ -42,6 +42,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Check License
+        uses: apache/skywalking-eyes@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout GRPC
         uses: actions/checkout@v2
         with:
