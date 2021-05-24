@@ -47,7 +47,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
-          key: ${{ runner.os }}-grpc
+          key: ${{ runner.os }}-grpc-v1
 
       - name: Checkout GRPC
         if: steps.cache-grpc.outputs.cache-hit != 'true'
@@ -96,7 +96,6 @@ jobs:
           ./configure --with-grpc=/home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           make -j$(nproc)
           sudo make install
-          sudo make clean
 
       - name: Start FPM and Nginx
         run: |
