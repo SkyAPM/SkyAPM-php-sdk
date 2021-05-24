@@ -39,10 +39,17 @@ jobs:
           - 6379:6379
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
+      - name: Cache gRPC
+        id: cache-grpc
+        uses: actions/cache@v2
+        with:
+          path: /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          key: ${{ runner.os }}-grpc
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Checkout GRPC
+        if: steps.cache-grpc.outputs.cache-hit != 'true'
         uses: actions/checkout@v2
         with:
           ref: v1.31.x
@@ -72,6 +79,7 @@ jobs:
           cd ..
 
       - name: Build GRPC
+        if: steps.cache-grpc.outputs.cache-hit != 'true'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           mkdir -p cmake/build
