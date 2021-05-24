@@ -73,22 +73,18 @@ jobs:
 
       - name: Build GRPC
         run: |
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
-          ./autogen.sh && ./configure
-          make -j$(nproc) && make -j$(nproc) check && sudo make install && sudo make clean && sudo ldconfig
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           mkdir -p cmake/build
           cd cmake/build
-          cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
-          make -j$(nproc) && sudo make install && make clean && sudo ldconfig
+          cmake ../..
+          make -j$(nproc)
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
-          sudo rm -fr /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
 
       - name: Build SkyWalking-PHP
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
-          ./configure
+          ./configure --with-grpc=/home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           make -j$(nproc)
           sudo make install
           sudo make clean
