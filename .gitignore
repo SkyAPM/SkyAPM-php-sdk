@@ -46,3 +46,5 @@ log.cpp
 skywalking*.tgz
 e2e/composer.lock
 e2e/vendor
+vendor
+composer.*

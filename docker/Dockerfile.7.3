@@ -20,16 +20,13 @@ RUN set -ex \
     && curl -L -o cmake-3.19.1.tar.gz  https://github.com/Kitware/CMake/releases/download/v3.19.1/cmake-3.19.1.tar.gz \
     && tar zxf cmake-3.19.1.tar.gz \
     && cd cmake-3.19.1 && ./bootstrap && make -j$(nproc) && make install \
-    && echo "--- installing protobuf ---" \
-    && cd /var/local/git/grpc/third_party/protobuf \
-    && ./autogen.sh && ./configure && make -j$(nproc) && make install && make clean \
     && echo "--- installing grpc ---" \
     && cd /var/local/git/grpc \
-    && mkdir -p cmake/build && cd cmake/build && cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON \
-    && make -j$(nproc) && make install && make clean \
+    && mkdir -p cmake/build && cd cmake/build && cmake ../.. \
+    && make -j$(nproc) \
     && echo "--- installing skywalking php ---" \
     && cd /var/local/git/skywalking \
-    && phpize && ./configure && make && make install \
+    && phpize && ./configure --with-grpc=/var/local/git/grpc && make && make install \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && mkdir -p /opt \
     && cp docker/service.sh /opt/ \
