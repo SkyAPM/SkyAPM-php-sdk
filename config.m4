@@ -56,6 +56,8 @@ if test "$PHP_SKYWALKING" != "no"; then
   SEARCH_GRPC_FOR="$SEARCH_GRPC_FOR third_party/abseil-cpp/absl/base/libabsl_base.a"
   SEARCH_GRPC_FOR="$SEARCH_GRPC_FOR third_party/abseil-cpp/absl/strings/libabsl_strings.a"
   SEARCH_GRPC_FOR="$SEARCH_GRPC_FOR third_party/abseil-cpp/absl/strings/libabsl_str_format_internal.a"
+  SEARCH_GRPC_FOR="$SEARCH_GRPC_FOR third_party/boringssl-with-bazel/libcrypto.a"
+  SEARCH_GRPC_FOR="$SEARCH_GRPC_FOR third_party/boringssl-with-bazel/libssl.a"
   AC_MSG_CHECKING([for grpc files in $PHP_GRPC path])
   for i in $SEARCH_GRPC_FOR ; do
     target=$PHP_GRPC/cmake/build/$i
@@ -80,6 +82,8 @@ if test "$PHP_SKYWALKING" != "no"; then
   SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS $PHP_GRPC/cmake/build/third_party/abseil-cpp/absl/base/libabsl_base.a"
   SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS $PHP_GRPC/cmake/build/third_party/abseil-cpp/absl/strings/libabsl_strings.a"
   SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS $PHP_GRPC/cmake/build/third_party/abseil-cpp/absl/strings/libabsl_str_format_internal.a"
+  SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS $PHP_GRPC/cmake/build/third_party/boringssl-with-bazel/libcrypto.a"
+  SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS $PHP_GRPC/cmake/build/third_party/boringssl-with-bazel/libssl.a"
   EXTRA_LDFLAGS="$EXTRA_LDFLAGS $SKYWALKING_EXTRA_LDFLAGS"
 
   LIBS="-lpthread $LIBS"
