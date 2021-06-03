@@ -54,16 +54,13 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
     if (SKY_CURLOPT_HTTPHEADER == options) {
         zval *header = ZEND_CALL_ARG(execute_data, 2);
         header->value.lval = CURLOPT_HTTPHEADER;
-        orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
-    } else {
-        if (CURLOPT_HTTPHEADER == options && Z_TYPE_P(zvalue) == IS_ARRAY) {
-            zval dup_header;
-            ZVAL_DUP(&dup_header, zvalue);
-            add_index_zval(&SKYWALKING_G(curl_header), cid, &dup_header);
-        } else {
-            orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
-        }
+    } else if (CURLOPT_HTTPHEADER == options && Z_TYPE_P(zvalue) == IS_ARRAY) {
+        zval dup_header;
+        ZVAL_DUP(&dup_header, zvalue);
+        add_index_zval(&SKYWALKING_G(curl_header), cid, &dup_header);
     }
+
+    orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
 void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {

@@ -108,7 +108,6 @@ void sky_execute_ex(zend_execute_data *execute_data) {
 
     if (swoole) {
         sky_request_flush(sw_response, request_id);
-        zval_dtor(&SKYWALKING_G(curl_header));
     }
 }
 

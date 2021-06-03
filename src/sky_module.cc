@@ -110,7 +110,7 @@ void sky_request_init(zval *request, uint64_t request_id) {
     array_init(&SKYWALKING_G(curl_header));
 
     zval *carrier = nullptr;
-    zval *sw;
+    zval *sw, *peer_val;
     std::string header;
     std::string uri;
     std::string peer;
@@ -126,9 +126,22 @@ void sky_request_init(zval *request, uint64_t request_id) {
         }
 
         header = (sw != nullptr ? Z_STRVAL_P(sw) : "");
-        uri = Z_STRVAL_P(zend_hash_str_find(Z_ARRVAL_P(swoole_server), "request_uri", sizeof("request_uri") - 1));
-        peer = Z_STRVAL_P(zend_hash_str_find(Z_ARRVAL_P(swoole_header), "host", sizeof("host") - 1));
 
+        uri = Z_STRVAL_P(zend_hash_str_find(Z_ARRVAL_P(swoole_server), "request_uri", sizeof("request_uri") - 1));
+
+        peer_val = zend_hash_str_find(Z_ARRVAL_P(swoole_header), "host", sizeof("host") - 1);
+        if (peer_val != nullptr) {
+            peer = Z_STRVAL_P(peer_val);
+        } else {
+            char hostname[HOST_NAME_MAX + 1];
+            if (gethostname(hostname, sizeof(hostname))) {
+                hostname[0] = '\0';
+            }
+            peer_val = zend_hash_str_find(Z_ARRVAL_P(swoole_server), "server_port", sizeof("server_port") - 1);
+            peer += hostname;
+            peer += ":";
+            peer += std::to_string(Z_LVAL_P(peer_val));
+        }
     } else {
         zend_bool jit_initialization = PG(auto_globals_jit);
 

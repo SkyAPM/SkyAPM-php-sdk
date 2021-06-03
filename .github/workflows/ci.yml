@@ -17,7 +17,7 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
-        skywalking-version: ['8.3.0-es6', '8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
+        skywalking-version: ['8.5.0-es6', '8.4.0-es6', '8.3.0-es6', '8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
     name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
     services:
       skywalking:
@@ -47,7 +47,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache gRPC
+        id: cache-grpc
+        uses: actions/cache@v2
+        with:
+          path: /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          key: ${{ runner.os }}-grpc-v1
+
       - name: Checkout GRPC
+        if: steps.cache-grpc.outputs.cache-hit != 'true'
         uses: actions/checkout@v2
         with:
           ref: v1.31.x
@@ -77,26 +85,22 @@ jobs:
           cd ..
 
       - name: Build GRPC
+        if: steps.cache-grpc.outputs.cache-hit != 'true'
         run: |
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
-          ./autogen.sh && ./configure
-          make -j$(nproc) && make -j$(nproc) check && sudo make install && sudo make clean && sudo ldconfig
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           mkdir -p cmake/build
           cd cmake/build
-          cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
-          make -j$(nproc) && sudo make install && make clean && sudo ldconfig
+          cmake ../..
+          make -j$(nproc)
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
-          sudo rm -fr /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
 
       - name: Build SkyWalking-PHP
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
-          ./configure
+          ./configure --with-grpc=/home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           make -j$(nproc)
           sudo make install
-          sudo make clean
 
       - name: Start FPM and Nginx
         run: |

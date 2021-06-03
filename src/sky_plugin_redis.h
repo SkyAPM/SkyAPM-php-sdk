@@ -36,6 +36,20 @@ std::string sky_plugin_redis_set_cmd(zend_execute_data *execute_data, std::strin
 
 std::string sky_plugin_redis_setex_cmd(zend_execute_data *execute_data, std::string cmd);
 
+std::string sky_plugin_redis_multi_key_value_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_key_int_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_key_float_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_get_range_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_set_bit_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_set_range_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_psetex_cmd(zend_execute_data *execute_data, std::string cmd);
+
 std::string sky_plugin_redis_multi_key_cmd(zend_execute_data *execute_data, std::string cmd);
 
 std::string sky_plugin_redis_uncertain_keys_cmd(zend_execute_data *execute_data, std::string cmd);
@@ -44,9 +58,17 @@ std::string sky_plugin_redis_key_ttl_cmd(zend_execute_data *execute_data, std::s
 
 std::string sky_plugin_redis_bit_count_cmd(zend_execute_data *execute_data, std::string cmd);
 
+std::string sky_plugin_redis_bit_pos_cmd(zend_execute_data *execute_data, std::string cmd);
+
 std::string sky_plugin_redis_key_value_cmd(zend_execute_data *execute_data, std::string cmd);
 
 std::string sky_plugin_redis_todo_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_pure_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_eval_cmd(zend_execute_data *execute_data, std::string cmd);
+
+std::string sky_plugin_redis_select_cmd(zend_execute_data *execute_data, std::string cmd);
 
 
 #endif // SKYWALKING_SKY_PLUGIN_REDIS_H
