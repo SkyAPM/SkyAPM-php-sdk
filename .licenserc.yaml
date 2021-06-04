@@ -29,5 +29,9 @@ header:
     - 'NOTICE'
     - 'CREDITS'
     - 'EXPERIMENTAL'
+    - 'config.m4'
+    - 'config.w32'
+    - 'config.w32'
+    - 'e2e/composer.json'
 
   comment: on-failure
