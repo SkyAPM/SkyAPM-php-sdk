@@ -156,3 +156,23 @@ long getUnixTimeStamp() {
             std::chrono::system_clock::now().time_since_epoch());
     return ms.count();
 }
+
+std::string sky_json_encode(zval *parameter) {
+  std::string str;
+  smart_str buf = {nullptr};
+  zend_long options = 256;
+#if PHP_VERSION_ID >= 70100
+  if (php_json_encode(&buf, parameter, (int) options) != SUCCESS) {
+        smart_str_free(&buf);
+        return str;
+    }
+#else
+  php_json_encode(&buf, parameter, (int) options);
+#endif
+  smart_str_0(&buf);
+  if (buf.s != nullptr) {
+    str = std::string(ZSTR_VAL(buf.s));
+    smart_str_free(&buf);
+  }
+  return str;
+}
