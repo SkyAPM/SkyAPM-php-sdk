@@ -65,10 +65,15 @@ std::string sky_plugin_memcached_peer(zend_execute_data *execute_data) {
   ZVAL_COPY(&str_p, p);
   std::string str = Z_STRVAL_P(&str_p);
   zval *self = &(execute_data->This);
+#if PHP_VERSION_ID < 80000
+  zval *obj = self;
+#else
+  zend_object *obj = Z_OBJ_P(self);
+#endif
   zval server;
   zval params[1];
   ZVAL_STRING(&params[0], str.c_str());
-  zend_call_method(self, Z_OBJCE_P(self), nullptr, ZEND_STRL("getserverbykey"), &server, 1, params,
+  zend_call_method(obj, Z_OBJCE_P(self), nullptr, ZEND_STRL("getserverbykey"), &server, 1, params,
                    nullptr);
   zval *str_zval;
   long long port = 0;
