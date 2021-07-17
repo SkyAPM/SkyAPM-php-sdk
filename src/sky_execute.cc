@@ -167,8 +167,10 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
           span = sky_plugin_redis(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Memcached") == 0) {
           span = sky_plugin_memcached(execute_data, class_name, function_name);
-        } else if (strcmp(class_name, "Yar_Client") == 0 || strcmp(class_name, "Yar_Server") == 0) {
-          span = sky_plugin_yar(execute_data, class_name, function_name);
+        } else if (strcmp(class_name, "Yar_Client") == 0) {
+          span = sky_plugin_yar_client(execute_data, class_name, function_name);
+        } else if (strcmp(class_name, "Yar_Server") == 0) {
+          span = sky_plugin_yar_server(execute_data, class_name, function_name);
         }
     } else if (function_name != nullptr) {
         if (strcmp(function_name, "mysqli_") > 0) {
