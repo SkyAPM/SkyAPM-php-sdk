@@ -73,8 +73,7 @@ std::string sky_plugin_memcached_peer(zend_execute_data *execute_data) {
   zval server;
   zval params[1];
   ZVAL_STRING(&params[0], str.c_str());
-  zend_call_method(obj, Z_OBJCE_P(self), nullptr, ZEND_STRL("getserverbykey"), &server, 1, params,
-                   nullptr);
+  zend_call_method(obj, Z_OBJCE_P(self), nullptr, ZEND_STRL("getserverbykey"), &server, 1, params, nullptr);
   zval *str_zval;
   long long port = 0;
   str_zval = zend_hash_str_find(Z_ARRVAL_P(&server), "host", 4);

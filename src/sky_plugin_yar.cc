@@ -42,8 +42,11 @@ Span *sky_plugin_yar_client(zend_execute_data *execute_data, const std::string &
 #endif
 
       zval *zval_uri;
-      zval_uri = zend_read_property(Z_OBJCE_P(self), obj, "_uri", sizeof("_uri") - 1, 0, nullptr
-      TSRMLS_CC);
+#if PHP_VERSION_ID < 80000
+      zval_uri = zend_read_property(obj->value.obj->ce, obj, "_uri", sizeof("_uri") - 1, 0, nullptr TSRMLS_CC);
+#else
+      zval_uri = zend_read_property(obj->value.obj->ce, obj->value.obj, "_uri", sizeof("_uri") - 1, 0, nullptr TSRMLS_CC);
+#endif
       /* 检索uri属性的值 */
       if (zval_uri) {
         zval copy_zval_uri;
