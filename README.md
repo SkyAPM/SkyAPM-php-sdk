@@ -18,7 +18,7 @@ SkyAPM PHP
 1. CURL
 1. PDO
 1. Mysqli
-1. Yar Client ([Yar](https://www.php.net/manual/en/book.yar.php))
+1. Yar Client ([Yar](https://www.php.net/manual/en/book.yar.php)) (only Yar version > 2.0.4 support set header)
 1. Yar Server ([Yar](https://www.php.net/manual/en/book.yar.php))
 1. GRPC Client ([GRPC](https://github.com/grpc/grpc-php))
 1. Predis Client ([Predis](https://packagist.org/packages/predis/predis))
