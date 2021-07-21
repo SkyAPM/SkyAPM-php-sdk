@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-VERSION=4.1.2
+VERSION=4.1.3
 OS=`uname`
 
 echo "OS: $OS"
@@ -23,6 +23,6 @@ echo "version: $VERSION"
 
 if [ "$OS" = 'Darwin' ]; then
     sed -i '' "s/\"[0-9].[0-9].[0-9]\"/\"$VERSION\"/" php_skywalking.h
-    sed -i '' "s/v[0-9].[0-9].[0-9].tar.gz/v$VERSION.tar.gz/g" docs/install.md
-    sed -i '' "s/k-[0-9].[0-9].[0-9]/k-$VERSION/" docs/install.md
+    sed -i '' "s/v[0-9].[0-9].[0-9].tar.gz/v$VERSION.tar.gz/g" docs/BUILDING.md
+    sed -i '' "s/k-[0-9].[0-9].[0-9]/k-$VERSION/" docs/BUILDING.md
 fi

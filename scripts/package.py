@@ -16,7 +16,7 @@
 import xml.dom.minidom
 import time, os
 
-version = '4.1.2'
+version = '4.1.3'
 
 git = os.popen('git ls-files')
 res = git.read()
@@ -79,7 +79,7 @@ config = [
     {'key': 'license', 'value': 'Apache2.0', 'attr': [
         {'key': 'uri', 'value': 'http://www.apache.org/licenses/LICENSE-2.0.html'}
     ]},
-    {'key': 'notes', 'value': 'Add mysqli'}, # release notes
+    {'key': 'notes', 'value': 'Fix bugs'}, # release notes
     {'key': 'contents', 'child': [
         {'key': 'dir', 'attr': [
             {'key': 'name', 'value': '/'},
@@ -98,6 +98,21 @@ config = [
     {'key': 'providesextension', 'value': 'skywalking'},
     {'key': 'extsrcrelease'},
     {'key': 'changelog', 'child': [
+        {'key': 'release', 'child': [
+            {'key': 'version', 'child': [
+                    {'key': 'release', 'value': '4.1.3'},
+                    {'key': 'api', 'value': '4.1.3'}
+                ]
+            },
+            {'key': 'stability', 'child': [
+                    {'key': 'release', 'value': 'stable'},
+                    {'key': 'api', 'value': 'stable'}
+                ]
+            },
+                {'key': 'notes', 'value': 'Fix bugs'}
+            ]
+        },
+
         {'key': 'release', 'child': [
                 {'key': 'version', 'child': [
                         {'key': 'release', 'value': '4.1.2'},

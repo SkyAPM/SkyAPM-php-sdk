@@ -46,9 +46,9 @@ To build gRPC from source, you may need to install the following packages from H
 Use the `--with-grpc` option to set the path of the gRPC static library
 
 ```shell script
-curl -Lo v4.1.2.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.1.2.tar.gz
-tar zxvf v4.1.2.tar.gz
-cd SkyAPM-php-sdk-4.1.2
+curl -Lo v4.1.3.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.1.3.tar.gz
+tar zxvf v4.1.3.tar.gz
+cd SkyAPM-php-sdk-4.1.3
 phpize
 ./configure --with-grpc="/var/local/git/grpc"
 make
