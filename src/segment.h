@@ -46,7 +46,7 @@ public:
 
     void createRefs();
 
-    std::string getTraceId();
+    const std::string &getTraceId();
 
     ~Segment();
 

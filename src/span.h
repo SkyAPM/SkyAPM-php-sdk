@@ -52,7 +52,7 @@ public:
 
     long getEndTime() const;
 
-    std::vector<SkySegmentReference *> getRefs();
+    std::vector<SkySegmentReference *> &getRefs();
 
     std::string getOperationName();
 
@@ -66,9 +66,9 @@ public:
 
     bool getIsError() const;
 
-    std::vector<Tag *> getTags();
+    std::vector<Tag *> &getTags();
 
-    std::vector<SkyCoreSpanLog *> getLogs();
+    std::vector<SkyCoreSpanLog *> &getLogs();
 
     bool getSkipAnalysis() const;
 

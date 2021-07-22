@@ -51,11 +51,12 @@ struct ManagerOptions {
 class Manager {
 
 public:
-    Manager(const ManagerOptions &options, struct service_info *info);
-
     static std::string generateUUID();
 
+    static void init(const ManagerOptions &options, struct service_info *info);
+
 private:
+    Manager() = delete;
 
     static void login(const ManagerOptions &options, struct service_info *info);
 

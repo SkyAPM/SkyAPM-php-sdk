@@ -48,17 +48,12 @@ static pthread_mutex_t cond_mx = PTHREAD_MUTEX_INITIALIZER;
 
 extern struct service_info *s_info;
 
-Manager::Manager(const ManagerOptions &options, struct service_info *info) {
-
-
+void Manager::init(const ManagerOptions &options, struct service_info *info) {
     std::thread th(login, options, info);
     th.detach();
 
     std::thread c(consumer, options);
     c.detach();
-
-//    std::thread s(sender, options);
-//    s.detach();
 
     sky_log("the apache skywalking php plugin mounted");
 }

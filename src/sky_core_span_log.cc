@@ -31,10 +31,10 @@ long SkyCoreSpanLog::getTime() {
     return _time;
 }
 
-std::string SkyCoreSpanLog::getKey() {
+const std::string &SkyCoreSpanLog::getKey() {
     return _key;
 }
 
-std::string SkyCoreSpanLog::getValue() {
+const std::string &SkyCoreSpanLog::getValue() {
     return _value;
 }

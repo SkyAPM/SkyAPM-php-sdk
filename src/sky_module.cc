@@ -99,7 +99,7 @@ void sky_module_init() {
         php_error(E_WARNING, "%s %s", "[skywalking] create queue fail ", ex.what());
     }
 
-    new Manager(opt, s_info);
+    Manager::init(opt, s_info);
 }
 
 void sky_module_cleanup() {
