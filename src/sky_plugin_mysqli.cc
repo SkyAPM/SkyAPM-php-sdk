@@ -45,6 +45,10 @@ Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &clas
     if (function_name == "query" || function_name == "autocommit" || function_name == "commit" || function_name == "rollback" ||
         function_name == "mysqli_query" || function_name == "mysqli_autocommit" || function_name == "mysqli_commit" || function_name == "mysqli_rollback") {
             auto *segment = sky_get_segment(execute_data, -1);
+            if (segment == nullptr) {
+                return nullptr;
+            }
+
             auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8004);
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
 

@@ -66,6 +66,11 @@ PHP_INI_BEGIN()
 
     STD_PHP_INI_ENTRY("skywalking.mq_max_message_length", "20480", PHP_INI_ALL, OnUpdateLong, mq_max_message_length, zend_skywalking_globals, skywalking_globals)
 
+    STD_PHP_INI_ENTRY("skywalking.rate", "0", PHP_INI_ALL, OnUpdateLong, rate, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.time_window", "1", PHP_INI_ALL, OnUpdateLong, time_window, zend_skywalking_globals, skywalking_globals)
+
+    STD_PHP_INI_ENTRY("skywalking.uuid_path", "", PHP_INI_ALL, OnUpdateString, uuid_path, zend_skywalking_globals, skywalking_globals)
+
 PHP_INI_END()
 
 static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_globals) {

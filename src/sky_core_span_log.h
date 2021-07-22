@@ -21,7 +21,6 @@
 
 #include <string>
 #include <vector>
-#include <map>
 
 class SkyCoreSpanLog {
 public:

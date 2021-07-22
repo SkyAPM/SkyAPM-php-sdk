@@ -16,7 +16,7 @@
  */
 
 
-#include <map>
+#include <unordered_map>
 #include <iostream>
 #include "sky_module.h"
 #include <boost/interprocess/ipc/message_queue.hpp>
@@ -29,6 +29,7 @@
 #include "manager.h"
 #include "sky_plugin_error.h"
 #include "sky_log.h"
+#include "sky_rate_limit.h"
 
 extern struct service_info *s_info;
 
@@ -43,6 +44,8 @@ extern void (*orig_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS);
 extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
+
+static FixedWindowRateLimitor *rate_limitor = nullptr;
 
 void sky_module_init() {
     ori_execute_ex = zend_execute_ex;
@@ -83,6 +86,12 @@ void sky_module_init() {
     opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
     opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
     opt.authentication = SKYWALKING_G(authentication);
+    opt.uuid_path = SKYWALKING_G(uuid_path);
+
+    std::unordered_map<uint64_t, Segment *> *segments = new std::unordered_map<uint64_t, Segment *>;
+    SKYWALKING_G(segment) = segments;
+
+    rate_limitor = new FixedWindowRateLimitor(SKYWALKING_G(rate), SKYWALKING_G(time_window));
 
     sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
 
@@ -108,9 +117,21 @@ void sky_module_cleanup() {
     if (strcmp(s_info->mq_name, mq_name) == 0) {
         boost::interprocess::message_queue::remove(s_info->mq_name);
     }
+
+    std::unordered_map<uint64_t, Segment *> *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>(SKYWALKING_G(segment));
+    for (auto entry : *segments) {
+        delete entry.second;
+    }
+
+    delete segments;
+    delete rate_limitor;
 }
 
 void sky_request_init(zval *request, uint64_t request_id) {
+    if (!rate_limitor->validate()) {
+        return;
+    }
+
     array_init(&SKYWALKING_G(curl_header));
 
     zval *carrier = nullptr;
@@ -171,19 +192,10 @@ void sky_request_init(zval *request, uint64_t request_id) {
         peer = get_page_request_peer();
     }
 
-    std::map<uint64_t, Segment *> *segments;
-    if (SKYWALKING_G(segment) == nullptr) {
-        segments = new std::map<uint64_t, Segment *>;
-        SKYWALKING_G(segment) = segments;
-    } else {
-        segments = static_cast<std::map<uint64_t, Segment *> *>SKYWALKING_G(segment);
-    }
+    std::unordered_map<uint64_t, Segment *> *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
 
     auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
-    auto const result = segments->insert(std::pair<uint64_t, Segment *>(request_id, segment));
-    if (not result.second) {
-        result.first->second = segment;
-    }
+    (void)sky_insert_segment(request_id, segment);
 
     auto *span = segments->at(request_id)->createSpan(SkySpanType::Entry, SkySpanLayer::Http, 8001);
     span->setOperationName(uri);
@@ -200,12 +212,17 @@ void sky_request_init(zval *request, uint64_t request_id) {
 
 void sky_request_flush(zval *response, uint64_t request_id) {
     auto *segment = sky_get_segment(nullptr, request_id);
+    if (segment == nullptr) {
+        return;
+    }
 
     if (response == nullptr) {
         segment->setStatusCode(SG(sapi_headers).http_response_code);
     }
+
     std::string msg = segment->marshal();
     delete segment;
+    sky_remove_segment(request_id);
 
     int msg_length = static_cast<int>(msg.size());
     int max_length = SKYWALKING_G(mq_max_message_length);

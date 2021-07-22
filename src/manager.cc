@@ -48,7 +48,20 @@ static pthread_mutex_t cond_mx = PTHREAD_MUTEX_INITIALIZER;
 
 extern struct service_info *s_info;
 
+static std::string fixed_uuid;
+
 void Manager::init(const ManagerOptions &options, struct service_info *info) {
+    if (!options.uuid_path.empty()) {
+        try {
+            std::ifstream uuid_stream(options.uuid_path, std::ios::in);
+            uuid_stream.exceptions(std::ifstream::badbit);
+            uuid_stream >> fixed_uuid;
+        } catch (...) {
+            sky_log("read from uuid_path failed");
+            fixed_uuid.clear();
+        }
+    }
+
     std::thread th(login, options, info);
     th.detach();
 
@@ -231,6 +244,10 @@ std::shared_ptr<grpc::ChannelCredentials> Manager::getCredentials(const ManagerO
 }
 
 std::string Manager::generateUUID() {
+
+    if (!fixed_uuid.empty()) {
+        return fixed_uuid;
+    }
 
     static std::random_device dev;
     static std::mt19937 rng(dev());

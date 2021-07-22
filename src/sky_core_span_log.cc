@@ -20,7 +20,6 @@
 
 #include <utility>
 #include <string>
-#include <map>
 #include <sky_utils.h>
 
 SkyCoreSpanLog::SkyCoreSpanLog(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
