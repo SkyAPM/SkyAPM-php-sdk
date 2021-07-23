@@ -45,8 +45,6 @@ extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
-FixedWindowRateLimitor *rate_limitor = nullptr;
-
 void sky_module_init() {
     ori_execute_ex = zend_execute_ex;
     zend_execute_ex = sky_execute_ex;
@@ -91,7 +89,8 @@ void sky_module_init() {
     std::unordered_map<uint64_t, Segment *> *segments = new std::unordered_map<uint64_t, Segment *>;
     SKYWALKING_G(segment) = segments;
 
-    rate_limitor = new FixedWindowRateLimitor(SKYWALKING_G(rate_limit), SKYWALKING_G(time_window));
+    FixedWindowRateLimitor *rate_limitor = new FixedWindowRateLimitor(SKYWALKING_G(rate_limit), SKYWALKING_G(time_window));
+    SKYWALKING_G(rate_limitor) = rate_limitor;
 
     sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
 
@@ -128,7 +127,7 @@ void sky_module_cleanup() {
 }
 
 void sky_request_init(zval *request, uint64_t request_id) {
-    if (!rate_limitor->validate()) {
+    if (!static_cast<FixedWindowRateLimitor*>(SKYWALKING_G(rate_limitor))->validate()) {
         return;
     }
 

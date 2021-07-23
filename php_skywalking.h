@@ -140,6 +140,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     int mq_max_message_length;
 
     // rate limit
+    void *rate_limitor;
     int rate_limit;
     int time_window; // seconds
 
