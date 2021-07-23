@@ -144,7 +144,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     int rate_limit;
     int time_window; // seconds
 
-    // fixed UUID
+    // fixed UUID path
     char *uuid_path;
 ZEND_END_MODULE_GLOBALS(skywalking)
 

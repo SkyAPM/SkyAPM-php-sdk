@@ -95,6 +95,14 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 
     // message queue
     skywalking_globals->mq_max_message_length = 0;
+
+    // rate limit
+    skywalking_globals->rate_limit = 0;
+    skywalking_globals->time_window = 1;
+
+    // uuid path
+    skywalking_globals->uuid_path = nullptr;
+
 }
 
 PHP_FUNCTION (skywalking_trace_id) {
