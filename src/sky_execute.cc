@@ -164,7 +164,7 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
         } else if (strcmp(class_name, "mysqli") == 0){
             span = sky_plugin_mysqli(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Redis") == 0) {
-          span = sky_plugin_redis(execute_data, class_name, function_name);
+            span = sky_plugin_redis(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Memcached") == 0) {
           span = sky_plugin_memcached(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Yar_Client") == 0) {
