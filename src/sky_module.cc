@@ -91,7 +91,7 @@ void sky_module_init() {
     std::unordered_map<uint64_t, Segment *> *segments = new std::unordered_map<uint64_t, Segment *>;
     SKYWALKING_G(segment) = segments;
 
-    rate_limitor = new FixedWindowRateLimitor(SKYWALKING_G(rate), SKYWALKING_G(time_window));
+    rate_limitor = new FixedWindowRateLimitor(SKYWALKING_G(rate_limit), SKYWALKING_G(time_window));
 
     sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
 

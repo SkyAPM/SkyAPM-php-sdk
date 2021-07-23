@@ -138,6 +138,13 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
 
     // message queue
     int mq_max_message_length;
+
+    // rate limit
+    int rate_limit;
+    int time_window; // seconds
+
+    // fixed UUID
+    char *uuid_path;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
