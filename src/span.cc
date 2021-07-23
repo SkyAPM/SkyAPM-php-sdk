@@ -65,15 +65,15 @@ long Span::getEndTime() const {
     return endTime;
 }
 
-const std::vector<SkySegmentReference *> &Span::getRefs() {
+const std::vector<SkySegmentReference*>& Span::getRefs() {
     return refs;
 }
 
-const std::string &Span::getOperationName() {
+const std::string& Span::getOperationName() {
     return operationName;
 }
 
-const std::string &Span::getPeer() {
+const std::string& Span::getPeer() {
     return peer;
 }
 
@@ -93,11 +93,11 @@ bool Span::getIsError() const {
     return isError;
 }
 
-const std::vector<Tag *> &Span::getTags() {
+const std::vector<Tag*>& Span::getTags() {
     return tags;
 }
 
-const std::vector<SkyCoreSpanLog *> &Span::getLogs() {
+const std::vector<SkyCoreSpanLog*>& Span::getLogs() {
     return logs;
 }
 

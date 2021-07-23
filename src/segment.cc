@@ -185,6 +185,6 @@ void Segment::createRefs() {
     }
 }
 
-const std::string &Segment::getTraceId() {
+const std::string& Segment::getTraceId() {
     return _traceId;
 }
