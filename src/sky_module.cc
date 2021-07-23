@@ -45,7 +45,7 @@ extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
-static FixedWindowRateLimitor *rate_limitor = nullptr;
+FixedWindowRateLimitor *rate_limitor = nullptr;
 
 void sky_module_init() {
     ori_execute_ex = zend_execute_ex;
