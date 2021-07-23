@@ -123,7 +123,7 @@ void sky_module_cleanup() {
     }
 
     delete segments;
-    delete rate_limitor;
+    delete static_cast<FixedWindowRateLimitor*>(SKYWALKING_G(rate_limitor));
 }
 
 void sky_request_init(zval *request, uint64_t request_id) {
