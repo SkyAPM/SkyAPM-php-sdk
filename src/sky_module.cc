@@ -84,9 +84,7 @@ void sky_module_init() {
     opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
     opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
     opt.authentication = SKYWALKING_G(authentication);
-    if (SKYWALKING_G(uuid_path) != nullptr) {
-        opt.uuid_path = SKYWALKING_G(uuid_path);
-    }
+    opt.uuid_path = SKYWALKING_G(uuid_path);
 
     std::unordered_map<uint64_t, Segment *> *segments = new std::unordered_map<uint64_t, Segment *>;
     SKYWALKING_G(segment) = segments;
