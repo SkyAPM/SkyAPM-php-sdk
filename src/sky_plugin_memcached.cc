@@ -21,7 +21,7 @@
 #include "sky_utils.h"
 
 std::vector<std::string> mecKeysCommands = {"set", "setbykey", "setmulti", "setmultibykey", "add", "addbykey", "replace", "replacebykey",
-    "append", "appendbykey", "prepend", "prependbykey", "cas", "casbykey", "get", "getbykey",
+    "append", "appendbykey", "prepend", "prependbykey", "get", "getbykey",
     "getmulti", "getmultibykey", "getallkeys", "delete", "deletebykey", "deletemulti",
     "deletemultibykey", "increment", "incrementbykey", "decrement", "decrementbykey", "getstats",
     "ispersistent", "ispristine", "flush", "flushbuffers", "getdelayed", "getdelayedbykey", "fetch",
@@ -29,7 +29,7 @@ std::vector<std::string> mecKeysCommands = {"set", "setbykey", "setmulti", "setm
     "getserverlist", "resetserverlist", "getversion", "quit", "setsaslauthdata", "touch",
     "touchbykey"};;
 std::vector<std::string> mecStrKeysCommands = {"set", "setbykey", "setmulti", "setmultibykey", "add", "addbykey", "replace", "replacebykey",
-    "append", "appendbykey", "prepend", "prependbykey", "cas", "casbykey", "get", "getbykey",
+    "append", "appendbykey", "prepend", "prependbykey", "get", "getbykey",
     "getmulti", "getmultibykey", "getallkeys", "delete", "deletebykey", "deletemulti",
     "deletemultibykey", "increment", "incrementbykey", "decrement", "decrementbykey"};
 
