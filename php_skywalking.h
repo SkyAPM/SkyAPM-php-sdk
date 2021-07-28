@@ -141,11 +141,10 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
 
     // rate limit
     void *rate_limitor;
-    int rate_limit;
-    int time_window; // seconds
+    int sample_n_per_3_secs;
 
-    // fixed UUID path
-    char *uuid_path;
+    // fixed UUID
+    char *instance_name;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

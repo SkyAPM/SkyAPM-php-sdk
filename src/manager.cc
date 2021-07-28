@@ -51,15 +51,8 @@ extern struct service_info *s_info;
 static std::string fixed_uuid;
 
 void Manager::init(const ManagerOptions &options, struct service_info *info) {
-    if (!options.uuid_path.empty()) {
-        try {
-            std::ifstream uuid_stream(options.uuid_path, std::ios::in);
-            uuid_stream.exceptions(std::ifstream::badbit);
-            uuid_stream >> fixed_uuid;
-        } catch (...) {
-            sky_log("read from uuid_path failed");
-            fixed_uuid.clear();
-        }
+    if (!options.instance_name.empty()) {
+        fixed_uuid = options.instance_name;
     }
 
     std::thread th(login, options, info);

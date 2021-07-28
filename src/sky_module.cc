@@ -75,21 +75,10 @@ void sky_module_init() {
         old_function->internal_function.handler = sky_curl_close_handler;
     }
 
-    ManagerOptions opt;
-    opt.version = SKYWALKING_G(version);
-    opt.code = SKYWALKING_G(app_code);
-    opt.grpc = SKYWALKING_G(grpc);
-    opt.grpc_tls = SKYWALKING_G(grpc_tls_enable);
-    opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
-    opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
-    opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
-    opt.authentication = SKYWALKING_G(authentication);
-    opt.uuid_path = SKYWALKING_G(uuid_path);
-
     std::unordered_map<uint64_t, Segment *> *segments = new std::unordered_map<uint64_t, Segment *>;
     SKYWALKING_G(segment) = segments;
 
-    FixedWindowRateLimitor *rate_limitor = new FixedWindowRateLimitor(SKYWALKING_G(rate_limit), SKYWALKING_G(time_window));
+    FixedWindowRateLimitor *rate_limitor = new FixedWindowRateLimitor(SKYWALKING_G(sample_n_per_3_secs));
     SKYWALKING_G(rate_limitor) = rate_limitor;
 
     sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
@@ -106,6 +95,17 @@ void sky_module_init() {
     } catch (boost::interprocess::interprocess_exception &ex) {
         php_error(E_WARNING, "%s %s", "[skywalking] create queue fail ", ex.what());
     }
+
+    ManagerOptions opt;
+    opt.version = SKYWALKING_G(version);
+    opt.code = SKYWALKING_G(app_code);
+    opt.grpc = SKYWALKING_G(grpc);
+    opt.grpc_tls = SKYWALKING_G(grpc_tls_enable);
+    opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
+    opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
+    opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
+    opt.authentication = SKYWALKING_G(authentication);
+    opt.instance_name = SKYWALKING_G(instance_name);
 
     Manager::init(opt, s_info);
 }
