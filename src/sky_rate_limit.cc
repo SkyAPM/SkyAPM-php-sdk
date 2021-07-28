@@ -7,6 +7,8 @@ FixedWindowRateLimitor::FixedWindowRateLimitor(int64_t rate, int seconds) : rate
     } else {
         timeWindow = std::chrono::seconds(seconds);
     }
+
+    this->startTime = TimePoint::clock::now();
 }
 
 bool FixedWindowRateLimitor::validate() {
