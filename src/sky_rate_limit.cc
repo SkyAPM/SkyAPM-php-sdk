@@ -1,5 +1,6 @@
 #include <cmath>
 #include "sky_rate_limit.h"
+#include "sky_log.h"
 
 FixedWindowRateLimitor::FixedWindowRateLimitor(int64_t rate, int seconds) : rate(rate), currentCount(0), resetLock(false) {
     if (seconds < 1) {
@@ -31,6 +32,7 @@ bool FixedWindowRateLimitor::validate() {
     }
 
     if (++this->currentCount > this->rate && span < this->timeWindow) {
+        sky_log("rate limitor hit: " + std::to_string(this->currentCount) + "/" + std::to_string(this->rate) + " in 3 seconds");
         return false;
     }
 
