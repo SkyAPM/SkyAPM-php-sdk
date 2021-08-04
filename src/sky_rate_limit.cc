@@ -33,9 +33,6 @@ bool FixedWindowRateLimitor::validate() {
     }
 
     if (++this->currentCount > this->rate && span < this->timeWindow) {
-        char buf[100] = { 0 };
-        snprintf(buf, sizeof(buf), "rate limitor hit: %ld/%ld in 3 seconds", this->currentCount.load(), this->rate);
-        sky_log(buf);
         return false;
     }
 
