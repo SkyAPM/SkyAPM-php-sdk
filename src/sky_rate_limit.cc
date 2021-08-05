@@ -33,6 +33,7 @@ bool FixedWindowRateLimitor::validate() {
     }
 
     if (++this->currentCount > this->rate && span < this->timeWindow) {
+        sky_log("rate limit hit: " + std::to_string(this->currentCount) + "/" + std::to_string(this->rate));
         return false;
     }
 
