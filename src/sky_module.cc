@@ -127,11 +127,11 @@ void sky_module_cleanup() {
 }
 
 void sky_request_init(zval *request, uint64_t request_id) {
+    array_init(&SKYWALKING_G(curl_header));
+
     if (!static_cast<FixedWindowRateLimitor*>(SKYWALKING_G(rate_limitor))->validate()) {
         return;
     }
-
-    array_init(&SKYWALKING_G(curl_header));
 
     zval *carrier = nullptr;
     zval *sw, *peer_val;
