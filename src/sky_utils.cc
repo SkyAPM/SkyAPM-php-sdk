@@ -132,21 +132,24 @@ Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id) {
     }
 
     auto *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
-    uint64_t key = -1;
+    bool do_search = false;
+    uint64_t key = 0;
     if (request_id >= 0) {
         key = request_id;
+        do_search = true;
     } else {
         if (SKYWALKING_G(is_swoole)) {
             int64_t fd = sky_find_swoole_fd(execute_data);
             if (fd > 0) {
                 key = fd;
+                do_search = true;
             }
         } else {
-            key = 0;
+            do_search = true;
         }
     }
 
-    if (key > -1) {
+    if (do_search) {
         auto it = segments->find(key);
         if (it != segments->end()) {
             return it->second;
