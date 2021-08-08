@@ -93,6 +93,14 @@ extern zend_module_entry skywalking_module_entry;
 #include "TSRM.h"
 #endif
 
+#ifndef HOST_NAME_MAX
+#if defined(__APPLE__)
+#define HOST_NAME_MAX 255
+#else
+#define HOST_NAME_MAX 64
+#endif /* __APPLE__ */
+#endif /* HOST_NAME_MAX */
+
 PHP_FUNCTION (skywalking_trace_id);
 PHP_FUNCTION (skywalking_log);
 PHP_FUNCTION (skywalking_tag);
