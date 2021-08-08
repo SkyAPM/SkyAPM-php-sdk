@@ -24,7 +24,7 @@
 #include "php_skywalking.h"
 
 #include "sky_plugin_predis.h"
-#include "sky_grpc.h"
+#include "sky_plugin_grpc.h"
 #include "sky_plugin_redis.h"
 #include "sky_plugin_rabbit_mq.h"
 #include "sky_plugin_hyperf_guzzle.h"
@@ -87,7 +87,8 @@ void sky_execute_ex(zend_execute_data *execute_data) {
         if (strcmp(function_name, "executeCommand") == 0) {
             span = sky_predis(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Grpc\\BaseStub") == 0) {
-            span = sky_grpc(execute_data, class_name, function_name);
+            afterExec = false;
+            span = sky_plugin_grpc(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "PhpAmqpLib\\Channel\\AMQPChannel") == 0) {
             span = sky_plugin_rabbit_mq(execute_data, class_name, function_name);
         } else if ((SKY_STRCMP(class_name, "Hyperf\\Guzzle\\CoroutineHandler") ||
