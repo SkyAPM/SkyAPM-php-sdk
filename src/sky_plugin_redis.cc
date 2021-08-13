@@ -20,10 +20,10 @@
 
 std::unordered_map<std::string, redis_cmd_cb> commands = {
         // connection
-        /*{"SELECT",      sky_plugin_redis_select_cmd},
+        {"SELECT",      sky_plugin_redis_select_cmd},
         {"ECHO",        sky_plugin_redis_key_cmd},
         {"PING",        sky_plugin_redis_pure_cmd},
-        {"PIPELINE",    sky_plugin_redis_pure_cmd},//*/
+        {"PIPELINE",    sky_plugin_redis_pure_cmd},
 
         // server
         // @todo
