@@ -22,7 +22,7 @@ bool FixedWindowRateLimitor::validate() {
     std::chrono::duration<double> span = now - this->startTime;
 
     bool falseValue = false;
-    if (span > this->timeWindow && resetLock.compare_exchange_weak(falseValue, true)) {
+    if (span > this->timeWindow && resetLock.compare_exchange_weak(falseValue, true) && span > this->timeWindow) {
         int64_t timeSpan = static_cast<int64_t>(floor(span.count()));
         timeSpan = timeSpan - timeSpan % this->timeWindow.count();
 
