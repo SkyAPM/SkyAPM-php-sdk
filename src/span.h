@@ -41,7 +41,7 @@ enum class SkySpanLayer {
 class Span {
 public:
     Span();
-    
+
     ~Span();
 
     int getSpanId() const;
@@ -52,7 +52,7 @@ public:
 
     long getEndTime() const;
 
-    std::vector<SkySegmentReference *> getRefs();
+    const std::vector<SkySegmentReference *> &getRefs();
 
     std::string getOperationName();
 
@@ -66,9 +66,9 @@ public:
 
     bool getIsError() const;
 
-    std::vector<Tag *> getTags();
+    const std::vector<Tag *> &getTags();
 
-    std::vector<SkyCoreSpanLog *> getLogs();
+    const std::vector<SkyCoreSpanLog *> &getLogs();
 
     bool getSkipAnalysis() const;
 
