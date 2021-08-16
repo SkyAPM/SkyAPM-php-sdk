@@ -1,4 +1,3 @@
-<?php
 /*
  * Copyright 2021 SkyAPM
  *
@@ -15,20 +14,21 @@
  * limitations under the License.
  *
  */
-require_once __DIR__ . '/vendor/autoload.php';
-require_once __DIR__ . '/tests.php';
 
-$ch = curl_init("https://api.github.com/repos");
-curl_exec($ch);
+#ifndef SKYWALKING_SRC_SKY_PLUGIN_MEMCACHED_H_
+#define SKYWALKING_SRC_SKY_PLUGIN_MEMCACHED_H_
 
-testRedis();
+#include "php_skywalking.h"
+#include "sky_utils.h"
+#include <string>
+#include <functional>
+#include <map>
+#include "span.h"
+#include "segment.h"
 
-testAddTag();
+Span *sky_plugin_memcached(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
-testAddLog();
+std::string sky_plugin_memcached_peer(zend_execute_data *execute_data);
 
-testMysqli();
-
-testMemcached();
-
-testYar();
+std::string sky_plugin_memcached_key_cmd(zend_execute_data *execute_data, std::string cmd);
+#endif //SKYWALKING_SRC_SKY_PLUGIN_MEMCACHED_H_

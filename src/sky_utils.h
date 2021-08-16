@@ -42,4 +42,5 @@ std::string sky_get_class_name(zval *obj);
 
 long getUnixTimeStamp();
 
+std::string sky_json_encode(zval *parameter);
 #endif //SKYWALKING_SKY_UTILS_H

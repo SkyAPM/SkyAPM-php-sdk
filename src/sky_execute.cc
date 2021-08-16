@@ -26,6 +26,8 @@
 #include "sky_plugin_predis.h"
 #include "sky_grpc.h"
 #include "sky_plugin_redis.h"
+#include "sky_plugin_memcached.h"
+#include "sky_plugin_yar.h"
 #include "sky_plugin_rabbit_mq.h"
 #include "sky_plugin_hyperf_guzzle.h"
 #include "sky_plugin_swoole_curl.h"
@@ -163,6 +165,12 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
             span = sky_plugin_mysqli(execute_data, class_name, function_name);
         } else if (strcmp(class_name, "Redis") == 0) {
             span = sky_plugin_redis(execute_data, class_name, function_name);
+        } else if (strcmp(class_name, "Memcached") == 0) {
+          span = sky_plugin_memcached(execute_data, class_name, function_name);
+        } else if (strcmp(class_name, "Yar_Client") == 0) {
+          span = sky_plugin_yar_client(execute_data, class_name, function_name);
+        } else if (strcmp(class_name, "Yar_Server") == 0) {
+          span = sky_plugin_yar_server(execute_data, class_name, function_name);
         }
     } else if (function_name != nullptr) {
         if (strcmp(function_name, "mysqli_") > 0) {
