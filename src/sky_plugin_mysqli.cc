@@ -22,71 +22,75 @@
 #include "sky_utils.h"
 #include "php_skywalking.h"
 
+#ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
 
 void sky_mysqli_peer(Span *span, mysqli_object *mysqli) {
-    MYSQLI_RESOURCE *my_res = (MYSQLI_RESOURCE *) mysqli->ptr;
-    if (my_res && my_res->ptr) {
-        MY_MYSQL *mysql = (MY_MYSQL *) my_res->ptr;
-        if (mysql->mysql) {
+  MYSQLI_RESOURCE *my_res = (MYSQLI_RESOURCE *) mysqli->ptr;
+  if (my_res && my_res->ptr) {
+    MY_MYSQL *mysql = (MY_MYSQL *) my_res->ptr;
+    if (mysql->mysql) {
 #if PHP_VERSION_ID >= 70100
-            std::string host = mysql->mysql->data->hostname.s;
+      std::string host = mysql->mysql->data->hostname.s;
 #else
-            std::string host = mysql->mysql->data->host;
+      std::string host = mysql->mysql->data->host;
 #endif
-            span->addTag("db.type", "mysql");
-            span->setPeer(host + ":" + std::to_string(mysql->mysql->data->port));
-        }
+      span->addTag("db.type", "mysql");
+      span->setPeer(host + ":" + std::to_string(mysql->mysql->data->port));
     }
+  }
 }
+#endif
 
 Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
-    mysqli_object *mysqli = nullptr;
-    if (function_name == "query" || function_name == "autocommit" || function_name == "commit" || function_name == "rollback" ||
-        function_name == "mysqli_query" || function_name == "mysqli_autocommit" || function_name == "mysqli_commit" || function_name == "mysqli_rollback") {
-            auto *segment = sky_get_segment(execute_data, -1);
-            auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8004);
-            uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+#ifdef MYSQLI_USE_MYSQLND
+  mysqli_object *mysqli = nullptr;
+  if (function_name == "query" || function_name == "autocommit" || function_name == "commit" || function_name == "rollback" ||
+      function_name == "mysqli_query" || function_name == "mysqli_autocommit" || function_name == "mysqli_commit" || function_name == "mysqli_rollback") {
+          auto *segment = sky_get_segment(execute_data, -1);
+          auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8004);
+          uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
 
-            zval *statement = nullptr;
-            if (class_name == "mysqli") {
-                span->setOperationName(class_name + "->" + function_name);
-                if (arg_count) {
-                    statement = ZEND_CALL_ARG(execute_data, 1);
-                }
-                mysqli = (mysqli_object *) Z_MYSQLI_P(&(execute_data->This));
-            } else { //is procedural
-                span->setOperationName(function_name);
-                if (arg_count > 1) {
-                    statement = ZEND_CALL_ARG(execute_data, 2);
-                }
-                zval *obj = ZEND_CALL_ARG(execute_data, 1);
-                if  (Z_TYPE_P(obj) != IS_NULL){
-                    mysqli = (mysqli_object *) Z_MYSQLI_P(obj);
-                }
-            }
+          zval *statement = nullptr;
+          if (class_name == "mysqli") {
+              span->setOperationName(class_name + "->" + function_name);
+              if (arg_count) {
+                  statement = ZEND_CALL_ARG(execute_data, 1);
+              }
+              mysqli = (mysqli_object *) Z_MYSQLI_P(&(execute_data->This));
+          } else { //is procedural
+              span->setOperationName(function_name);
+              if (arg_count > 1) {
+                  statement = ZEND_CALL_ARG(execute_data, 2);
+              }
+              zval *obj = ZEND_CALL_ARG(execute_data, 1);
+              if  (Z_TYPE_P(obj) != IS_NULL){
+                  mysqli = (mysqli_object *) Z_MYSQLI_P(obj);
+              }
+          }
 
-            if (statement != nullptr && Z_TYPE_P(statement) == IS_STRING) {
-                span->addTag("db.statement", Z_STRVAL_P(statement));
-            }
-            if (mysqli != nullptr){
-                sky_mysqli_peer(span, mysqli);
-            }
+          if (statement != nullptr && Z_TYPE_P(statement) == IS_STRING) {
+              span->addTag("db.statement", Z_STRVAL_P(statement));
+          }
+          if (mysqli != nullptr){
+              sky_mysqli_peer(span, mysqli);
+          }
 
-            return span;
-    }
-
-    return nullptr;
+          return span;
+  }
+#endif
+  return nullptr;
 }
 
-void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, Span *span, int is_oop) { 
-    zval *obj, rv;
+void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, Span *span, int is_oop) {
+#ifdef MYSQLI_USE_MYSQLND
+  zval *obj, rv;
     if (is_oop == 1) {
         obj = &(execute_data)->This;
     } else {
         obj = ZEND_CALL_ARG(execute_data, 1);
     }
-    
+
 #if PHP_VERSION_ID < 80000
         zend_read_property(obj->value.obj->ce, obj, ZEND_STRL("error_list"), 0, &rv);
 #else
@@ -108,4 +112,5 @@ void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, Span *span,
     }ZEND_HASH_FOREACH_END();
 
     zval_dtor(&rv);
+#endif
 }
