@@ -49,7 +49,8 @@ Segment::Segment(const std::string &serviceId, const std::string &serviceInstanc
 
 Segment::~Segment() {
     delete bag;
-    for (Span *span : spans) {
+
+    for (auto span : spans) {
         delete span;
     }
     spans.clear();

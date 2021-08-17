@@ -169,17 +169,19 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/segment_reference.cc \
       src/sky_core_span_log.cc \
       src/sky_execute.cc \
-      src/sky_grpc.cc \
       src/sky_log.cc \
       src/sky_module.cc \
       src/sky_plugin_mysqli.cc \
       src/sky_pdo.cc \
       src/sky_plugin_curl.cc \
       src/sky_plugin_error.cc \
+      src/sky_plugin_grpc.cc \
       src/sky_plugin_hyperf_guzzle.cc \
       src/sky_plugin_predis.cc \
       src/sky_plugin_rabbit_mq.cc \
       src/sky_plugin_redis.cc \
+      src/sky_plugin_memcached.cc \
+      src/sky_plugin_yar.cc \
       src/sky_plugin_swoole_curl.cc \
       src/sky_rate_limit.cc \
       src/sky_shm.cc \

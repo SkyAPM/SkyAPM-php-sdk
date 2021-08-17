@@ -17,13 +17,15 @@
 
 
 
-#include "sky_grpc.h"
+#include "sky_plugin_grpc.h"
 #include "segment.h"
 
 #include "php_skywalking.h"
 #include "sky_utils.h"
 
-Span *sky_grpc(zend_execute_data *execute_data, char *class_name, char *function_name) {
+extern void (*ori_execute_ex)(zend_execute_data *execute_data);
+
+Span *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, char *function_name) {
     std::string _class_name(class_name);
     std::string _function_name(function_name);
 
@@ -53,6 +55,31 @@ Span *sky_grpc(zend_execute_data *execute_data, char *class_name, char *function
             span->setPeer(Z_STRVAL_P(hostname));
         }
 
+        zval *metadata;
+        int offset = 4;
+        if (_function_name == "_simpleRequest" || _function_name == "_serverStreamRequest") {
+            metadata = ZEND_CALL_ARG(execute_data, 4);
+            offset = 4;
+        } else if (_function_name == "_clientStreamRequest" || _function_name == "_bidiRequest") {
+            metadata = ZEND_CALL_ARG(execute_data, 3);
+            offset = 3;
+        }
+
+        std::string sw_header = segment->createHeader(span);
+        if (nullptr != metadata) {
+            if (Z_TYPE_P(metadata) == IS_UNDEF) {
+                array_init(metadata);
+                add_assoc_str(metadata, "sw8", zend_string_init(sw_header.c_str(), sw_header.length(), 0));
+                ZVAL_ARR(ZEND_CALL_ARG(execute_data, offset), Z_ARR_P(metadata));
+                execute_data->This.u2.num_args = offset;
+            } else if (Z_TYPE_P(metadata) == IS_ARRAY) {
+                SEPARATE_ARRAY(metadata);
+                add_assoc_str(metadata, "sw8", zend_string_init(sw_header.c_str(), sw_header.length(), 0));
+            }
+        }
+
+        ori_execute_ex(execute_data);
+        span->setEndTIme();
         return span;
     }
 

@@ -29,23 +29,23 @@ Span::Span() {
 }
 
 Span::~Span() {
-    for (Tag *tag : tags) {
+    for (auto ref : refs) {
+        delete ref;
+    }
+    refs.clear();
+    refs.shrink_to_fit();
+
+    for (auto tag : tags) {
         delete tag;
     }
     tags.clear();
     tags.shrink_to_fit();
 
-    for (SkyCoreSpanLog *log : logs) {
+    for (auto log : logs) {
         delete log;
     }
     logs.clear();
     logs.shrink_to_fit();
-
-    for (SkySegmentReference *ref : refs) {
-        delete ref;
-    }
-    refs.clear();
-    refs.shrink_to_fit();
 }
 
 // get
@@ -104,7 +104,6 @@ const std::vector<SkyCoreSpanLog*>& Span::getLogs() {
 bool Span::getSkipAnalysis() const {
     return skipAnalysis;
 }
-
 
 // set
 void Span::setEndTIme() {
