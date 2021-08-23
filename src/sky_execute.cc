@@ -98,33 +98,33 @@ void sky_execute_ex(zend_execute_data *execute_data) {
                 if (portStr == "integer") swfPort = std::to_string(Z_LVAL_P(port));
             }
 
-            Json::Reader jsonReader;
-            Json::Value jsonValue;
 
             request_id = Z_LVAL_P(fd);
             std::string header = "";
-            std::string uri = ZSTR_VAL(Z_STR_P(data));
+            std::string traceData = ZSTR_VAL(Z_STR_P(data));
+
+            // decode json
+            zval jsonData;
+            sky_json_decode(traceData, &jsonData);
+            zval *jsonrpc = NULL;
+            zval ext;
+            zval *extData;
+            ZVAL_NEW_ARR(&ext);
+            extData = sky_hashtable_default(&jsonData, "ext", &ext);
 
             swoft_json_rpc jsonRpcData;
-            if (!jsonReader.parse(uri, jsonValue, false)){
 
-                sky_log(("错误的jsonrpc data格式，解析json失败" + uri).c_str());
-                uri = "unknow uri";
-            }else{
-
-                jsonRpcData.method = jsonValue["method"].asString();
-                jsonRpcData.jsonrpc = jsonValue["jsonrpc"].asString();
-                Json::Value extData = jsonValue["ext"];
-                jsonRpcData.ext.traceid = extData["traceid"].asString();
-                jsonRpcData.ext.spanid = extData["spanid"].asString();
-                jsonRpcData.ext.parentid = extData["parentid"].asString();
-                jsonRpcData.ext.uri = extData["uri"].asString();
-                jsonRpcData.ext.requestTime = extData["requestTime"].asString();
-                jsonRpcData.ext.serviceName = extData["serviceName"].asString();
-                jsonRpcData.ext.ServiceInstance = extData["ServiceInstance"].asString();
-                jsonRpcData.ext.address = swfHost + ":" + swfPort;
-                jsonRpcData.ext.endpoint = swfHost + ":" + swfPort;
-            }
+            jsonRpcData.method = Z_STRVAL_P(sky_hashtable_default(&jsonData, "method", ""));//jsonValue["method"].asString();
+            jsonRpcData.jsonrpc = Z_STRVAL_P(sky_hashtable_default(&jsonData, "jsonrpc", ""));//jsonValue["jsonrpc"].asString();
+            jsonRpcData.ext.traceid = Z_STRVAL_P(sky_hashtable_default(extData, "traceid", ""));//extData["traceid"].asString();
+            jsonRpcData.ext.spanid = Z_STRVAL_P(sky_hashtable_default(extData, "spanid", ""));//extData["spanid"].asString();
+            jsonRpcData.ext.parentid = Z_STRVAL_P(sky_hashtable_default(extData, "parentid", "0"));//extData["parentid"].asString();
+            jsonRpcData.ext.uri = Z_STRVAL_P(sky_hashtable_default(extData, "uri", ""));//extData["uri"].asString();
+            jsonRpcData.ext.requestTime = Z_STRVAL_P(sky_hashtable_default(extData, "requestTime", ""));//extData["requestTime"].asString();
+            jsonRpcData.ext.serviceName = Z_STRVAL_P(sky_hashtable_default(extData, "serviceName", ""));//extData["serviceName"].asString();
+            jsonRpcData.ext.ServiceInstance = Z_STRVAL_P(sky_hashtable_default(extData, "ServiceInstance", "0"));//extData["ServiceInstance"].asString();
+            jsonRpcData.ext.address = swfHost + ":" + swfPort;
+            jsonRpcData.ext.endpoint = swfHost + ":" + swfPort;
 
             // segments全局变量
             sky_rpc_init(request_id, jsonRpcData);

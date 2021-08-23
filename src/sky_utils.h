@@ -44,3 +44,8 @@ long getUnixTimeStamp();
 
 std::string sky_json_encode(zval *parameter);
 #endif //SKYWALKING_SKY_UTILS_H
+int sky_json_decode( std::string json, zval* jsonZval);
+
+zval* sky_hashtable_default(zval* hashTable, std::string key, std::string dft);
+zval* sky_hashtable_default(zval* hashTable, std::string key, int dft);
+zval* sky_hashtable_default(zval* hashTable, std::string key, zval* dft);

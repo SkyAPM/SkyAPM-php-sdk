@@ -185,3 +185,45 @@ std::string sky_json_encode(zval *parameter) {
   }
   return str;
 }
+
+int sky_json_decode(std::string json,  zval* jsonZval){
+
+    char *jsonC = new char[json.length() + 1];
+    strcpy(jsonC, json.c_str());
+
+    php_json_decode_ex(jsonZval, jsonC, strlen(jsonC), PHP_JSON_OBJECT_AS_ARRAY, 5);
+
+    if (Z_TYPE_P(jsonZval) != IS_ARRAY){
+        return -1;
+    }
+
+    return 0;
+}
+
+zval* sky_hashtable_default(zval* hashTable, std::string key, std::string dft){
+    zval ret;
+    ZVAL_STR(&ret, zend_string_init(dft.c_str(), strlen(dft.c_str()), 0));
+    return sky_hashtable_default(hashTable, key, &ret);
+}
+
+zval* sky_hashtable_default(zval* hashTable, std::string key, int dft){
+    zval ret;
+    ZVAL_LONG(&ret, dft);
+    return sky_hashtable_default(hashTable, key, &ret);
+}
+
+zval* sky_hashtable_default(zval* hashTable, std::string key, zval* dft){
+    if (Z_TYPE_P(hashTable) != IS_ARRAY){
+        return dft;
+    }
+    zval *data = NULL;
+    data = zend_hash_find(Z_ARRVAL_P(hashTable), zend_string_init(key.c_str(), strlen(key.c_str()), 0));
+    if (data == NULL){
+        return dft;
+    }
+    if (Z_TYPE_P(data) != Z_TYPE_P(dft)){
+        return dft;
+    }
+
+    return data;
+}

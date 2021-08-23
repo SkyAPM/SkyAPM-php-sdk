@@ -17,7 +17,10 @@
 
 #include "sky_plugin_yar.h"
 #include "php_skywalking.h"
+#ifndef HashTable
 #include "zend_types.h"
+#endif
+
 
 #include "segment.h"
 #include "sky_utils.h"
