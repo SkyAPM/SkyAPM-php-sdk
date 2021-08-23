@@ -118,6 +118,7 @@ if test "$PHP_SKYWALKING" != "no"; then
   SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS $PHP_GRPC/cmake/build/third_party/cares/cares/lib/libcares.a"
   SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS $PHP_GRPC/cmake/build/third_party/boringssl-with-bazel/libssl.a"
   SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS $PHP_GRPC/cmake/build/third_party/boringssl-with-bazel/libcrypto.a"
+  SKYWALKING_EXTRA_LDFLAGS="$SKYWALKING_EXTRA_LDFLAGS /usr/lib/libjsoncpp.a"
   EXTRA_LDFLAGS="$EXTRA_LDFLAGS $SKYWALKING_EXTRA_LDFLAGS"
 
   LIBS="-lpthread $LIBS"

@@ -114,6 +114,15 @@ int64_t sky_find_swoole_fd(zend_execute_data *execute_data) {
                 }
             }
         }
+        if (arg_count == 4){
+            zval *swooleServer = ZEND_CALL_ARG(execute_data->prev_execute_data, 1);
+            if (Z_TYPE_P(swooleServer) == IS_OBJECT) {
+                if (strcmp(ZSTR_VAL(Z_OBJ_P(swooleServer)->ce->name), "Swoole\\Server") == 0) {
+                    zval *fd = ZEND_CALL_ARG(execute_data->prev_execute_data, 2);
+                    return Z_LVAL_P(fd);
+                }
+            }
+        }
         return sky_find_swoole_fd(execute_data->prev_execute_data);
     }
 

@@ -21,6 +21,10 @@
 
 #include "php_skywalking.h"
 #include "manager.h"
+#ifndef swoft_json_rpc
+#include "sky_types.h"
+#endif
+
 
 #define SKY_OLD_FN(n) static_cast<zend_function *>(zend_hash_str_find_ptr(CG(function_table), n, sizeof(n) - 1))
 
@@ -29,7 +33,7 @@ void sky_module_init();
 void sky_module_cleanup();
 
 void sky_request_init(zval *request, uint64_t request_id);
-
+void sky_rpc_init(uint64_t request_id, swoft_json_rpc rpcData);
 void sky_request_flush(zval *response, uint64_t request_id);
 
 #endif //SKYWALKING_SKY_MODULE_H

@@ -21,7 +21,6 @@
 #include "sky_module.h"
 #include <boost/interprocess/ipc/message_queue.hpp>
 #include <fstream>
-
 #include "segment.h"
 #include "sky_utils.h"
 #include "sky_plugin_curl.h"
@@ -29,6 +28,8 @@
 #include "manager.h"
 #include "sky_plugin_error.h"
 #include "sky_log.h"
+#include "base64.h"
+
 
 extern struct service_info *s_info;
 
@@ -195,6 +196,43 @@ void sky_request_init(zval *request, uint64_t request_id) {
     if (request_method != NULL) {
         span->addTag("http.method", Z_STRVAL_P(request_method));
     }
+}
+
+void sky_rpc_init(uint64_t request_id, swoft_json_rpc rpcData) {
+    std::string header;
+    // 初始化全局字典
+    std::map<uint64_t, Segment *> *segments;
+    if (SKYWALKING_G(segment) == nullptr) {
+        segments = new std::map<uint64_t, Segment *>;
+        SKYWALKING_G(segment) = segments;
+    } else {
+        segments = static_cast<std::map<uint64_t, Segment *> *>SKYWALKING_G(segment);
+    }
+
+    // 按照skywalking header拼接串
+    header.append("0").append("-") \
+    .append(Base64::encode(rpcData.ext.traceid)).append("-") \
+    .append(Base64::encode(rpcData.ext.traceid)).append("-") \
+    .append(rpcData.ext.spanid).append("-") \
+    .append(Base64::encode(rpcData.ext.serviceName)).append("-") \
+    .append(Base64::encode(rpcData.ext.ServiceInstance)).append("-") \
+    .append(Base64::encode(rpcData.ext.endpoint)).append("-") \
+    .append(Base64::encode(rpcData.ext.address));
+
+    php_printf(header.c_str());
+    auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
+    auto const result = segments->insert(std::pair<uint64_t, Segment *>(request_id, segment));
+    if (not result.second) {
+        result.first->second = segment;
+    }
+    std::string logStr = std::to_string(request_id);
+    auto *span = segments->at(request_id)->createSpan(SkySpanType::Entry, SkySpanLayer::Http, 8001);
+    span->setOperationName(rpcData.method);
+    span->setPeer(rpcData.ext.endpoint);
+    span->addTag("url", rpcData.method);
+    segments->at(request_id)->createRefs();
+    span->addTag("http.method", "rpc");
+    php_printf((logStr + "\n").c_str());
 }
 
 
