@@ -33,6 +33,9 @@
 #include "sky_plugin_mysqli.h"
 #include "sky_module.h"
 #include "segment.h"
+#include "sky_log.h"
+#include "json/json.h"
+#include "zend_API.h"
 
 void (*ori_execute_ex)(zend_execute_data *execute_data) = nullptr;
 
@@ -44,6 +47,10 @@ void sky_execute_ex(zend_execute_data *execute_data) {
     int is_class = fn->common.scope != nullptr && fn->common.scope->name != nullptr;
     char *class_name = is_class ? ZSTR_VAL(fn->common.scope->name) : nullptr;
     char *function_name = fn->common.function_name != nullptr ? ZSTR_VAL(fn->common.function_name) : nullptr;
+    std::string className = "";
+    std::string methodName = "";
+    if (class_name != nullptr) className = class_name;
+    if (function_name != nullptr) methodName = function_name;
 
     // swoole
     bool swoole = false;
@@ -67,9 +74,69 @@ void sky_execute_ex(zend_execute_data *execute_data) {
                 }
             }
         }
+
+        // swoft的rpc请求
+        if (arg_count == 4 && SKY_IS_SWOFT_RPC(class_name, function_name)){
+            zval *server = ZEND_CALL_ARG(execute_data, 1);
+            zval *fd = ZEND_CALL_ARG(execute_data, 2);
+            zval *reactorId = ZEND_CALL_ARG(execute_data, 3);
+            zval *data = ZEND_CALL_ARG(execute_data, 4);
+            std::string swfHost;
+            std::string swfPort;
+            if (SKY_IS_OBJECT(server)){
+//                php_printf(ZSTR_VAL(Z_OBJ_P(server)->ce->name));
+                // 获取当前服务监听的地址和端口，后续填充peer
+                zval *host = sky_read_property(server, "host", 0);
+                zval *port = sky_read_property(server, "port", 0);
+                zend_string *hostType = zend_zval_get_type(host);
+                zend_string *portType = zend_zval_get_type(port);
+                std::string typeStr = ZSTR_VAL(hostType);
+                std::string portStr = ZSTR_VAL(portType);
+                swfHost = Z_STRVAL_P(host);
+                if (portStr == "string") swfPort = Z_STRVAL_P(port);
+                if (portStr == "integer") swfPort = std::to_string(Z_LVAL_P(port));
+            }
+
+            // data是json字符串， 解析格式大概是
+            // {"jsonrpc":"2.0","method":"1.0::App\\Rpc\\Lib\\CardInterface::getAllContact","params":[{"type":"my_all_list","uid":"698338","page":"1","pageSize":"10"
+            Json::Reader jsonReader;
+            Json::Value jsonValue;
+
+            request_id = Z_LVAL_P(fd);
+            std::string header = "";
+            std::string uri = ZSTR_VAL(Z_STR_P(data));
+
+            swoft_json_rpc jsonRpcData;
+            if (!jsonReader.parse(uri, jsonValue, false)){
+
+                sky_log(("错误的jsonrpc data格式，解析json失败" + uri).c_str());
+                uri = "unknow uri";
+            }else{
+
+                jsonRpcData.method = jsonValue["method"].asString();
+                jsonRpcData.jsonrpc = jsonValue["jsonrpc"].asString();
+                Json::Value extData = jsonValue["ext"];
+                jsonRpcData.ext.traceid = extData["traceid"].asString();
+                jsonRpcData.ext.spanid = extData["spanid"].asString();
+                jsonRpcData.ext.parentid = extData["parentid"].asString();
+                jsonRpcData.ext.uri = extData["uri"].asString();
+                jsonRpcData.ext.requestTime = extData["requestTime"].asString();
+                jsonRpcData.ext.serviceName = extData["serviceName"].asString();
+                jsonRpcData.ext.ServiceInstance = extData["ServiceInstance"].asString();
+                jsonRpcData.ext.address = swfHost + ":" + swfPort;
+                jsonRpcData.ext.endpoint = swfHost + ":" + swfPort;
+            }
+
+            // segments全局变量
+            sky_rpc_init(request_id, jsonRpcData);
+            swoole = true;
+            SKYWALKING_G(is_swoole) = true;
+        }
     }
 
+
     if (SKYWALKING_G(is_swoole)) {
+
         if (sky_get_segment(execute_data, request_id) == nullptr) {
             ori_execute_ex(execute_data);
             return;
@@ -109,7 +176,6 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             span->setEndTIme();
         }
     }
-
     if (swoole) {
         sky_request_flush(sw_response, request_id);
     }
