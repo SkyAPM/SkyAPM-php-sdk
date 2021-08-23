@@ -86,8 +86,7 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             std::string swfHost;
             std::string swfPort;
             if (SKY_IS_OBJECT(server)){
-//                php_printf(ZSTR_VAL(Z_OBJ_P(server)->ce->name));
-                // 获取当前服务监听的地址和端口，后续填充peer
+
                 zval *host = sky_read_property(server, "host", 0);
                 zval *port = sky_read_property(server, "port", 0);
                 zend_string *hostType = zend_zval_get_type(host);
@@ -99,8 +98,6 @@ void sky_execute_ex(zend_execute_data *execute_data) {
                 if (portStr == "integer") swfPort = std::to_string(Z_LVAL_P(port));
             }
 
-            // data是json字符串， 解析格式大概是
-            // {"jsonrpc":"2.0","method":"1.0::App\\Rpc\\Lib\\CardInterface::getAllContact","params":[{"type":"my_all_list","uid":"698338","page":"1","pageSize":"10"
             Json::Reader jsonReader;
             Json::Value jsonValue;
 
