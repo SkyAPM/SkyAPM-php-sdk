@@ -98,7 +98,6 @@ void sky_execute_ex(zend_execute_data *execute_data) {
                 if (portStr == "integer") swfPort = std::to_string(Z_LVAL_P(port));
             }
 
-
             request_id = Z_LVAL_P(fd);
             std::string header = "";
             std::string traceData = ZSTR_VAL(Z_STR_P(data));
@@ -132,7 +131,6 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             SKYWALKING_G(is_swoole) = true;
         }
     }
-
 
     if (SKYWALKING_G(is_swoole)) {
 
