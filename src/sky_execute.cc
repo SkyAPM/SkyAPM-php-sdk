@@ -35,8 +35,6 @@
 #include "sky_plugin_mysqli.h"
 #include "sky_module.h"
 #include "segment.h"
-#include "sky_log.h"
-#include "json/json.h"
 #include "zend_API.h"
 
 void (*ori_execute_ex)(zend_execute_data *execute_data) = nullptr;
