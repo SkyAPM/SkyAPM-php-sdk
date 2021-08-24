@@ -82,18 +82,14 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             zval *reactorId = ZEND_CALL_ARG(execute_data, 3);
             zval *data = ZEND_CALL_ARG(execute_data, 4);
             std::string swfHost;
-            std::string swfPort;
+            std::string swfPort = "";
             if (SKY_IS_OBJECT(server)){
 
                 zval *host = sky_read_property(server, "host", 0);
                 zval *port = sky_read_property(server, "port", 0);
-
-                std::string typeStr = (char *)Z_TYPE_P(host);
-
-                std::string portStr = (char *)Z_TYPE_P(port);
                 swfHost = Z_STRVAL_P(host);
-                if (portStr == "string") swfPort = Z_STRVAL_P(port);
-                if (portStr == "integer") swfPort = std::to_string(Z_LVAL_P(port));
+                if (Z_TYPE_P(port) == IS_STRING) swfPort = Z_STRVAL_P(port);
+                if (Z_TYPE_P(port) == IS_LONG) swfPort = std::to_string(Z_LVAL_P(port));
             }
 
             request_id = Z_LVAL_P(fd);
