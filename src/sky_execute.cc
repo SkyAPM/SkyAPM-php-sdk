@@ -87,10 +87,10 @@ void sky_execute_ex(zend_execute_data *execute_data) {
 
                 zval *host = sky_read_property(server, "host", 0);
                 zval *port = sky_read_property(server, "port", 0);
-                zend_string *hostType = zend_zval_get_type(host);
-                zend_string *portType = zend_zval_get_type(port);
-                std::string typeStr = ZSTR_VAL(hostType);
-                std::string portStr = ZSTR_VAL(portType);
+
+                std::string typeStr = (char *)Z_TYPE_P(host);
+
+                std::string portStr = (char *)Z_TYPE_P(port);
                 swfHost = Z_STRVAL_P(host);
                 if (portStr == "string") swfPort = Z_STRVAL_P(port);
                 if (portStr == "integer") swfPort = std::to_string(Z_LVAL_P(port));
@@ -103,7 +103,6 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             // decode json
             zval jsonData;
             sky_json_decode(traceData, &jsonData);
-            zval *jsonrpc = NULL;
             zval ext;
             zval *extData;
             ZVAL_NEW_ARR(&ext);
