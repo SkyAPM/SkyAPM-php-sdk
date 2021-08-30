@@ -171,6 +171,11 @@ void sky_request_init(zval *request, uint64_t request_id) {
         peer = get_page_request_peer();
     }
 
+    //if uri in exclude_uris ,it will be ignored
+    if( SKYWALKING_G(exclude_uris).find(uri) != SKYWALKING_G(exclude_uris).end() ){
+        return ;
+    }
+
     std::map<uint64_t, Segment *> *segments;
     if (SKYWALKING_G(segment) == nullptr) {
         segments = new std::map<uint64_t, Segment *>;

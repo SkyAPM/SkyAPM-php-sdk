@@ -40,6 +40,8 @@
 #include "src/segment.h"
 #include "sys/mman.h"
 
+#include <boost/algorithm/string.hpp>
+
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
 #endif
@@ -65,6 +67,10 @@ PHP_INI_BEGIN()
     STD_PHP_INI_BOOLEAN("skywalking.error_handler_enable", "0", PHP_INI_ALL, OnUpdateBool, error_handler_enable, zend_skywalking_globals, skywalking_globals)
 
     STD_PHP_INI_ENTRY("skywalking.mq_max_message_length", "20480", PHP_INI_ALL, OnUpdateLong, mq_max_message_length, zend_skywalking_globals, skywalking_globals)
+
+    //exclude uri 
+    STD_PHP_INI_ENTRY("skywalking.exclude_uri", "", PHP_INI_ALL, OnUpdateString, exclude_uri, zend_skywalking_globals, skywalking_globals)
+
 
 PHP_INI_END()
 
@@ -161,6 +167,15 @@ PHP_FUNCTION(skywalking_tag)
 PHP_MINIT_FUNCTION (skywalking) {
 	ZEND_INIT_MODULE_GLOBALS(skywalking, php_skywalking_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
+
+    //init global exclude_uris 
+    std::string str=SKYWALKING_G(exclude_uri);
+    std::vector<std::string> vec;
+    boost::split(vec, str,boost::is_any_of(","), boost::token_compress_on);
+
+    for(int i = 0; i < vec.size(); i++) {
+       SKYWALKING_G(exclude_uris).insert(vec[i]);
+    }
 
 	if (SKYWALKING_G(enable)) {
 

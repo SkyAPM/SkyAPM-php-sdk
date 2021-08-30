@@ -36,6 +36,7 @@
 #define PHP_SKYWALKING_H
 
 #include "thread"
+#include <boost/unordered_set.hpp> 
 
 #include "src/common.h"
 
@@ -143,6 +144,11 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
 
     // message queue
     int mq_max_message_length;
+
+    // exclude uri
+    char *exclude_uri;
+    boost::unordered_set<std::string> exclude_uris ;
+
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
