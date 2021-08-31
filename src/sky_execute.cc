@@ -105,7 +105,7 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             extData = sky_hashtable_default(&jsonData, "ext", &ext);
 
             swoft_json_rpc jsonRpcData;
-
+//            php_var_dump(sky_hashtable_default(extData, "sw8", "")); // s8的支持，二期标准化sw8协议,molten端已经实现，这次先这样@210821
             jsonRpcData.method = Z_STRVAL_P(sky_hashtable_default(&jsonData, "method", ""));//jsonValue["method"].asString();
             jsonRpcData.jsonrpc = Z_STRVAL_P(sky_hashtable_default(&jsonData, "jsonrpc", ""));//jsonValue["jsonrpc"].asString();
             jsonRpcData.ext.traceid = Z_STRVAL_P(sky_hashtable_default(extData, "traceid", ""));//extData["traceid"].asString();
