@@ -26,7 +26,7 @@ extern void (*ori_execute_ex)(zend_execute_data *execute_data);
 Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
     auto *segment = sky_get_segment(execute_data, -1);
-    if (segment == nullptr) {
+    if (segment->skip()) {
         return nullptr;
     }
 

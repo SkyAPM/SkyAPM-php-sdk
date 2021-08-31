@@ -31,7 +31,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
             function_name == "prepare" || function_name == "commit" ||
             function_name == "begintransaction" || function_name == "rollback") {
             auto *segment = sky_get_segment(execute_data, -1);
-            if (segment == nullptr) {
+            if (segment->skip()) {
                 return nullptr;
             }
 
@@ -54,7 +54,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
     } else {
         if (function_name == "execute") {
             auto *segment = sky_get_segment(execute_data, -1);
-            if (segment == nullptr) {
+            if (segment->skip()) {
                 return nullptr;
             }
 

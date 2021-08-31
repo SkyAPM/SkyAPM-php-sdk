@@ -130,6 +130,10 @@ void sky_request_init(zval *request, uint64_t request_id) {
     array_init(&SKYWALKING_G(curl_header));
 
     if (!static_cast<FixedWindowRateLimitor*>(SKYWALKING_G(rate_limitor))->validate()) {
+        auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
+        segment->setSkip(true);
+        (void)sky_insert_segment(request_id, segment);
+
         return;
     }
 
@@ -211,7 +215,10 @@ void sky_request_init(zval *request, uint64_t request_id) {
 
 void sky_request_flush(zval *response, uint64_t request_id) {
     auto *segment = sky_get_segment(nullptr, request_id);
-    if (segment == nullptr) {
+    if (segment->skip()) {
+        delete segment;
+        sky_remove_segment(request_id);
+        
         return;
     }
 

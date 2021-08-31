@@ -49,7 +49,7 @@ Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &clas
     bool is_mysqli_func = function_name == "mysqli_query" || function_name == "mysqli_autocommit" || function_name == "mysqli_commit" || function_name == "mysqli_rollback";
     if (is_pdo_func || is_mysqli_func) {
         auto *segment = sky_get_segment(execute_data, -1);
-        if (segment == nullptr) {
+        if (segment->skip()) {
             return nullptr;
         }
 

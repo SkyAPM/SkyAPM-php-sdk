@@ -189,3 +189,11 @@ void Segment::createRefs() {
 const std::string& Segment::getTraceId() {
     return _traceId;
 }
+
+void Segment::setSkip(bool skip) {
+    this->doSkip = skip;
+}
+
+bool Segment::skip() {
+    return doSkip;
+}
