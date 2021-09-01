@@ -145,7 +145,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     int mq_max_message_length;
 
     // rate limit
-    void *rate_limitor;
+    void *rate_limiter;
     int sample_n_per_3_secs;
 
     // fixed UUID

@@ -23,11 +23,11 @@
 #include <chrono>
 #include <atomic>
 
-class FixedWindowRateLimitor {
+class FixedWindowRateLimiter {
 public:
     using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
-    FixedWindowRateLimitor(int64_t rate, int seconds = 3);
+    FixedWindowRateLimiter(int64_t rate, int seconds = 3);
     bool validate();
 
 private:

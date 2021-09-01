@@ -78,8 +78,8 @@ void sky_module_init() {
     std::unordered_map<uint64_t, Segment *> *segments = new std::unordered_map<uint64_t, Segment *>;
     SKYWALKING_G(segment) = segments;
 
-    FixedWindowRateLimitor *rate_limitor = new FixedWindowRateLimitor(SKYWALKING_G(sample_n_per_3_secs));
-    SKYWALKING_G(rate_limitor) = rate_limitor;
+    FixedWindowRateLimiter *rate_limiter = new FixedWindowRateLimiter(SKYWALKING_G(sample_n_per_3_secs));
+    SKYWALKING_G(rate_limiter) = rate_limiter;
 
     sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
 
@@ -123,14 +123,14 @@ void sky_module_cleanup() {
     }
 
     delete segments;
-    delete static_cast<FixedWindowRateLimitor*>(SKYWALKING_G(rate_limitor));
+    delete static_cast<FixedWindowRateLimiter*>(SKYWALKING_G(rate_limiter));
 }
 
 void sky_request_init(zval *request, uint64_t request_id) {
     array_init(&SKYWALKING_G(curl_header));
 
-    if (!static_cast<FixedWindowRateLimitor*>(SKYWALKING_G(rate_limitor))->validate()) {
-        auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
+    if (!static_cast<FixedWindowRateLimiter*>(SKYWALKING_G(rate_limiter))->validate()) {
+        auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), "");
         segment->setSkip(true);
         (void)sky_insert_segment(request_id, segment);
 

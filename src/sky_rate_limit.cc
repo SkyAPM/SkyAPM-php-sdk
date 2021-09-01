@@ -22,7 +22,7 @@
 #include "sky_rate_limit.h"
 #include "sky_log.h"
 
-FixedWindowRateLimitor::FixedWindowRateLimitor(int64_t rate, int seconds) : rate(rate), currentCount(0), resetLock(false) {
+FixedWindowRateLimiter::FixedWindowRateLimiter(int64_t rate, int seconds) : rate(rate), currentCount(0), resetLock(false) {
     if (seconds < 1) {
         timeWindow = std::chrono::seconds(1);
     } else {
@@ -32,7 +32,7 @@ FixedWindowRateLimitor::FixedWindowRateLimitor(int64_t rate, int seconds) : rate
     this->startTime = TimePoint::clock::now();
 }
 
-bool FixedWindowRateLimitor::validate() {
+bool FixedWindowRateLimiter::validate() {
     if (this->rate < 1) {
         return true;
     }
@@ -52,7 +52,7 @@ bool FixedWindowRateLimitor::validate() {
     }
 
     if (++this->currentCount > this->rate && span < this->timeWindow) {
-        sky_log("rate limitor hit: " + std::to_string(this->currentCount) + "/" + std::to_string(this->rate));
+        sky_log("rate limiter hit: " + std::to_string(this->currentCount) + "/" + std::to_string(this->rate));
         return false;
     }
 
