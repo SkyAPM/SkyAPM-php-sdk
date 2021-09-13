@@ -119,9 +119,11 @@ void sky_execute_ex(zend_execute_data *execute_data) {
             jsonRpcData.ext.endpoint = swfHost + ":" + swfPort;
 
             // segments全局变量
-            sky_rpc_init(request_id, jsonRpcData);
-            swoole = true;
-            SKYWALKING_G(is_swoole) = true;
+            if (!jsonRpcData.ext.traceid.empty()){
+                sky_rpc_init(request_id, jsonRpcData);
+                swoole = true;
+                SKYWALKING_G(is_swoole) = true;
+            }
         }
     }
 
