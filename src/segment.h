@@ -46,7 +46,11 @@ public:
 
     void createRefs();
 
-    std::string getTraceId();
+    const std::string& getTraceId();
+
+    void setSkip(bool skip);
+
+    bool skip();
 
     ~Segment();
 
@@ -61,6 +65,7 @@ private:
     std::string _serviceId;
     std::string _serviceInstanceId;
     bool isSizeLimited = false;
+    bool doSkip = false;
 
     int _status_code = 200;
 };

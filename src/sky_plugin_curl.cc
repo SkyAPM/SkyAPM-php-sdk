@@ -34,7 +34,7 @@ void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
 void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     auto *segment = sky_get_segment(execute_data, -1);
-    if (segment == nullptr) {
+    if (segment == nullptr || segment->skip()) {
         orig_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -70,7 +70,7 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
 void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     auto *segment = sky_get_segment(execute_data, -1);
-    if (segment == nullptr) {
+    if (segment == nullptr || segment->skip()) {
         orig_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -103,7 +103,7 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
 void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     auto *segment = sky_get_segment(execute_data, -1);
-    if (segment == nullptr) {
+    if (segment == nullptr || segment->skip()) {
         orig_curl_exec(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }
@@ -254,7 +254,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     auto *segment = sky_get_segment(execute_data, -1);
-    if (segment == nullptr) {
+    if (segment == nullptr || segment->skip()) {
         orig_curl_close(INTERNAL_FUNCTION_PARAM_PASSTHRU);
         return;
     }

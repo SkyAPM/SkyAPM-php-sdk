@@ -46,16 +46,18 @@ struct ManagerOptions {
     std::string private_key;
     std::string cert_chain;
     std::string authentication;
+    std::string instance_name;
 };
 
 class Manager {
 
 public:
-    Manager(const ManagerOptions &options, struct service_info *info);
-
     static std::string generateUUID();
 
+    static void init(const ManagerOptions &options, struct service_info *info);
+
 private:
+    Manager() = delete;
 
     static void login(const ManagerOptions &options, struct service_info *info);
 

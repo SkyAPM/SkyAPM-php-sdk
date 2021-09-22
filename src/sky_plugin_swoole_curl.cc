@@ -60,7 +60,7 @@ void sky_plugin_swoole_curl(zend_execute_data *execute_data, const std::string &
 
             if (_scheme == "http" || _scheme == "https") {
                 auto *segment = sky_get_segment(execute_data, -1);
-                if (segment) {
+                if (segment != nullptr) {
                     span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
                     span->setPeer(_host + ":" + std::to_string(_port));
                     span->setOperationName(_path);

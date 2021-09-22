@@ -21,7 +21,6 @@
 
 #include <string>
 #include <vector>
-#include <map>
 
 class SkyCoreSpanLog {
 public:
@@ -29,9 +28,9 @@ public:
 
     long getTime();
 
-    std::string getKey();
+    const std::string &getKey();
 
-    std::string getValue();
+    const std::string &getValue();
 
 private:
     long _time;

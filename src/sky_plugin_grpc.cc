@@ -33,6 +33,10 @@ Span *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, char *f
         _function_name == "_serverStreamRequest" || _function_name == "_bidiRequest") {
 
         auto *segment = sky_get_segment(execute_data, -1);
+        if (segment->skip()) {
+            return nullptr;
+        }
+
         auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::RPCFramework, 23);
         span->setOperationName(_class_name + "->" + _function_name);
         span->addTag("rpc.type", "grpc");
