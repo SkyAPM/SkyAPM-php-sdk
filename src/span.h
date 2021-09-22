@@ -52,11 +52,11 @@ public:
 
     long getEndTime() const;
 
-    const std::vector<SkySegmentReference *> &getRefs();
+    const std::vector<SkySegmentReference *>& getRefs();
 
-    std::string getOperationName();
+    const std::string& getOperationName();
 
-    std::string getPeer();
+    const std::string& getPeer();
 
     SkySpanType getSpanType();
 
@@ -66,9 +66,9 @@ public:
 
     bool getIsError() const;
 
-    const std::vector<Tag *> &getTags();
+    const std::vector<Tag *>& getTags();
 
-    const std::vector<SkyCoreSpanLog *> &getLogs();
+    const std::vector<SkyCoreSpanLog*>& getLogs();
 
     bool getSkipAnalysis() const;
 

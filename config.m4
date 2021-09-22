@@ -183,6 +183,7 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/sky_plugin_memcached.cc \
       src/sky_plugin_yar.cc \
       src/sky_plugin_swoole_curl.cc \
+      src/sky_rate_limit.cc \
       src/sky_shm.cc \
       src/sky_utils.cc \
       src/span.cc \

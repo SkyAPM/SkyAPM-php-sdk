@@ -149,6 +149,14 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     char *exclude_uri;
     boost::unordered_set<std::string> exclude_uris ;
 
+
+    // rate limit
+    void *rate_limiter;
+    int sample_n_per_3_secs;
+
+    // fixed UUID
+    char *instance_name;
+
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
