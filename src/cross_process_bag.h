@@ -33,21 +33,21 @@ public:
 
     std::string encode(int spanId, const std::string &peer);
 
-    void setOperationName(std::string name);
+    void setOperationName(const std::string &name);
 
-    std::string getTraceId();
+    const std::string &getTraceId();
 
-    std::string getParentTraceSegmentId();
+    const std::string &getParentTraceSegmentId();
 
     int getParentSpanId() const;
 
-    std::string getParentService();
+    const std::string &getParentService();
 
-    std::string getParentServiceInstance();
+    const std::string &getParentServiceInstance();
 
-    std::string getParentEndpoint();
+    const std::string &getParentEndpoint();
 
-    std::string getNetworkAddressUsedAtPeer();
+    const std::string &getNetworkAddressUsedAtPeer();
 
 private:
     void decode(const std::string &h);

@@ -207,7 +207,7 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
             if (arg_count >= 1) {
                 zval *status = ZEND_CALL_ARG(execute_data, 1);
-                if (Z_TYPE_P(status) == IS_LONG) {
+                if (Z_TYPE_P(status) == IS_LONG && segment != nullptr) {
                     segment->setStatusCode(Z_LVAL_P(status));
                 }
             }

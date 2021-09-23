@@ -22,7 +22,9 @@
 #include "php_skywalking.h"
 #include "span.h"
 #include <string>
+#ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
+#endif
 
 Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
