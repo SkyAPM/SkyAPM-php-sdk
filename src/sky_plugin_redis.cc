@@ -18,7 +18,7 @@
 
 #include "sky_plugin_redis.h"
 
-std::map<std::string, redis_cmd_cb> commands = {
+std::unordered_map<std::string, redis_cmd_cb> commands = {
         // connection
         {"SELECT",      sky_plugin_redis_select_cmd},
         {"ECHO",        sky_plugin_redis_key_cmd},
@@ -124,7 +124,7 @@ std::map<std::string, redis_cmd_cb> commands = {
         {"RPUSHX",      sky_plugin_redis_todo_cmd},
 
         // sets
-        {"SADD",        sky_plugin_redis_todo_cmd},
+        {"SADD",        sky_plugin_redis_sets_add_cmd},
         {"SCARD",       sky_plugin_redis_todo_cmd},
         {"SSIZE",       sky_plugin_redis_todo_cmd},
         {"SDIFF",       sky_plugin_redis_todo_cmd},
@@ -237,7 +237,7 @@ Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class
     std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::toupper);
     if (commands.count(cmd) > 0) {
         auto *segment = sky_get_segment(execute_data, -1);
-        if (segment) {
+        if (segment != nullptr) {
             auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 7);
             span->setOperationName(class_name + "->" + function_name);
             span->addTag("db.type", "redis");
@@ -335,7 +335,7 @@ std::string sky_plugin_redis_set_cmd(zend_execute_data *execute_data, std::strin
 
         if (Z_TYPE_P(key) == IS_STRING && Z_TYPE_P(value) == IS_STRING) {
             cmd += " " + std::string(Z_STRVAL_P(key)) + " " + std::string(Z_STRVAL_P(value));
-            
+
             if (Z_TYPE_P(optional) == IS_LONG) {
                 cmd += " " + std::to_string(Z_LVAL_P(optional));
             }
@@ -632,6 +632,28 @@ std::string sky_plugin_redis_eval_cmd(zend_execute_data *execute_data, std::stri
             }
             return cmd;
         }
+    }
+    return "";
+}
+
+std::string sky_plugin_redis_sets_add_cmd(zend_execute_data *execute_data, std::string cmd) {
+    uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
+    if (arg_count >= 2) {
+        zval *key = ZEND_CALL_ARG(execute_data, 1);
+        if (Z_TYPE_P(key) == IS_STRING) {
+            cmd = cmd + " " + std::string(Z_STRVAL_P(key));
+        }
+        for (uint32_t i = 2; i <= arg_count; ++i) {
+            if (i <= arg_count) {
+                zval *value = ZEND_CALL_ARG(execute_data, i);
+                if (Z_TYPE_P(value) == IS_LONG) {
+                    cmd += " " + std::to_string(Z_LVAL_P(value));
+                } else if (Z_TYPE_P(value) == IS_STRING) {
+                    cmd += " " + std::string(Z_STRVAL_P(value));
+                }
+            }
+        }
+        return cmd;
     }
     return "";
 }
