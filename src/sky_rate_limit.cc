@@ -37,17 +37,20 @@ bool FixedWindowRateLimiter::validate() {
         return true;
     }
 
-    TimePoint now = TimePoint::clock::now();
-    std::chrono::duration<double> span = now - this->startTime;
+    std::chrono::duration<double> span = TimePoint::clock::now() - this->startTime;
 
     bool falseValue = false;
-    if (span > this->timeWindow && resetLock.compare_exchange_weak(falseValue, true) && span > this->timeWindow) {
+    if (span > this->timeWindow 
+        && resetLock.compare_exchange_weak(falseValue, true) 
+        && (TimePoint::clock::now() - this->startTime) > this->timeWindow) {
+            
         int64_t timeSpan = static_cast<int64_t>(floor(span.count()));
         timeSpan = timeSpan - timeSpan % this->timeWindow.count();
 
         this->startTime += std::chrono::seconds(timeSpan);
+        span = TimePoint::clock::now() - this->startTime;
         this->currentCount.store(0);
-
+        
         resetLock.store(false);
     }
 
