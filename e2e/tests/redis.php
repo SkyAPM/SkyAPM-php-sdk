@@ -81,4 +81,8 @@ function testRedis() {
     $redis->expireAt($key, time() + 3600);
     $redis->pExpireAt($key, time() + 3600);
     $redis->setTimeout($key, 3600);
+
+    // sets
+    $redis->sAdd($key, "member1");
+    $redis->sAdd($key, "member2", "member3");
 }
