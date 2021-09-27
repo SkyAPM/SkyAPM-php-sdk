@@ -30,8 +30,7 @@
 
 typedef std::function<std::string(zend_execute_data *execute_data, std::string)> redis_cmd_cb;
 
-Span *
-sky_plugin_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
+Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
 std::string sky_plugin_redis_peer(zend_execute_data *execute_data);
 
