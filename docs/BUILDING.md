@@ -26,7 +26,9 @@ To build gRPC from source, you may need to install the following packages from H
 
 ### Alpine
 ```shell
- $ apk --update add --no-cache git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx boost-dev
+ $ apk --update add --no-cache git ca-certificates autoconf automake libtool 
+ $ apk --update add --no-cache cmake g++ make file linux-headers file re2c 
+ $ apk --update add --no-cache pkgconf openssl openssl-dev curl curl-dev nginx boost-dev
 ```
 
 ## Build gRPC static library

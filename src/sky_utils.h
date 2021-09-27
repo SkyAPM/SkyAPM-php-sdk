@@ -38,8 +38,13 @@ int64_t sky_find_swoole_fd(zend_execute_data *execute_data);
 
 Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id);
 
+bool sky_insert_segment(uint64_t request_id, Segment *segment);
+
+void sky_remove_segment(uint64_t request_id);
+
 std::string sky_get_class_name(zval *obj);
 
 long getUnixTimeStamp();
 
+std::string sky_json_encode(zval *parameter);
 #endif //SKYWALKING_SKY_UTILS_H

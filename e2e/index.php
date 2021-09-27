@@ -28,3 +28,7 @@ testAddTag();
 testAddLog();
 
 testMysqli();
+
+testMemcached();
+
+testYar();

@@ -15,19 +15,20 @@
  *
  */
 
+#ifndef SKYWALKING_SRC_SKY_PLUGIN_YAR_H_
+#define SKYWALKING_SRC_SKY_PLUGIN_YAR_H_
 
-#include "tag.h"
+#include "php_skywalking.h"
+#include "sky_utils.h"
+#include <string>
+#include <functional>
+#include <map>
+#include "span.h"
+#include "segment.h"
+#define YAR_OPT_HEADER	(1<<4)
 
-#include <utility>
+Span *sky_plugin_yar_client(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
-Tag::Tag(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
-    _value.erase(_value.find_last_not_of(' ') + 1);
-}
+Span *sky_plugin_yar_server(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
-const std::string& Tag::getKey() {
-    return _key;
-}
-
-const std::string& Tag::getValue() {
-    return _value;
-}
+#endif //SKYWALKING_SRC_SKY_PLUGIN_YAR_H_

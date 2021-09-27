@@ -88,15 +88,15 @@ std::string CrossProcessBag::encode(int spanId, const std::string &peer) {
     return header;
 }
 
-void CrossProcessBag::setOperationName(std::string name) {
-    currentOperationName = std::move(name);
+void CrossProcessBag::setOperationName(const std::string &name) {
+    currentOperationName = name;
 }
 
-std::string CrossProcessBag::getTraceId() {
+const std::string &CrossProcessBag::getTraceId() {
     return traceId;
 }
 
-std::string CrossProcessBag::getParentTraceSegmentId() {
+const std::string &CrossProcessBag::getParentTraceSegmentId() {
     return parentSegmentId;
 }
 
@@ -104,18 +104,18 @@ int CrossProcessBag::getParentSpanId() const {
     return parentSpanId;
 }
 
-std::string CrossProcessBag::getParentService() {
+const std::string &CrossProcessBag::getParentService() {
     return parentService;
 }
 
-std::string CrossProcessBag::getParentServiceInstance() {
+const std::string &CrossProcessBag::getParentServiceInstance() {
     return parentServiceInstance;
 }
 
-std::string CrossProcessBag::getParentEndpoint() {
+const std::string &CrossProcessBag::getParentEndpoint() {
     return parentEndpoint;
 }
 
-std::string CrossProcessBag::getNetworkAddressUsedAtPeer() {
+const std::string &CrossProcessBag::getNetworkAddressUsedAtPeer() {
     return networkAddressUsedAtPeer;
 }
