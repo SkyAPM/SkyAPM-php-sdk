@@ -18,7 +18,7 @@
 
 #include "sky_plugin_redis.h"
 
-std::unordered_map<std::string, redis_cmd_cb> commands = {
+std::map<std::string, redis_cmd_cb> commands = {
         // connection
         {"SELECT",      sky_plugin_redis_select_cmd},
         {"ECHO",        sky_plugin_redis_key_cmd},
@@ -237,7 +237,7 @@ Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class
     std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::toupper);
     if (commands.count(cmd) > 0) {
         auto *segment = sky_get_segment(execute_data, -1);
-        if (segment != nullptr) {
+        if (segment) {
             auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 7);
             span->setOperationName(class_name + "->" + function_name);
             span->addTag("db.type", "redis");
