@@ -29,8 +29,21 @@ Span::Span() {
 }
 
 Span::~Span() {
+    for (auto ref : refs) {
+        delete ref;
+    }
+    refs.clear();
+    refs.shrink_to_fit();
+
+    for (auto tag : tags) {
+        delete tag;
+    }
     tags.clear();
     tags.shrink_to_fit();
+
+    for (auto log : logs) {
+        delete log;
+    }
     logs.clear();
     logs.shrink_to_fit();
 }
@@ -52,15 +65,15 @@ long Span::getEndTime() const {
     return endTime;
 }
 
-std::vector<SkySegmentReference *> Span::getRefs() {
+const std::vector<SkySegmentReference*>& Span::getRefs() {
     return refs;
 }
 
-std::string Span::getOperationName() {
+const std::string& Span::getOperationName() {
     return operationName;
 }
 
-std::string Span::getPeer() {
+const std::string& Span::getPeer() {
     return peer;
 }
 
@@ -80,18 +93,17 @@ bool Span::getIsError() const {
     return isError;
 }
 
-std::vector<Tag *> Span::getTags() {
+const std::vector<Tag*>& Span::getTags() {
     return tags;
 }
 
-std::vector<SkyCoreSpanLog *> Span::getLogs() {
+const std::vector<SkyCoreSpanLog*>& Span::getLogs() {
     return logs;
 }
 
 bool Span::getSkipAnalysis() const {
     return skipAnalysis;
 }
-
 
 // set
 void Span::setEndTIme() {

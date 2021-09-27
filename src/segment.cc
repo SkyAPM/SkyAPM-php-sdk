@@ -49,6 +49,10 @@ Segment::Segment(const std::string &serviceId, const std::string &serviceInstanc
 
 Segment::~Segment() {
     delete bag;
+
+    for (auto span : spans) {
+        delete span;
+    }
     spans.clear();
     spans.shrink_to_fit();
 }
@@ -182,6 +186,14 @@ void Segment::createRefs() {
     }
 }
 
-std::string Segment::getTraceId() {
+const std::string& Segment::getTraceId() {
     return _traceId;
+}
+
+void Segment::setSkip(bool skip) {
+    this->doSkip = skip;
+}
+
+bool Segment::skip() {
+    return doSkip;
 }

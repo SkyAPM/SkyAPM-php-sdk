@@ -16,13 +16,13 @@
  */
 
 
-#ifndef SKYWALKING_SKY_GRPC_H
-#define SKYWALKING_SKY_GRPC_H
+#ifndef SKYWALKING_SKY_PLUGIN_GRPC_H
+#define SKYWALKING_SKY_PLUGIN_GRPC_H
 
 #include "php_skywalking.h"
 
 #include "span.h"
 
-Span *sky_grpc(zend_execute_data *execute_data, char *class_name, char *function_name);
+Span *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, char *function_name);
 
-#endif //SKYWALKING_SKY_GRPC_H
+#endif //SKYWALKING_SKY_PLUGIN_GRPC_H

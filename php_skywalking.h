@@ -59,6 +59,11 @@ SKY_BEGIN_EXTERN_C()
 #include "ext/pdo/php_pdo_driver.h"
 #include "ext/standard/php_var.h"
 
+#include "zend_smart_str.h"
+#include "Zend/zend_smart_str.h"
+#include "ext/json/php_json.h"
+#include "ext/standard/php_smart_string.h"
+
 extern zend_module_entry skywalking_module_entry;
 #define phpext_skywalking_ptr &skywalking_module_entry
 
@@ -92,6 +97,14 @@ extern zend_module_entry skywalking_module_entry;
 #ifdef ZTS
 #include "TSRM.h"
 #endif
+
+#ifndef HOST_NAME_MAX
+#if defined(__APPLE__)
+#define HOST_NAME_MAX 255
+#else
+#define HOST_NAME_MAX 64
+#endif /* __APPLE__ */
+#endif /* HOST_NAME_MAX */
 
 PHP_FUNCTION (skywalking_trace_id);
 PHP_FUNCTION (skywalking_log);
@@ -130,6 +143,13 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
 
     // message queue
     int mq_max_message_length;
+
+    // rate limit
+    void *rate_limiter;
+    int sample_n_per_3_secs;
+
+    // fixed UUID
+    char *instance_name;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

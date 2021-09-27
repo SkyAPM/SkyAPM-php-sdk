@@ -1,3 +1,4 @@
+<?php
 /*
  * Copyright 2021 SkyAPM
  *
@@ -14,20 +15,6 @@
  * limitations under the License.
  *
  */
+function testYar() {
 
-
-#include "tag.h"
-
-#include <utility>
-
-Tag::Tag(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
-    _value.erase(_value.find_last_not_of(' ') + 1);
-}
-
-const std::string& Tag::getKey() {
-    return _key;
-}
-
-const std::string& Tag::getValue() {
-    return _value;
 }

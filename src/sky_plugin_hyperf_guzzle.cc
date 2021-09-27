@@ -26,6 +26,10 @@ extern void (*ori_execute_ex)(zend_execute_data *execute_data);
 Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
     auto *segment = sky_get_segment(execute_data, -1);
+    if (segment->skip()) {
+        return nullptr;
+    }
+
     auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
 
     uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
