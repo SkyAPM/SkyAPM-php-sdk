@@ -74,5 +74,7 @@ std::string sky_plugin_redis_eval_cmd(zend_execute_data *execute_data, std::stri
 
 std::string sky_plugin_redis_select_cmd(zend_execute_data *execute_data, std::string cmd);
 
+// sets
+std::string sky_plugin_redis_sets_add_cmd(zend_execute_data *execute_data, std::string cmd);
 
 #endif // SKYWALKING_SKY_PLUGIN_REDIS_H
