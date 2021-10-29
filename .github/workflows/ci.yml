@@ -141,7 +141,7 @@ jobs:
       - name: E2E tests
         run: |
           cd e2e
-          php -dskywalking.enable=0 e2e.php ${{ matrix.php-version }}
+          sudo php -dskywalking.enable=0 e2e.php ${{ matrix.php-version }}
           sudo cat /tmp/skywalking-php.log
 
   publish:
