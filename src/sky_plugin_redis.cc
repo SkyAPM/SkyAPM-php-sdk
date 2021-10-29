@@ -637,6 +637,7 @@ std::string sky_plugin_redis_eval_cmd(zend_execute_data *execute_data, std::stri
 }
 
 std::string sky_plugin_redis_sets_add_cmd(zend_execute_data *execute_data, std::string cmd) {
+    return "";
     uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
     if (arg_count >= 2) {
         zval *key = ZEND_CALL_ARG(execute_data, 1);

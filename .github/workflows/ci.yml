@@ -19,6 +19,7 @@ on:
   push:
     branches:
       - master
+      - test-ci
     tags:
       - 'v*'
   pull_request:
