@@ -85,9 +85,11 @@ jobs:
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
+        env:
+          YAR_LIBS: libcurl4-openssl-dev
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: curl, json, redis, pdo_mysql, memcached, yar
+          extensions: curl, json, redis, pdo_mysql, memcached, yar-laruence/yar@yar-2.2.0
           tools: php-config, phpize, composer
 
       - name: Install library
