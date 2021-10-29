@@ -126,8 +126,7 @@ jobs:
 
       - name: Start FPM and Nginx
         run: |
-          sudo cat /etc/php/${{ matrix.php-version }}/fpm/php-fpm.conf
-          sudo cat /etc/php/${{ matrix.php-version }}/fpm/pool.d/www.conf
+          ulimit -c unlimited
           sudo cp e2e/99-skywalking.ini $(php -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/99-skywalking.ini $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
@@ -142,9 +141,16 @@ jobs:
 
       - name: E2E tests
         run: |
+          ulimit -c unlimited
           cd e2e
           sudo php -dskywalking.enable=0 e2e.php ${{ matrix.php-version }}
           sudo cat /tmp/skywalking-php.log
+          sudo ls /var/crash
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: crashes
+          path: /cores
 
   publish:
     needs: [build]
