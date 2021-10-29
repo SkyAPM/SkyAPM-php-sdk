@@ -125,6 +125,7 @@ jobs:
       - name: Start FPM and Nginx
         run: |
           sudo ls /etc/systemd/system/
+          sudo ls /usr/lib/systemd/system
           sudo cp e2e/99-skywalking.ini $(php -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/99-skywalking.ini $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
