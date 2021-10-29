@@ -31,7 +31,7 @@ public:
     bool validate();
 
 private:
-    std::atomic_int64_t currentCount;
+    std::atomic<std::int64_t> currentCount;
     int64_t rate;
     std::chrono::duration<int> timeWindow; // second
     TimePoint startTime;
