@@ -84,9 +84,11 @@ jobs:
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
+        env:
+          YAR_LIBS: libcurl4-openssl-dev
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: curl, json, redis, pdo_mysql, memcached, yar
+          extensions: curl, json, redis, pdo_mysql, memcached, yar-laruence/yar@yar-2.2.0
           tools: php-config, phpize, composer
 
       - name: Install library
@@ -123,6 +125,7 @@ jobs:
 
       - name: Start FPM and Nginx
         run: |
+          ulimit -c unlimited
           sudo cp e2e/99-skywalking.ini $(php -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/99-skywalking.ini $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
@@ -133,13 +136,21 @@ jobs:
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl restart php${{ matrix.php-version }}-fpm
           sudo systemctl restart nginx
+          sudo sleep 4
 
 
       - name: E2E tests
         run: |
+          ulimit -c unlimited
           cd e2e
-          php -dskywalking.enable=0 e2e.php
+          sudo php -dskywalking.enable=0 e2e.php ${{ matrix.php-version }}
           sudo cat /tmp/skywalking-php.log
+
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: crashes
+          path: /var/crash
 
   publish:
     needs: [build]
