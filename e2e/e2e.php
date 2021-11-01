@@ -255,7 +255,7 @@ foreach($check as $func) {
     if (!$status) {
         $e2e->info("test $func fail...");
         echo(file_get_contents("/var/log/php" . $argv[1] . "-fpm.log"));
-        exit(0);
+        exit(2);
     }
 
     $e2e->info("test $func success...");

@@ -148,9 +148,10 @@ jobs:
           sudo ls /var/crash
 
       - uses: actions/upload-artifact@v2
+        if: failure()
         with:
           name: crashes
-          path: /cores
+          path: /var/crash
 
   publish:
     needs: [build]
