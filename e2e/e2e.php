@@ -255,6 +255,7 @@ foreach($check as $func) {
     if (!$status) {
         $e2e->info("test $func fail...");
         echo(file_get_contents("/var/log/php" . $argv[1] . "-fpm.log"));
+        system("sudo chmod -R +rwx /var/crash/*");
         exit(2);
     }
 
