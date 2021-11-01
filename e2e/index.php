@@ -20,22 +20,22 @@ require_once __DIR__ . '/tests.php';
 
 $ch = curl_init("https://api.github.com/repos");
 curl_exec($ch);
-echo("curl success");
+echo("curl success\n");
 
 testRedis();
-echo("redis success");
+echo("redis success\n");
 
 testAddTag();
-echo("tag success");
+echo("tag success\n");
 
 testAddLog();
-echo("log success");
+echo("log success\n");
 
 testMysqli();
-echo("mysqli success");
+echo("mysqli success\n");
 
 testMemcached();
-echo("memcached success");
+echo("memcached success\n");
 
 testYar();
-echo("yar success");
+echo("yar success\n");

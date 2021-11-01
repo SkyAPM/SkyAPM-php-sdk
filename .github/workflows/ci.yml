@@ -137,6 +137,7 @@ jobs:
           sudo cp e2e/index.php /var/www/html/
           sudo systemctl restart php${{ matrix.php-version }}-fpm
           sudo systemctl restart nginx
+          sudo sleep 4
 
 
       - name: E2E tests
