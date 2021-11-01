@@ -19,7 +19,6 @@ on:
   push:
     branches:
       - master
-      - test-ci
     tags:
       - 'v*'
   pull_request:
@@ -146,7 +145,6 @@ jobs:
           cd e2e
           sudo php -dskywalking.enable=0 e2e.php ${{ matrix.php-version }}
           sudo cat /tmp/skywalking-php.log
-          sudo ls /var/crash
 
       - uses: actions/upload-artifact@v2
         if: failure()
