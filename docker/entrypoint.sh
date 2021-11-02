@@ -19,11 +19,11 @@ grpc=$SW_OAP_ADDRESS
 
 if [ ! $grpc ]; then
     grpc="127.0.0.1:11800"
+    sed -i "s/127.0.0.1:11800/$grpc/g" $PHP_INI_DIR/conf.d/ext-skywalking.ini
 fi
 
-echo "sw oap address:" $grpc
+echo "skywalking oap address:" $grpc
 
-sed -i "s/127.0.0.1:11800/$grpc/g" $PHP_INI_DIR/conf.d/ext-skywalking.ini
 nginx
 
 php-fpm
