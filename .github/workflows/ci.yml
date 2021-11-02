@@ -163,9 +163,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+
+      - name: Check output
+        run: echo ${{ steps.vars.outputs.tag }}
 
       - name: Publish Dokcer image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version == '8.0'
+        if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name == 'push' && steps.vars.outputs.tag == 'master' && matrix.php-version == '8.0'
         uses: elgohr/Publish-Docker-Github-Action@3.04
         with:
           name: skyapm/skywalking-php
@@ -176,7 +181,7 @@ jobs:
           tags: "latest,master-${{ matrix.php-version }}-fpm-alpine"
 
       - name: Publish Dokcer image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version != '8.0'
+        if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name == 'push' && steps.vars.outputs.tag == 'master' && matrix.php-version != '8.0'
         uses: elgohr/Publish-Docker-Github-Action@3.04
         with:
           name: skyapm/skywalking-php
@@ -185,3 +190,13 @@ jobs:
           dockerfile: docker/Dockerfile
           buildargs: PHP_VERSION=${{ matrix.php-version }}
           tags: "master-${{ matrix.php-version }}-fpm-alpine"
+      - name: Publish Dokcer image
+        if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name == 'push' && steps.vars.outputs.tag != 'master' && matrix.php-version != '8.0'
+        uses: elgohr/Publish-Docker-Github-Action@3.04
+        with:
+          name: skyapm/skywalking-php
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: docker/Dockerfile
+          buildargs: PHP_VERSION=${{ matrix.php-version }}
+          tags: "${{steps.vars.outputs.tag}}-${{ matrix.php-version }}-fpm-alpine"
