@@ -193,7 +193,7 @@ jobs:
           buildargs: PHP_VERSION=${{ matrix.php-version }}
           tags: "master-${{ matrix.php-version }}-fpm-alpine"
       - name: Publish Dokcer image
-        if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name == 'push' && steps.vars.outputs.tag != 'master' && matrix.php-version != '8.0'
+        if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name == 'push' && steps.vars.outputs.tag != 'master' && startsWith(steps.vars.outputs.tag, 'v')
         uses: elgohr/Publish-Docker-Github-Action@3.04
         with:
           name: skyapm/skywalking-php
