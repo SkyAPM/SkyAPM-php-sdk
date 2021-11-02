@@ -165,7 +165,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Publish Dokcer image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version == "8.0"
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version == '8.0'
         uses: elgohr/Publish-Docker-Github-Action@2.13
         with:
           name: skyapm/skywalking-php
@@ -175,7 +175,7 @@ jobs:
           tags: "latest,master-${{ matrix.php-version }}-fpm-alpine"
 
       - name: Publish Dokcer image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version != "8.0"
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version != '8.0'
         uses: elgohr/Publish-Docker-Github-Action@2.13
         with:
           name: skyapm/skywalking-php
