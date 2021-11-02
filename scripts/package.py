@@ -16,7 +16,7 @@
 import xml.dom.minidom
 import time, os
 
-version = '4.1.3'
+version = '4.2.0'
 
 git = os.popen('git ls-files')
 res = git.read()
@@ -98,6 +98,21 @@ config = [
     {'key': 'providesextension', 'value': 'skywalking'},
     {'key': 'extsrcrelease'},
     {'key': 'changelog', 'child': [
+        {'key': 'release', 'child': [
+            {'key': 'version', 'child': [
+                {'key': 'release', 'value': '4.2.0'},
+                {'key': 'api', 'value': '4.2.0'}
+            ]
+             },
+            {'key': 'stability', 'child': [
+                {'key': 'release', 'value': 'stable'},
+                {'key': 'api', 'value': 'stable'}
+            ]
+             },
+            {'key': 'notes', 'value': 'Fix bugs'}
+        ]
+         },
+
         {'key': 'release', 'child': [
             {'key': 'version', 'child': [
                     {'key': 'release', 'value': '4.1.3'},

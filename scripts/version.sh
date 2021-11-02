@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-VERSION=4.1.3
+VERSION=4.2.0
 OS=`uname`
 
 echo "OS: $OS"
