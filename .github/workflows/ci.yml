@@ -172,6 +172,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           dockerfile: docker/Dockerfile
+          buildargs: PHP_VERSION=${{ matrix.php-version }}
           tags: "latest,master-${{ matrix.php-version }}-fpm-alpine"
 
       - name: Publish Dokcer image
@@ -182,4 +183,5 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           dockerfile: docker/Dockerfile
+          buildargs: PHP_VERSION=${{ matrix.php-version }}
           tags: "master-${{ matrix.php-version }}-fpm-alpine"
