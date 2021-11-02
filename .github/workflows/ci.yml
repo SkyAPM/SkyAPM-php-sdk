@@ -166,7 +166,7 @@ jobs:
 
       - name: Publish Dokcer image
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version == '8.0'
-        uses: elgohr/Publish-Docker-Github-Action@2.13
+        uses: elgohr/Publish-Docker-Github-Action@3.04
         with:
           name: skyapm/skywalking-php
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -176,7 +176,7 @@ jobs:
 
       - name: Publish Dokcer image
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version != '8.0'
-        uses: elgohr/Publish-Docker-Github-Action@2.13
+        uses: elgohr/Publish-Docker-Github-Action@3.04
         with:
           name: skyapm/skywalking-php
           username: ${{ secrets.DOCKER_USERNAME }}
