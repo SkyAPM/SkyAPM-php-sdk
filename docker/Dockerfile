@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM php:7.4-fpm-alpine
+ARG PHP_VERSION
+FROM php:${PHP_VERSION}-fpm-alpine
 
 ENV GRPC_RELEASE_TAG v1.31.x
 ENV PROTOBUF_RELEASE_TAG 3.13.x
@@ -44,9 +45,14 @@ RUN set -ex \
     && phpize && ./configure --with-grpc=/var/local/git/grpc && make && make install \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && mkdir -p /opt \
-    && cp docker/service.sh /opt/ \
+    && cp docker/entrypoint.sh /opt/ \
     && cp docker/nginx.conf /etc/nginx/nginx.conf \
     && cp docker/index.php /var/www/html/index.php \
     && cd / \
     && rm -rf /var/cache/apk/* \
     && rm -fr /var/local/git
+
+EXPOSE 9000
+EXPOSE 8080
+
+ENTRYPOINT ["/opt/entrypoint.sh"]

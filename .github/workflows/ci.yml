@@ -165,11 +165,21 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Publish Dokcer image
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version == "8.0"
         uses: elgohr/Publish-Docker-Github-Action@2.13
         with:
-          name: skyapm/skywalking-php-${{ matrix.php-version }}-fpm-alpine
+          name: skyapm/skywalking-php
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tag_names: true
-          dockerfile: docker/Dockerfile.${{ matrix.php-version }}
+          dockerfile: docker/Dockerfile
+          tags: "latest,master-${{ matrix.php-version }}-fpm-alpine"
+
+      - name: Publish Dokcer image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.php-version != "8.0"
+        uses: elgohr/Publish-Docker-Github-Action@2.13
+        with:
+          name: skyapm/skywalking-php
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: docker/Dockerfile
+          tags: "master-${{ matrix.php-version }}-fpm-alpine"
