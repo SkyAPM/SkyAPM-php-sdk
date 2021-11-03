@@ -1,7 +1,6 @@
 SkyAPM PHP
 ==========
 ![CI](https://github.com/SkyAPM/SkyAPM-php-sdk/workflows/CI/badge.svg)
-![CI](https://travis-ci.org/SkyAPM/SkyAPM-php-sdk.svg?branch=master)
 ![release](https://img.shields.io/github/release/SkyAPM/SkyAPM-php-sdk.svg)
 ![PHP](https://img.shields.io/badge/PHP-%3E%3D%207.0-brightgreen.svg)
 ![contributors](https://img.shields.io/github/contributors/SkyAPM/SkyAPM-php-sdk.svg)
