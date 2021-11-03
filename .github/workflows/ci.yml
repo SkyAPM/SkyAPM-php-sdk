@@ -134,7 +134,7 @@ jobs:
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
       - name: Build SkyWalking-PHP static
-        if: matrix.php-version == 'static'
+        if: matrix.library-grpc == 'static'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
@@ -143,7 +143,7 @@ jobs:
           sudo make install
 
       - name: Build SkyWalking-PHP shared
-        if: matrix.php-version == 'shared'
+        if: matrix.library-grpc == 'shared'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
