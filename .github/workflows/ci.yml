@@ -129,7 +129,9 @@ jobs:
       - name: Install GRPC ${{ matrix.library-grpc }}
         if: matrix.library-grpc == 'shared'
         run: |
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           sudo make install
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
       - name: Build SkyWalking-PHP ${{ matrix.library-grpc }}
         if: matrix.php-version == 'static'
