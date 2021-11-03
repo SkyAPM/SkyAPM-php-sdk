@@ -119,18 +119,25 @@ jobs:
       - name: Build GRPC shared
         if: steps.cache-grpc.outputs.cache-hit != 'true' && matrix.library-grpc == 'shared'
         run: |
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
+          ./autogen.sh && ./configure
+          make -j$(nproc)
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           mkdir -p cmake/build
           cd cmake/build
-          cmake ../.. -DBUILD_SHARED_LIBS=ON
+          cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
           make -j$(nproc)
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
       - name: Install GRPC shared
         if: matrix.library-grpc == 'shared'
         run: |
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
+          sudo make install
+          sudo ldconfig
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/cmake/build
           sudo make install
+          sudo ldconfig
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
       - name: Build SkyWalking-PHP static
