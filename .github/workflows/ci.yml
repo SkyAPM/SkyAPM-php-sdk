@@ -33,7 +33,8 @@ jobs:
         operating-system: [ubuntu-latest]
         php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
         skywalking-version: ['8.5.0-es6', '8.4.0-es6', '8.3.0-es6', '8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
-    name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
+        library-grpc: ['static', 'shared']
+    name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }} [${{ matrix.library-grpc }}]
     services:
       skywalking:
         image: apache/skywalking-oap-server:${{ matrix.skywalking-version }}
@@ -71,7 +72,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
-          key: ${{ runner.os }}-grpc-v1
+          key: ${{ runner.os }}-grpc-${{ matrix.library-grpc }}-v1
 
       - name: Checkout GRPC
         if: steps.cache-grpc.outputs.cache-hit != 'true'
@@ -105,8 +106,8 @@ jobs:
           composer install
           cd ..
 
-      - name: Build GRPC
-        if: steps.cache-grpc.outputs.cache-hit != 'true'
+      - name: Build GRPC ${{ matrix.library-grpc }}
+        if: steps.cache-grpc.outputs.cache-hit != 'true' && matrix.library-grpc == 'static'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           mkdir -p cmake/build
@@ -115,11 +116,36 @@ jobs:
           make -j$(nproc)
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
-      - name: Build SkyWalking-PHP
+      - name: Build GRPC ${{ matrix.library-grpc }}
+        if: steps.cache-grpc.outputs.cache-hit != 'true' && matrix.library-grpc == 'shared'
+        run: |
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          mkdir -p cmake/build
+          cd cmake/build
+          cmake ../.. -DBUILD_SHARED_LIBS=ON
+          make -j$(nproc)
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
+
+      - name: Install GRPC ${{ matrix.library-grpc }}
+        if: matrix.library-grpc == 'shared'
+        run: |
+          sudo make install
+
+      - name: Build SkyWalking-PHP ${{ matrix.library-grpc }}
+        if: matrix.php-version == 'static'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
-          ./configure --with-grpc=/home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          ./configure --with-grpc-src=/home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          make -j$(nproc)
+          sudo make install
+
+      - name: Build SkyWalking-PHP ${{ matrix.library-grpc }}
+        if: matrix.php-version == 'shared'
+        run: |
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
+          phpize
+          ./configure
           make -j$(nproc)
           sudo make install
 
