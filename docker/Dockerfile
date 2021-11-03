@@ -42,7 +42,7 @@ RUN set -ex \
     && make -j$(nproc) \
     && echo "--- installing skywalking php ---" \
     && cd /var/local/git/skywalking \
-    && phpize && ./configure --with-grpc=/var/local/git/grpc && make && make install \
+    && phpize && ./configure --with-grpc-src=/var/local/git/grpc && make && make install \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && mkdir -p /opt \
     && cp docker/entrypoint.sh /opt/ \
