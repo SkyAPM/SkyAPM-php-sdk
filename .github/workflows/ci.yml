@@ -106,7 +106,7 @@ jobs:
           composer install
           cd ..
 
-      - name: Build GRPC ${{ matrix.library-grpc }}
+      - name: Build GRPC static
         if: steps.cache-grpc.outputs.cache-hit != 'true' && matrix.library-grpc == 'static'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
@@ -116,7 +116,7 @@ jobs:
           make -j$(nproc)
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
-      - name: Build GRPC ${{ matrix.library-grpc }}
+      - name: Build GRPC shared
         if: steps.cache-grpc.outputs.cache-hit != 'true' && matrix.library-grpc == 'shared'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
@@ -126,14 +126,14 @@ jobs:
           make -j$(nproc)
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
-      - name: Install GRPC ${{ matrix.library-grpc }}
+      - name: Install GRPC shared
         if: matrix.library-grpc == 'shared'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
           sudo make install
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
-      - name: Build SkyWalking-PHP ${{ matrix.library-grpc }}
+      - name: Build SkyWalking-PHP static
         if: matrix.php-version == 'static'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
@@ -142,7 +142,7 @@ jobs:
           make -j$(nproc)
           sudo make install
 
-      - name: Build SkyWalking-PHP ${{ matrix.library-grpc }}
+      - name: Build SkyWalking-PHP shared
         if: matrix.php-version == 'shared'
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
