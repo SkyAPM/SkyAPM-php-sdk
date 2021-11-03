@@ -129,7 +129,7 @@ jobs:
       - name: Install GRPC shared
         if: matrix.library-grpc == 'shared'
         run: |
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/cmake/build
           sudo make install
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
 
