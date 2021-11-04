@@ -31,9 +31,10 @@ To build gRPC from source, you may need to install the following packages from H
  $ apk --update add --no-cache pkgconf openssl openssl-dev curl curl-dev nginx boost-dev
 ```
 
-## Build gRPC static library
+## Build gRPC static or shared library (pick one of two)
 
 ```shell
+ # static
  $ git clone --depth 1 -b v1.34.x https://github.com/grpc/grpc.git /var/local/git/grpc
  $ cd /var/local/git/grpc
  $ git submodule update --init --recursive
@@ -41,18 +42,24 @@ To build gRPC from source, you may need to install the following packages from H
  $ cd cmake/build
  $ cmake ../..
  $ make -j$(nproc)
-```
-
-## Build gRPC shared library
-
-```shell
+ 
+ # shared
  $ git clone --depth 1 -b v1.34.x https://github.com/grpc/grpc.git /var/local/git/grpc
+ $ cd /var/local/git/grpc
+ $ cd third_party/protobuf
+ $ ./autogen.sh
+ $ ./configure
+ $ make -j$(nproc)
+ $ sudo make install
+ $ sudo ldconfig
  $ cd /var/local/git/grpc
  $ git submodule update --init --recursive
  $ mkdir -p cmake/build
  $ cd cmake/build
- $ cmake ../.. -DBUILD_SHARED_LIBS=ON
+ $ cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
  $ make -j$(nproc)
+ $ sudo make install
+ $ sudo ldconfig
 ```
 
 ## Build from source with static gRPC library (PHP Extension)
