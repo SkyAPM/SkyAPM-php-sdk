@@ -213,6 +213,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v3
@@ -221,12 +222,19 @@ jobs:
             skyapm/skywalking-php
             ghcr.io/skyapm/skywalking-php
 
-      - name: Build and push for master
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+
+      - name: Check output
+        run: echo ${{ steps.vars.outputs.tag }}
+
+      - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
           file: docker/Dockerfile
           build-args: PHP_VERSION=${{ matrix.php-version }}
-          push: ${{ github.event_name != 'pull_request' && steps.meta.outputs.tags == 'master' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.vars.outputs.tag }}-${{ matrix.php-version }}-fpm-alpine
           labels: ${{ steps.meta.outputs.labels }}
