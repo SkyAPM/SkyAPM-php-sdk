@@ -188,7 +188,6 @@ jobs:
           path: /var/crash
 
   publish:
-    needs: [build]
     if: github.repository == 'SkyAPM/SkyAPM-php-sdk'
     runs-on: ubuntu-latest
     permissions:
