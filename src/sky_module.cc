@@ -117,13 +117,8 @@ void sky_module_init() {
 void sky_module_cleanup() {
     char mq_name[32];
 
-    if (SKYWALKING_G(mq_unique)) {
-        sprintf(mq_name, "skywalking_queue");
-    }else{
-        sprintf(mq_name, "skywalking_queue_%d", getpid());
-    }
-//    sprintf(mq_name, "skywalking_queue_%d", getpid());
-    if (strcmp(s_info->mq_name, mq_name) == 0) {
+    sprintf(mq_name, "skywalking_queue_%d", getpid());
+    if (SKYWALKING_G(mq_unique) || strcmp(s_info->mq_name, mq_name) == 0) {
         boost::interprocess::message_queue::remove(s_info->mq_name);
     }
 
