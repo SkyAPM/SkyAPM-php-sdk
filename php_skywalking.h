@@ -150,6 +150,10 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
 
     // fixed UUID
     char *instance_name;
+
+    // queue name unique
+    zend_bool mq_unique;
+
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

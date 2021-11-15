@@ -81,7 +81,11 @@ void sky_module_init() {
     FixedWindowRateLimiter *rate_limiter = new FixedWindowRateLimiter(SKYWALKING_G(sample_n_per_3_secs));
     SKYWALKING_G(rate_limiter) = rate_limiter;
 
-    sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
+    if (SKYWALKING_G(mq_unique)) {
+        sprintf(s_info->mq_name, "skywalking_queue");
+    }else{
+        sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
+    }
 
     try {
         boost::interprocess::message_queue::remove(s_info->mq_name);
@@ -112,7 +116,13 @@ void sky_module_init() {
 
 void sky_module_cleanup() {
     char mq_name[32];
-    sprintf(mq_name, "skywalking_queue_%d", getpid());
+
+    if (SKYWALKING_G(mq_unique)) {
+        sprintf(mq_name, "skywalking_queue");
+    }else{
+        sprintf(mq_name, "skywalking_queue_%d", getpid());
+    }
+//    sprintf(mq_name, "skywalking_queue_%d", getpid());
     if (strcmp(s_info->mq_name, mq_name) == 0) {
         boost::interprocess::message_queue::remove(s_info->mq_name);
     }
