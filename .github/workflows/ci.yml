@@ -236,5 +236,7 @@ jobs:
           file: docker/Dockerfile
           build-args: PHP_VERSION=${{ matrix.php-version }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.vars.outputs.tag }}-${{ matrix.php-version }}-fpm-alpine
+          tags: |
+            skyapm/skywalking-php:${{ steps.vars.outputs.tag }}-${{ matrix.php-version }}-fpm-alpine
+            ghcr.io/skyapm/skywalking-php:${{ steps.vars.outputs.tag }}-${{ matrix.php-version }}-fpm-alpine
           labels: ${{ steps.meta.outputs.labels }}
