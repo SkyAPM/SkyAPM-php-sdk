@@ -1,14 +1,14 @@
 # Get started quickly with docker
 
-See [Dockerfile PHP 7.0](../docker/Dockerfile.7.0)
+See [Dockerfile](../docker/Dockerfile)
 
-See [Dockerfile PHP 7.1](../docker/Dockerfile.7.1)
+## How to use this image
+```
+$ docker run --restart always -d -e SW_OAP_ADDRESS=oap:11800 skyapm/skywalking-php
+```
 
-See [Dockerfile PHP 7.2](../docker/Dockerfile.7.2)
+## Configuration
 
-See [Dockerfile PHP 7.3](../docker/Dockerfile.7.3)
+### SW_OAP_ADDRESS
 
-See [Dockerfile PHP 7.4](../docker/Dockerfile.7.4)
-
-See [Dockerfile PHP 8.0](../docker/Dockerfile.8.0)
-
+The address of OAP server. Default value is oap:11800.

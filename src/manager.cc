@@ -84,7 +84,11 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
         std::string instance;
         if (!ips.empty()) {
             // todo port
-            instance = generateUUID() + "@" + ips[0];
+            if (!options.instance_name.empty()) {
+                instance = generateUUID();
+            } else {
+                instance = generateUUID() + "@" + ips[0];
+            }
         }
 
         properties.set_service(options.code);

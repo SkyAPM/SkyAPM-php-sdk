@@ -163,9 +163,10 @@ bool sky_insert_segment(uint64_t request_id, Segment *segment) {
     auto *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
     std::lock_guard<std::mutex> lock(segments_mutex);
 
-    const auto [it, result] = segments->insert(std::pair<uint64_t, Segment *>(request_id, segment));
+    std::pair<std::unordered_map<uint64_t, Segment *>::iterator, bool> result;
+    result = segments->insert(std::pair<uint64_t, Segment *>(request_id, segment));
 
-    return result;
+    return result.second;
 }
 
 void sky_remove_segment(uint64_t request_id) {

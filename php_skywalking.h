@@ -68,7 +68,7 @@ SKY_BEGIN_EXTERN_C()
 extern zend_module_entry skywalking_module_entry;
 #define phpext_skywalking_ptr &skywalking_module_entry
 
-#define PHP_SKYWALKING_VERSION "4.1.3"
+#define PHP_SKYWALKING_VERSION "4.2.0"
 
 
 #define SKY_STRCMP(s1, s2) ((s1) != nullptr && strcmp(s1, s2) == 0)
@@ -157,6 +157,8 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // fixed UUID
     char *instance_name;
 
+    // queue name unique
+    zend_bool mq_unique;
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

@@ -101,8 +101,9 @@ GRAPHQL;
         $ch = curl_init('http://127.0.0.1:8083/call');
         curl_exec($ch);
         if (curl_getinfo($ch, CURLINFO_HTTP_CODE) != 200) {
-            exit(2);
+            return false;
         }
+        return true;
     }
 
     public function verifyServices() {
@@ -232,12 +233,16 @@ $check = ['verifyServices'];
 $e2e = new E2E();
 
 foreach($check as $func) {
+    $e2e->info('php version:' . $argv[1]);
     $e2e->info('exec ' . $func);
 
     $status = false;
     for($i = 1; $i <= 10; $i++) {
          $e2e->info("test $func $i/10...");
-         $e2e->call();
+         $status = $e2e->call();
+         if (!$status) {
+            break;
+         }
          sleep(1);
          $status = $e2e->$func();
          if ($status === true) {
@@ -249,6 +254,8 @@ foreach($check as $func) {
 
     if (!$status) {
         $e2e->info("test $func fail...");
+        echo(file_get_contents("/var/log/php" . $argv[1] . "-fpm.log"));
+        system("sudo chmod -R +rwx /var/crash/*");
         exit(2);
     }
 
