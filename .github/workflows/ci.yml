@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
+        php-version: ['8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0']
         skywalking-version: ['8.5.0-es6', '8.4.0-es6', '8.3.0-es6', '8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
         library-grpc: ['static', 'shared']
     name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }} [${{ matrix.library-grpc }}]
@@ -195,7 +195,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
+        php-version: ['8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0']
     name: Publish PHP ${{ matrix.php-version }}
     steps:
       - name: Checkout
