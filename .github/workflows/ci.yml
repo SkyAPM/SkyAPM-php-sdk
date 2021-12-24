@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
+        php-version: ['8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0']
         skywalking-version: ['8.5.0-es6', '8.4.0-es6', '8.3.0-es6', '8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
         library-grpc: ['static', 'shared']
     name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }} [${{ matrix.library-grpc }}]
@@ -188,16 +188,39 @@ jobs:
           path: /var/crash
 
   publish:
-    needs: [build]
-    runs-on: ${{ matrix.operating-system }}
+    if: github.repository == 'SkyAPM/SkyAPM-php-sdk'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
-        operating-system: [ubuntu-latest]
-        php-version: ['7.0', '7.1', '7.2', '7.3', '7.4', '8.0']
+        php-version: ['8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0']
     name: Publish PHP ${{ matrix.php-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            skyapm/skywalking-php
+            ghcr.io/skyapm/skywalking-php
 
       - name: Set output
         id: vars
@@ -206,34 +229,14 @@ jobs:
       - name: Check output
         run: echo ${{ steps.vars.outputs.tag }}
 
-      - name: Publish Dokcer image
-        if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name == 'push' && steps.vars.outputs.tag == 'master' && matrix.php-version == '8.0'
-        uses: elgohr/Publish-Docker-Github-Action@3.04
+      - name: Build and push
+        uses: docker/build-push-action@v2
         with:
-          name: skyapm/skywalking-php
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          dockerfile: docker/Dockerfile
-          buildargs: PHP_VERSION=${{ matrix.php-version }}
-          tags: "latest,master-${{ matrix.php-version }}-fpm-alpine"
-
-      - name: Publish Dokcer image
-        if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name == 'push' && steps.vars.outputs.tag == 'master' && matrix.php-version != '8.0'
-        uses: elgohr/Publish-Docker-Github-Action@3.04
-        with:
-          name: skyapm/skywalking-php
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          dockerfile: docker/Dockerfile
-          buildargs: PHP_VERSION=${{ matrix.php-version }}
-          tags: "master-${{ matrix.php-version }}-fpm-alpine"
-      - name: Publish Dokcer image
-        if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name == 'push' && steps.vars.outputs.tag != 'master' && startsWith(steps.vars.outputs.tag, 'v')
-        uses: elgohr/Publish-Docker-Github-Action@3.04
-        with:
-          name: skyapm/skywalking-php
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          dockerfile: docker/Dockerfile
-          buildargs: PHP_VERSION=${{ matrix.php-version }}
-          tags: "${{steps.vars.outputs.tag}}-${{ matrix.php-version }}-fpm-alpine"
+          context: .
+          file: docker/Dockerfile
+          build-args: PHP_VERSION=${{ matrix.php-version }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            skyapm/skywalking-php:${{ steps.vars.outputs.tag }}-${{ matrix.php-version }}-fpm-alpine
+            ghcr.io/skyapm/skywalking-php:${{ steps.vars.outputs.tag }}-${{ matrix.php-version }}-fpm-alpine
+          labels: ${{ steps.meta.outputs.labels }}
