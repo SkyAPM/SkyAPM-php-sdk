@@ -235,7 +235,10 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
             zval_dtor(&args[0]);
             zval_dtor(&curl_error);
         } else if (Z_LVAL_P(response_http_code) >= 400) {
-            // TODO: response body set to logs
+            if (SKYWALKING_G(curl_response_enable) && Z_TYPE_P(return_value) == IS_STRING) {
+                span->addTag("http.response", Z_STRVAL_P(return_value));
+            }
+
             span->setIsError(true);
         } else {
             span->setIsError(false);

@@ -71,6 +71,8 @@ PHP_INI_BEGIN()
 
     STD_PHP_INI_ENTRY("skywalking.instance_name", "", PHP_INI_ALL, OnUpdateString, instance_name, zend_skywalking_globals, skywalking_globals)
 
+    STD_PHP_INI_BOOLEAN("skywalking.curl_response_enable", "0", PHP_INI_ALL, OnUpdateBool, curl_response_enable, zend_skywalking_globals, skywalking_globals)
+
 
 
 PHP_INI_END()
@@ -104,6 +106,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     // uuid path
     skywalking_globals->instance_name = nullptr;
 
+    skywalking_globals->curl_response_enable = 0;
 }
 
 PHP_FUNCTION (skywalking_trace_id) {

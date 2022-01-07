@@ -10,14 +10,22 @@ extension=skywalking.so
 ; enable skywalking
 skywalking.enable = 1
 
-; Set skyWalking collector version (5 or 6 or 7 or 8)
-skywalking.version = 8
-
 ; Set app code e.g. MyProjectName
 skywalking.app_code = the_skywalking_php_agent
 
 ; Set grpc address
 skywalking.grpc=127.0.0.1:11800
+; skywalking.grpc_tls_enable
+; skywalking.grpc_tls_pem_root_certs
+; skywalking.grpc_tls_pem_private_key
+; skywalking.grpc_tls_pem_cert_chain
+
+; Enable log, default 0
+skywalking.log_enable = 0
+; skywalking.log_path = /tmp/skywalking-php.log
+
+; Enable with cURL response, default 0
+; skywalking.curl_response_enable = 0
 ```
 
 

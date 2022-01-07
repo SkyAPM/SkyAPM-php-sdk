@@ -46,6 +46,7 @@ To build gRPC from source, you may need to install the following packages from H
  # shared
  $ git clone --depth 1 -b v1.34.x https://github.com/grpc/grpc.git /var/local/git/grpc
  $ cd /var/local/git/grpc
+ $ git submodule update --init --recursive
  $ cd third_party/protobuf
  $ ./autogen.sh
  $ ./configure
