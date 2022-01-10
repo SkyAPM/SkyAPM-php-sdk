@@ -162,6 +162,8 @@ jobs:
         run: |
           ulimit -c unlimited
           ls -l e2e
+          echo $(php -i | grep additional | sed -e "s|.*=> s*||")
+          echo $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/99-skywalking.ini $(php -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/99-skywalking.ini $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
