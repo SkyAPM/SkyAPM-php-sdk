@@ -161,7 +161,7 @@ jobs:
       - name: Start FPM and Nginx
         run: |
           ulimit -c unlimited
-          ls -l 
+          ls -l e2e
           sudo cp e2e/99-skywalking.ini $(php -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/99-skywalking.ini $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
