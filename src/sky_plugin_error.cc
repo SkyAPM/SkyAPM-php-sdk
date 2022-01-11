@@ -27,7 +27,7 @@ extern void (*orig_error_cb)(int type, const char *error_filename, const uint er
 void (*orig_error_cb)(int type, const char *error_filename, const uint error_lineno, const char *format, va_list args) = nullptr;
 
 void sky_plugin_error_cb(int type, const char *error_filename, const uint error_lineno, const char *format, va_list args) {
-#elif PHP_VERSION_ID == 80000
+#elif PHP_VERSION_ID >= 80000 && PHP_VERSION_ID < 80100
 extern void (*orig_error_cb)(int type, const char *error_filename, const uint32_t error_lineno, zend_string *message);
 
 void (*orig_error_cb)(int type, const char *error_filename, const uint32_t error_lineno, zend_string *message) = nullptr;
@@ -97,7 +97,7 @@ void sky_plugin_error_cb(int type, zend_string *error_filename, const uint32_t e
 
 #if PHP_VERSION_ID < 80000
     orig_error_cb(type, error_filename, error_lineno, format, args);
-#elif PHP_VERSION_ID == 80000
+#elif PHP_VERSION_ID >= 80000 && PHP_VERSION_ID < 80100
     orig_error_cb(type, error_filename, error_lineno, message);
 #else
     orig_error_cb(type, error_filename, error_lineno, message);

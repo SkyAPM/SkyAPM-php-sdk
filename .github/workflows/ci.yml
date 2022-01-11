@@ -186,7 +186,7 @@ jobs:
           path: /var/crash
 
   publish:
-    if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name != 'pull_request'
+    if: github.repository == 'SkyAPM/SkyAPM-php-sdk'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -222,7 +222,7 @@ jobs:
 
       - name: Set output
         id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+        run: echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/} | sed "s/\//\-/")
 
       - name: Check output
         run: echo ${{ steps.vars.outputs.tag }}
