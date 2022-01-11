@@ -161,6 +161,7 @@ jobs:
       - name: Start FPM and Nginx
         run: |
           ulimit -c unlimited
+          echo $(php -i | grep additional)
           export PHP_CONFIG=$(php -i | grep additional | sed -e "s|.*=> s*||")
           export PHP_FPM_CONFIG=$(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
           echo $PHP_CONFIG
