@@ -75,8 +75,11 @@ std::string sky_pdo_statement_peer(Span *span, zend_execute_data *execute_data) 
     pdo_stmt_t *stmt = (pdo_stmt_t *) Z_PDO_STMT_P(&(execute_data->This));
 
     if (stmt != nullptr) {
-
+#if PHP_VERSION_ID >= 80100
+        span->addTag("db.statement", ZSTR_VAL(stmt->query_string));
+#else
         span->addTag("db.statement", stmt->query_string);
+#endif
 
         if (stmt->dbh != nullptr) {
             return sky_pdo_dbh_peer(span, stmt->dbh);
