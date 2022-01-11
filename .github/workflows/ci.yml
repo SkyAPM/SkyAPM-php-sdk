@@ -161,23 +161,16 @@ jobs:
       - name: Start FPM and Nginx
         run: |
           ulimit -c unlimited
-          ls -l e2e
-          echo "debug"
-          cp e2e/99-skywalking.ini $(php -i | grep additional | sed -e "s|.*=> s*||")
-          echo "debug1"
-          cp e2e/99-skywalking.ini $(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
-          echo "debug2"
+          export PHP_CONFIG=$(php -i | grep additional | sed -e "s|.*=> s*||")
+          export PHP_FPM_CONFIG=$(php-fpm -i | grep additional | sed -e "s|.*=> s*||")
+          echo $PHP_CONFIG
+          echo $PHP_FPM_CONFIG
+          sudo cp e2e/99-skywalking.ini $PHP_CONFIG
+          sudo cp e2e/99-skywalking.ini $PHP_FPM_CONFIG
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
-          echo "debug3"
           sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
-          sudo cp -r e2e/vendor /var/www/html/
-          echo "debug4"
-          sudo cp -r e2e/tests /var/www/html/
-          echo "debug5"
-          sudo cp e2e/tests.php /var/www/html/
-          echo "debug6"
-          sudo cp e2e/index.php /var/www/html/
-          echo "debug7"
+          sudo cp -r e2e/vendor e2e/tests /var/www/html/
+          sudo cp e2e/tests.php e2e/index.php /var/www/html/
           sudo systemctl restart php${{ matrix.php-version }}-fpm
           sudo systemctl restart nginx
           sudo sleep 4
