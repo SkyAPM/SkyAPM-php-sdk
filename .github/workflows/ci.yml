@@ -186,7 +186,7 @@ jobs:
           path: /var/crash
 
   publish:
-    if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event != 'pull_request'
+    if: github.repository == 'SkyAPM/SkyAPM-php-sdk' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
