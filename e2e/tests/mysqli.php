@@ -16,16 +16,16 @@
  *
  */
 function testMysqli() {
-    $mysqli = new mysqli("127.0.0.1", "root", "111111", "mock");
+    $mysqli = new mysqli("127.0.0.1", "root", "password", "skywalking");
     if (mysqli_connect_errno()) {
         printf("Connect failed: %s\n", mysqli_connect_error());
         exit();
     }
 
-    mysqli_query($mysqli,"CREATE TABLE mock2 Like mock");
+    mysqli_query($mysqli,"CREATE TABLE mock (name VARCHAR(25))");
 
     $mysqli->autocommit(FALSE);
-    $sql = "INSERT INTO mock2 (name) VALUES (?)";
+    $sql = "INSERT INTO mock (name) VALUES (?)";
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param("s",$val1);
     $val1 = 'A';
@@ -33,6 +33,6 @@ function testMysqli() {
     $stmt->close();
     mysqli_commit($mysqli);
 
-    $mysqli->query("DROP TABLE mock2");
+    $mysqli->query("DROP TABLE mock");
     mysqli_close($mysqli);
 }
