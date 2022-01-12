@@ -194,15 +194,15 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
                     sky_pdo_check_errors(execute_data, span);
                 }
             } else if (strcmp(class_name, "mysqli") == 0){
-                if (Z_TYPE_P(return_value) == IS_FALSE) { 
-                    span->setIsError(true);  
+                if (Z_TYPE_P(return_value) == IS_FALSE) {
+                    span->setIsError(true);
                     sky_plugin_mysqli_check_errors(execute_data, span, 1);
                 }
             }
         } else if (function_name != nullptr) {
             if (strcmp(function_name, "mysqli_") > 0) {
-                if (Z_TYPE_P(return_value) == IS_FALSE) { 
-                    span->setIsError(true);  
+                if (Z_TYPE_P(return_value) == IS_FALSE) {
+                    span->setIsError(true);
                     sky_plugin_mysqli_check_errors(execute_data, span, 0);
                 }
             }

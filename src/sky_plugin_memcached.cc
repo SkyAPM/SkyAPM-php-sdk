@@ -20,76 +20,131 @@
 #include "segment.h"
 #include "sky_utils.h"
 
-std::vector<std::string> mecKeysCommands = {"set", "setbykey", "setmulti", "setmultibykey", "add", "addbykey", "replace", "replacebykey",
-    "append", "appendbykey", "prepend", "prependbykey", "get", "getbykey",
-    "getmulti", "getmultibykey", "getallkeys", "delete", "deletebykey", "deletemulti",
-    "deletemultibykey", "increment", "incrementbykey", "decrement", "decrementbykey", "getstats",
-    "ispersistent", "ispristine", "flush", "flushbuffers", "getdelayed", "getdelayedbykey", "fetch",
-    "fetchall", "addserver", "addservers", "getoption", "setoption", "setoptions", "getresultcode",
-    "getserverlist", "resetserverlist", "getversion", "quit", "setsaslauthdata", "touch",
-    "touchbykey"};;
-std::vector<std::string> mecStrKeysCommands = {"set", "setbykey", "setmulti", "setmultibykey", "add", "addbykey", "replace", "replacebykey",
-    "append", "appendbykey", "prepend", "prependbykey", "get", "getbykey",
-    "getmulti", "getmultibykey", "getallkeys", "delete", "deletebykey", "deletemulti",
-    "deletemultibykey", "increment", "incrementbykey", "decrement", "decrementbykey"};
+std::vector<std::string> mecKeysCommands = {
+        "set",
+        "setbykey",
+        "setmulti",
+        "setmultibykey",
+        "add",
+        "addbykey",
+        "replace",
+        "replacebykey",
+        "append",
+        "appendbykey",
+        "prepend",
+        "prependbykey",
+        "get",
+        "getbykey",
+        "getmulti",
+        "getmultibykey",
+        "getallkeys",
+        "delete",
+        "deletebykey",
+        "deletemulti",
+        "deletemultibykey",
+        "increment",
+        "incrementbykey",
+        "decrement",
+        "decrementbykey",
+        "getstats",
+        "ispersistent",
+        "ispristine",
+        "flush",
+        "flushbuffers",
+        "getdelayed",
+        "getdelayedbykey",
+        "fetch",
+        "fetchall",
+        "addserver",
+        "addservers",
+        "getoption",
+        "setoption",
+        "setoptions",
+        "getresultcode",
+        "getserverlist",
+        "resetserverlist",
+        "getversion",
+        "quit",
+        "setsaslauthdata",
+        "touch",
+        "touchbykey"
+};
+std::vector<std::string> mecStrKeysCommands = {
+        "set",
+        "setbykey",
+        "setmulti",
+        "setmultibykey",
+        "add",
+        "addbykey",
+        "replace",
+        "replacebykey",
+        "append",
+        "appendbykey",
+        "prepend",
+        "prependbykey",
+        "get",
+        "getbykey",
+        "getmulti",
+        "getmultibykey",
+        "getallkeys",
+        "delete",
+        "deletebykey",
+        "deletemulti",
+        "deletemultibykey",
+        "increment",
+        "incrementbykey",
+        "decrement",
+        "decrementbykey"
+};
 
 Span *sky_plugin_memcached(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
-  std::string cmd = function_name;
-  std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::tolower);
-  if (std::find(mecKeysCommands.begin(), mecKeysCommands.end(), cmd) != mecKeysCommands.end()) {
-    auto *segment = sky_get_segment(execute_data, -1);
-    if (segment) {
-      auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 36);
-      span->setOperationName(class_name + "->" + function_name);
-      span->addTag("db.type", "memcached");
+    std::string cmd = function_name;
+    std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::tolower);
+    if (std::find(mecKeysCommands.begin(), mecKeysCommands.end(), cmd) != mecKeysCommands.end()) {
+        auto *segment = sky_get_segment(execute_data, -1);
+        if (segment) {
+            auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 36);
+            span->setOperationName(class_name + "->" + function_name);
+            span->addTag("db.type", "memcached");
 
-      // peer
-      if (std::find(mecStrKeysCommands.begin(), mecStrKeysCommands.end(), cmd) != mecStrKeysCommands.end()) {
-        auto peer = sky_plugin_memcached_peer(execute_data);
-        if (!peer.empty()) {
-          span->setPeer(peer);
+            // peer
+            if (std::find(mecStrKeysCommands.begin(), mecStrKeysCommands.end(), cmd) != mecStrKeysCommands.end()) {
+                auto peer = sky_plugin_memcached_peer(execute_data);
+                if (!peer.empty()) {
+                    span->setPeer(peer);
+                }
+            }
+
+            span->addTag("memcached.command", sky_plugin_memcached_key_cmd(execute_data, cmd));
+            return span;
         }
-      }
-
-      span->addTag("memcached.command", sky_plugin_memcached_key_cmd(execute_data, cmd));
-      return span;
     }
-  }
-  return nullptr;
+    return nullptr;
 }
 
 std::string sky_plugin_memcached_peer(zend_execute_data *execute_data) {
-  std::string peer;
-  zval *p = ZEND_CALL_ARG(execute_data, 1);
-  zval str_p;
-  ZVAL_COPY(&str_p, p);
-  std::string str = Z_STRVAL_P(&str_p);
-  zval *self = &(execute_data->This);
+    std::string peer;
+    zval *key = ZEND_CALL_ARG(execute_data, 1);
+    zval *self = &(execute_data->This);
 #if PHP_VERSION_ID < 80000
-  zval *obj = self;
+    zval *obj = self;
 #else
-  zend_object *obj = Z_OBJ_P(self);
+    zend_object *obj = Z_OBJ_P(self);
 #endif
-  zval server;
-  zval params[1];
-  ZVAL_STRING(&params[0], str.c_str());
-  zend_call_method(obj, Z_OBJCE_P(self), nullptr, ZEND_STRL("getserverbykey"), &server, 1, params, nullptr);
-  zval *str_zval;
-  long long port = 0;
-  str_zval = zend_hash_str_find(Z_ARRVAL_P(&server), "host", 4);
-  std::string host = Z_STRVAL_P(str_zval);
-  str_zval = zend_hash_str_find(Z_ARRVAL_P(&server), "port", 4);
-  port = Z_LVAL_P(str_zval);
-  peer = host + ":" + std::to_string(port);
-  host.clear();
-  host.shrink_to_fit();
-  zval_dtor(&server);
-  zval_dtor(&params[0]);
-  zval_dtor(str_zval);
-  str.clear();
-  str.shrink_to_fit();
-  zval_dtor(&str_p);
-  return peer;
+    zval server;
+    zval params[1];
+    ZVAL_STRING(&params[0], Z_STRVAL_P(key));
+    zend_call_method(obj, Z_OBJCE_P(self), nullptr, ZEND_STRL("getserverbykey"), &server, 1, params, nullptr);
+
+    if (Z_TYPE_P(&server) == IS_ARRAY) {
+        zval *host_zval = zend_hash_str_find(Z_ARRVAL_P(&server), "host", 4);
+        zval *port_zval = zend_hash_str_find(Z_ARRVAL_P(&server), "port", 4);
+        peer = std::string(Z_STRVAL_P(host_zval)) + ":" + std::to_string(Z_LVAL_P(host_zval));
+    }
+
+    zval_dtor(&server);
+    zval_dtor(&params[0]);
+    return peer;
 }
 
 std::string sky_plugin_memcached_key_cmd(zend_execute_data *execute_data, std::string cmd) {
