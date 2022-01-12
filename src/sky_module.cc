@@ -55,7 +55,7 @@ void sky_module_init() {
     if (SKYWALKING_G(error_handler_enable)) {
         sky_plugin_error_init();
     }
-    
+
     // bind curl
     zend_function *old_function;
     if ((old_function = SKY_OLD_FN("curl_exec")) != nullptr) {
@@ -223,7 +223,7 @@ void sky_request_flush(zval *response, uint64_t request_id) {
     if (segment->skip()) {
         delete segment;
         sky_remove_segment(request_id);
-        
+
         return;
     }
 

@@ -154,6 +154,9 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // queue name unique
     zend_bool mq_unique;
 
+    // cURL
+    zend_bool curl_response_enable;
+
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
