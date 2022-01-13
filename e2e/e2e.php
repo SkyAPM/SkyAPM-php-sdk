@@ -243,13 +243,13 @@ foreach($check as $func) {
          if (!$status) {
             break;
          }
-         sleep(1);
+         sleep(5);
          $status = $e2e->$func();
          if ($status === true) {
              $status = true;
              break;
          }
-         sleep(1);
+         sleep(10);
     }
 
     if (!$status) {
