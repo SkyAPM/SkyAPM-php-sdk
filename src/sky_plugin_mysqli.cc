@@ -31,7 +31,10 @@ void sky_mysqli_peer(Span *span, mysqli_object *mysqli) {
         MY_MYSQL *mysql = (MY_MYSQL *) my_res->ptr;
         if (mysql->mysql) {
 #if PHP_VERSION_ID >= 70100
-            std::string host = mysql->mysql->data->hostname.s;
+            std::string host = "127.0.0.1";
+            if(mysql->mysql->data->hostname.l > 0){
+                host = mysql->mysql->data->hostname.s;
+            }
 #else
             std::string host = mysql->mysql->data->host;
 #endif
