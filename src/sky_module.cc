@@ -221,7 +221,7 @@ void sky_request_flush(zval *response, uint64_t request_id) {
     if (segment->skip()) {
         delete segment;
         sky_remove_segment(request_id);
-
+        
         return;
     }
 
