@@ -37,7 +37,10 @@
 #include "common.h"
 #include "sky_shm.h"
 #include <boost/interprocess/ipc/message_queue.hpp>
-
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/interprocess/errors.hpp>
 #include "php_skywalking.h"
 #include "sky_log.h"
 
@@ -162,16 +165,32 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
             context.AddMetadata("authentication", options.authentication);
         }
         auto writer = stub->collect(&context, &commands);
-
+        bool need_reopen = true;
+        boost::interprocess::message_queue *mq = nullptr;
         try {
-            boost::interprocess::message_queue mq(boost::interprocess::open_only, s_info->mq_name);
-
             while (true) {
+                if (need_reopen) {
+                    mq = new boost::interprocess::message_queue(boost::interprocess::open_only, s_info->mq_name);
+                    need_reopen = false;
+                }
                 std::string data;
                 data.resize(SKYWALKING_G(mq_max_message_length));
                 size_t msg_size;
                 unsigned msg_priority;
-                mq.receive(&data[0], data.size(), msg_size, msg_priority);
+                bool is_receive = mq->timed_receive
+                    (
+                    &data[0], 
+                    data.size(), 
+                    msg_size, 
+                    msg_priority,
+                    boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::seconds(1))
+                    );
+                // reopen the queue when idle
+                if (!is_receive) {
+                    delete mq;
+                    need_reopen = true;
+                    continue;
+                }
                 data.resize(msg_size);
 
                 std::string json_str;
@@ -190,8 +209,18 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
                 }
             }
         } catch (boost::interprocess::interprocess_exception &ex) {
+            if (ex.get_error_code() == boost::interprocess::not_found_error) {
+                need_reopen = true;
+                // wait for the producer to recreate
+                sleep(1);
+                continue;
+            }
             sky_log(ex.what());
             php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
+        }
+
+        if (mq != nullptr) {
+            delete mq;
         }
     }
 }

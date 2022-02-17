@@ -45,6 +45,10 @@ extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
+const static int QUEUE_MAX_NUM_MSG = 1024;
+
+const static int QUEUE_PERMISSIONS = 0666;
+
 void sky_module_init() {
     ori_execute_ex = zend_execute_ex;
     zend_execute_ex = sky_execute_ex;
@@ -92,9 +96,9 @@ void sky_module_init() {
         boost::interprocess::message_queue(
                 boost::interprocess::open_or_create,
                 s_info->mq_name,
-                1024,
+                QUEUE_MAX_NUM_MSG,
                 SKYWALKING_G(mq_max_message_length),
-                boost::interprocess::permissions(0666)
+                boost::interprocess::permissions(QUEUE_PERMISSIONS)
         );
     } catch (boost::interprocess::interprocess_exception &ex) {
         php_error(E_WARNING, "%s %s", "[skywalking] create queue fail ", ex.what());
@@ -244,8 +248,11 @@ void sky_request_flush(zval *response, uint64_t request_id) {
 
     try {
         boost::interprocess::message_queue mq(
-                boost::interprocess::open_only,
-                s_info->mq_name
+                boost::interprocess::open_or_create,
+                s_info->mq_name,
+                QUEUE_MAX_NUM_MSG,
+                SKYWALKING_G(mq_max_message_length),
+                boost::interprocess::permissions(QUEUE_PERMISSIONS)
         );
         if (!mq.try_send(msg.data(), msg.size(), 0)) {
             sky_log("sky_request_flush message_queue is fulled");
