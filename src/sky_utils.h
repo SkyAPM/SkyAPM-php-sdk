@@ -36,6 +36,8 @@ zval *sky_read_property(zval *obj, const char *property, int parent);
 
 int64_t sky_find_swoole_fd(zend_execute_data *execute_data);
 
+Segment *sky_get_segment(int64_t request_id);
+
 Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id);
 
 bool sky_insert_segment(uint64_t request_id, Segment *segment);
