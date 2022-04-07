@@ -28,18 +28,14 @@
 #include <random>
 #include <fstream>
 #include <queue>
-#include "management/Management.grpc.pb.h"
-#include "language-agent/Tracing.grpc.pb.h"
-#include "grpc/grpc.h"
-#include "grpc++/grpc++.h"
 #include "segment.h"
-#include <google/protobuf/util/json_util.h>
 #include "common.h"
 #include "sky_shm.h"
 #include <boost/interprocess/ipc/message_queue.hpp>
 
 #include "php_skywalking.h"
 #include "sky_log.h"
+#include "protocol.h"
 
 std::queue<std::string> messageQueue;
 static pthread_mutex_t mx = PTHREAD_MUTEX_INITIALIZER;
@@ -48,14 +44,8 @@ static pthread_mutex_t cond_mx = PTHREAD_MUTEX_INITIALIZER;
 
 extern struct service_info *s_info;
 
-static std::string fixed_uuid;
-
 void Manager::init(const ManagerOptions &options, struct service_info *info) {
-    if (!options.instance_name.empty()) {
-        fixed_uuid = options.instance_name;
-    }
-
-    std::thread th(login, options, info);
+    std::thread th(reportInstance, options, info);
     th.detach();
 
     std::thread c(consumer, options);
@@ -64,69 +54,20 @@ void Manager::init(const ManagerOptions &options, struct service_info *info) {
     sky_log("the apache skywalking php plugin mounted");
 }
 
-void Manager::login(const ManagerOptions &options, struct service_info *info) {
+void Manager::reportInstance(const ManagerOptions &options, struct service_info *info) {
 
-    std::shared_ptr<grpc::Channel> channel(grpc::CreateChannel(options.grpc, getCredentials(options)));
-    std::unique_ptr<ManagementService::Stub> stub(ManagementService::NewStub(channel));
+    bool done = false;
+    while (!done) {
+        GoString address = {options.grpc.c_str(), static_cast<ptrdiff_t>(options.grpc.size())};
+        GoString server = {options.code.c_str(), static_cast<ptrdiff_t>(options.code.size())};
+        GoString instance = {options.instance_name.c_str(), static_cast<ptrdiff_t>(options.instance_name.size())};
+        ReportInstanceProperties_return res = ReportInstanceProperties(address, server, instance);
 
-    bool status = false;
-
-    while (!status) {
-        grpc::ClientContext context;
-        InstanceProperties properties;
-        Commands commands;
-        if (!options.authentication.empty()) {
-            context.AddMetadata("authentication", options.authentication);
-        }
-
-        auto ips = getIps();
-
-        std::string instance;
-        if (!ips.empty()) {
-            // todo port
-            if (!options.instance_name.empty()) {
-                instance = generateUUID();
-            } else {
-                instance = generateUUID() + "@" + ips[0];
-            }
-        }
-
-        properties.set_service(options.code);
-        properties.set_serviceinstance(instance);
-        auto osName = properties.add_properties();
-        osName->set_key("os_name");
-        osName->set_value(PLATFORM_NAME);
-
-        char name[256] = {0};
-        gethostname(name, sizeof(name));
-        auto hostName = properties.add_properties();
-        hostName->set_key("host_name");
-        hostName->set_value(name);
-
-        std::ostringstream strPid;
-        strPid << getpid();
-        auto pid = properties.add_properties();
-        pid->set_key("process_no");
-        pid->set_value(strPid.str());
-
-        auto language = properties.add_properties();
-        language->set_key("language");
-        language->set_value("php");
-
-        for (const auto &ip:ips) {
-            auto tmp = properties.add_properties();
-            tmp->set_key("ipv4");
-            tmp->set_value(ip);
-        }
-        std::string msg = properties.SerializeAsString();
-        auto rc = stub->reportInstanceProperties(&context, properties, &commands);
-        if (rc.ok() && info != nullptr) {
+        if (res.r1.n == 0 && info != nullptr) {
             strcpy(info->service, options.code.c_str());
-            strcpy(info->service_instance, instance.c_str());
-            std::thread h(heartbeat, options, instance);
-            h.detach();
+            strcpy(info->service_instance, res.r0.p);
+            done = true;
         }
-        status = rc.ok();
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -194,71 +135,4 @@ void Manager::login(const ManagerOptions &options, struct service_info *info) {
             php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
         }
     }
-}
-
-std::vector<std::string> Manager::getIps() {
-
-    std::vector<std::string> ips;
-
-    struct ifaddrs *interfaces = nullptr;
-    struct ifaddrs *tempAddress = nullptr;
-    int success = getifaddrs(&interfaces);
-
-    if (success == 0) {
-        tempAddress = interfaces;
-        while (tempAddress != nullptr) {
-            if (tempAddress->ifa_addr->sa_family == AF_INET) {
-                std::string ip = inet_ntoa(((struct sockaddr_in *) tempAddress->ifa_addr)->sin_addr);
-                if (ip.find("127") != 0) {
-                    ips.push_back(ip);
-                }
-            }
-            tempAddress = tempAddress->ifa_next;
-        }
-    }
-
-    freeifaddrs(interfaces);
-
-    return ips;
-}
-
-std::shared_ptr<grpc::ChannelCredentials> Manager::getCredentials(const ManagerOptions &options) {
-    std::shared_ptr<grpc::ChannelCredentials> creds;
-    if (options.grpc_tls == true) {
-        if (options.cert_chain.empty() && options.private_key.empty()) {
-            creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
-        } else {
-            grpc::SslCredentialsOptions opts;
-            opts.pem_cert_chain = options.cert_chain;
-            opts.pem_root_certs = options.root_certs;
-            opts.pem_private_key = options.private_key;
-            creds = grpc::SslCredentials(opts);
-        }
-    } else {
-        creds = grpc::InsecureChannelCredentials();
-    }
-    return creds;
-}
-
-std::string Manager::generateUUID() {
-
-    if (!fixed_uuid.empty()) {
-        return fixed_uuid;
-    }
-
-    static std::random_device dev;
-    static std::mt19937 rng(dev());
-    std::uniform_int_distribution<int> dist(0, 15);
-
-    const char *v = "0123456789abcdef";
-    const bool dash[] = {0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0};
-
-    std::string res;
-    for (bool i : dash) {
-        if (i) res += "-";
-        res += v[dist(rng)];
-        res += v[dist(rng)];
-    }
-
-    return res;
 }

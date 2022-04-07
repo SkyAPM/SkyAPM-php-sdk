@@ -22,20 +22,6 @@
 
 #include <string>
 #include <vector>
-#include "grpc/grpc.h"
-#include "grpc++/grpc++.h"
-
-#if (defined(unix) || defined(__unix__) || defined(__unix)) && !defined(__APPLE__)
-#define PLATFORM_NAME "Unix"
-#elif defined(__linux__)
-#define PLATFORM_NAME "Linux"
-#elif defined(__APPLE__) && defined(__MACH__)
-#define PLATFORM_NAME "MacOS"
-#elif defined(__FreeBSD__)
-#define PLATFORM_NAME "FreeBSD"
-#else
-#define PLATFORM_NAME ""
-#endif
 
 struct ManagerOptions {
     int version;
@@ -59,7 +45,7 @@ public:
 private:
     Manager() = delete;
 
-    static void login(const ManagerOptions &options, struct service_info *info);
+    static void reportInstance(const ManagerOptions &options, struct service_info *info);
 
     [[noreturn]] static void heartbeat(const ManagerOptions &options, const std::string &serviceInstance);
 

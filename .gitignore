@@ -22,6 +22,7 @@ CMakeLists.txt
 /skywalking.loT
 *.lo
 *.la
+*.dep
 .libs
 /acinclude.m4
 /aclocal.m4

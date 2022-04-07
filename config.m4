@@ -45,6 +45,11 @@ fi
 
 
 if test "$PHP_SKYWALKING" != "no"; then
+  AC_PATH_PROG(GO, go, no)
+  if ! test -x "$GO"; then
+    AC_MSG_ERROR([go command missing, please reinstall the go distribution])
+  fi
+  go build -buildmode=c-archive -o src src/*.go
 
   dnl shared grpc
   AC_MSG_CHECKING([for shared or static grpc])
