@@ -20,13 +20,15 @@ package main
 import "C"
 import (
 	"github.com/SkyAPM/SkyAPM-php-sdk/src/golang/protocol"
+	"github.com/SkyAPM/SkyAPM-php-sdk/src/golang/utils"
 )
 
 var std *protocol.Protocol
 
 //export NewProtocol
-func NewProtocol(address, server, instance string) {
+func NewProtocol(address, server, instance string) string {
 	std = protocol.NewProtocol(address, server, instance)
+	return std.Instance
 }
 
 //export ReportInstanceProperties
@@ -40,6 +42,11 @@ func ReportInstanceProperties() int {
 //export WriteSegment
 func WriteSegment() {
 	std.WriteSegment()
+}
+
+//export GenerateTraceId
+func GenerateTraceId() *C.char {
+	return C.CString(utils.GenerateTraceId())
 }
 
 func main() {

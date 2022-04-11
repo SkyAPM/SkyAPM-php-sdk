@@ -18,12 +18,24 @@ type Protocol struct {
 	conn     *grpc.ClientConn
 	address  string
 	server   string
-	instance string
+	Instance string
 	segments chan *agent.SegmentObject
 }
 
 func NewProtocol(address, server, instance string) *Protocol {
-	return &Protocol{}
+	if instance == "" {
+		ips, _ := utils.GetLocalIP()
+		ip := "localhost"
+		if len(ips) > 0 {
+			ip = ips[0]
+		}
+		instance = fmt.Sprintf("%s@%s", uuid.New().String(), ip)
+	}
+	return &Protocol{
+		address:  address,
+		server:   server,
+		Instance: instance,
+	}
 }
 
 func (s *Protocol) ReportInstanceProperties() error {
@@ -52,16 +64,9 @@ func (s *Protocol) ReportInstanceProperties() error {
 		})
 	}
 
-	if s.instance == "" {
-		s.instance = uuid.New().String()
-		if len(ips) > 0 {
-			s.instance = fmt.Sprintf("%s@%s", s.instance, ips[0])
-		}
-	}
-
 	in := &management.InstanceProperties{
 		Service:         s.server,
-		ServiceInstance: s.instance,
+		ServiceInstance: s.Instance,
 		Properties:      kv,
 	}
 
@@ -90,7 +95,7 @@ func (s *Protocol) keepAlive() error {
 	for {
 		in := &management.InstancePingPkg{
 			Service:         s.server,
-			ServiceInstance: s.instance,
+			ServiceInstance: s.Instance,
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
