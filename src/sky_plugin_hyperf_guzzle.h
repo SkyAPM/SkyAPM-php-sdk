@@ -20,8 +20,8 @@
 #define SKYWALKING_SKY_PLUGIN_HYPERF_GUZZLE_H
 
 #include "php_skywalking.h"
-#include "span.h"
+#include "sky_core_span.h"
 
-Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
+SkyCoreSpan *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
 #endif //SKYWALKING_SKY_PLUGIN_HYPERF_GUZZLE_H

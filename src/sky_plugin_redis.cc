@@ -231,14 +231,14 @@ std::unordered_map<std::string, redis_cmd_cb> commands = {
 
 };
 
-Span *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_plugin_redis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
     std::string cmd = function_name;
     std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::toupper);
     if (commands.count(cmd) > 0) {
         auto *segment = sky_get_segment(execute_data, -1);
         if (segment != nullptr) {
-            auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 7);
+            auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Cache, 7);
             span->setOperationName(class_name + "->" + function_name);
             span->addTag("db.type", "redis");
 

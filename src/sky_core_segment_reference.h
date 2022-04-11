@@ -17,16 +17,19 @@
 
 
 
-#ifndef SKYWALKING_SEGMENT_REFERENCE_H
-#define SKYWALKING_SEGMENT_REFERENCE_H
-
+#ifndef SKYWALKING_SKY_CORE_SEGMENT_REFERENCE_H
+#define SKYWALKING_SKY_CORE_SEGMENT_REFERENCE_H
 
 #include <string>
 
-class SkySegmentReference {
+enum class SkyCoreRefType {
+    CrossProcess, CrossThread
+};
+
+class SkyCoreSegmentReference {
 public:
 
-    int getRefType() const;
+    SkyCoreRefType getRefType() const;
 
     const std::string &getTraceId() const;
 
@@ -42,7 +45,7 @@ public:
 
     const std::string &getNetworkAddressUsedAtPeer() const;
 
-    void setRefType(int refType);
+    void setRefType(SkyCoreRefType refType);
 
     void setTraceId(const std::string &traceId);
 
@@ -59,7 +62,8 @@ public:
     void setNetworkAddressUsedAtPeer(const std::string &networkAddressUsedAtPeer);
 
 private:
-    int refType;
+    // Tracing.proto
+    SkyCoreRefType refType;
     std::string traceId;
     std::string parentTraceSegmentId;
     int parentSpanId;
@@ -70,4 +74,4 @@ private:
 };
 
 
-#endif //SKYWALKING_SEGMENT_REFERENCE_H
+#endif //SKYWALKING_SKY_CORE_SEGMENT_REFERENCE_H

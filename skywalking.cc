@@ -31,14 +31,16 @@
   +----------------------------------------------------------------------+
 */
 
-#include <src/sky_shm.h>
+#include <src/sky_base.h>
 #include <fstream>
 #include "php_skywalking.h"
 
 #include "src/sky_utils.h"
 #include "src/sky_module.h"
-#include "src/segment.h"
+#include "src/sky_core_segment.h"
 #include "sys/mman.h"
+#include "sys/ipc.h"
+#include "sys/shm.h"
 
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
@@ -46,7 +48,7 @@
 
 ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
-struct service_info *s_info = nullptr;
+mutex_service *ms = nullptr;
 
 PHP_INI_BEGIN()
     STD_PHP_INI_BOOLEAN("skywalking.enable", "0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
@@ -141,7 +143,7 @@ PHP_FUNCTION(skywalking_log)
     }
 
     if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
-        auto span = segment->findOrCreateSpan(name->val, SkySpanType::Local, SkySpanLayer::Unknown, 0);
+        auto span = segment->findOrCreateSpan(name->val, SkyCoreSpanType::Local, SkyCoreSpanLayer::Unknown, 0);
         span->addLog(key->val, value->val);
         if (is_error) {
             span->setIsError(true);
@@ -169,7 +171,7 @@ PHP_FUNCTION(skywalking_tag)
     }
 
     if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
-        auto span = segment->findOrCreateSpan(name->val, SkySpanType::Local, SkySpanLayer::Unknown, 0);
+        auto span = segment->findOrCreateSpan(name->val, SkyCoreSpanType::Local, SkyCoreSpanLayer::Unknown, 0);
         span->addTag(key->val, value->val);
         span->setEndTIme();
     }
@@ -180,11 +182,6 @@ PHP_MINIT_FUNCTION (skywalking) {
 	REGISTER_INI_ENTRIES();
 
 	if (SKYWALKING_G(enable)) {
-
-        int protection = PROT_READ | PROT_WRITE;
-        int visibility = MAP_SHARED | MAP_ANONYMOUS;
-
-        s_info = (struct service_info *) mmap(nullptr, sizeof(struct service_info), protection, visibility, -1, 0);
         sky_module_init();
 	}
 
@@ -207,8 +204,8 @@ PHP_RINIT_FUNCTION(skywalking)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
     if (SKYWALKING_G(enable)) {
-        if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
-            if (strlen(s_info->service_instance) == 0) {
+        if (strcasecmp("fpm-fcgi", sapi_module.name) == 0 || true) {
+            if (ms == nullptr || strlen(ms->serviceInstance) == 0) {
                 return SUCCESS;
             }
 
@@ -221,7 +218,7 @@ PHP_RINIT_FUNCTION(skywalking)
 PHP_RSHUTDOWN_FUNCTION(skywalking)
 {
 	if (SKYWALKING_G(enable)) {
-        if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
+        if (strcasecmp("fpm-fcgi", sapi_module.name) == 0 || true) {
             if (SKYWALKING_G(segment) == nullptr) {
                 return SUCCESS;
             }

@@ -124,11 +124,11 @@ int64_t sky_find_swoole_fd(zend_execute_data *execute_data) {
     return -1;
 }
 
-Segment *sky_get_segment(int64_t request_id) {
+SkyCoreSegment *sky_get_segment(int64_t request_id) {
     if (SKYWALKING_G(segment) == nullptr) {
         return nullptr;
     }
-    auto *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
+    auto *segments = static_cast<std::unordered_map<uint64_t, SkyCoreSegment *> *>SKYWALKING_G(segment);
     auto it = segments->find(request_id);
         if (it != segments->end()) {
         return it->second;
@@ -136,14 +136,14 @@ Segment *sky_get_segment(int64_t request_id) {
     return nullptr;
 }
 
-Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id) {
+SkyCoreSegment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id) {
 
     if (SKYWALKING_G(segment) == nullptr) {
         // can't be here, since module_init has assigned a map to SKYWALKING_G(segment)
         return nullptr;
     }
 
-    auto *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
+    auto *segments = static_cast<std::unordered_map<uint64_t, SkyCoreSegment *> *>SKYWALKING_G(segment);
     bool do_search = false;
     uint64_t key = 0;
     if (request_id >= 0) {
@@ -171,18 +171,18 @@ Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id) {
     return nullptr;
 }
 
-bool sky_insert_segment(uint64_t request_id, Segment *segment) {
-    auto *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
+bool sky_insert_segment(uint64_t request_id, SkyCoreSegment *segment) {
+    auto *segments = static_cast<std::unordered_map<uint64_t, SkyCoreSegment *> *>SKYWALKING_G(segment);
     std::lock_guard<std::mutex> lock(segments_mutex);
 
-    std::pair<std::unordered_map<uint64_t, Segment *>::iterator, bool> result;
-    result = segments->insert(std::pair<uint64_t, Segment *>(request_id, segment));
+    std::pair<std::unordered_map<uint64_t, SkyCoreSegment *>::iterator, bool> result;
+    result = segments->insert(std::pair<uint64_t, SkyCoreSegment *>(request_id, segment));
 
     return result.second;
 }
 
 void sky_remove_segment(uint64_t request_id) {
-    auto *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
+    auto *segments = static_cast<std::unordered_map<uint64_t, SkyCoreSegment *> *>SKYWALKING_G(segment);
     std::lock_guard<std::mutex> lock(segments_mutex);
 
     segments->erase(request_id);

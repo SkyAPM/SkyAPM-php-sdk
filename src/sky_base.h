@@ -16,24 +16,28 @@
  */
 
 
-#include "sky_core_span_log.h"
+#ifndef SKYWALKING_SKY_BASE_H
+#define SKYWALKING_SKY_BASE_H
 
-#include <utility>
-#include <string>
-#include <sky_utils.h>
+#include "pthread.h"
 
-SkyCoreSpanLog::SkyCoreSpanLog(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
-    _time = getUnixTimeStamp();
-}
+#ifdef __cplusplus
+#define SKY_BEGIN_EXTERN_C() extern "C" {
+#define SKY_END_EXTERN_C() }
+#else
+#define SKY_BEGIN_EXTERN_C()
+#define SKY_END_EXTERN_C()
+#endif
 
-long SkyCoreSpanLog::getTime() {
-    return _time;
-}
+typedef struct {
+    pthread_mutex_t lock;
+    pthread_mutexattr_t lock_attr;
+    char service[1024];
+    char serviceInstance[1024];
+    int id;
+} mutex_service_t;
 
-const std::string &SkyCoreSpanLog::getKey() {
-    return _key;
-}
+typedef mutex_service_t mutex_service;
 
-const std::string &SkyCoreSpanLog::getValue() {
-    return _value;
-}
+
+#endif //SKYWALKING_SKY_BASE_H

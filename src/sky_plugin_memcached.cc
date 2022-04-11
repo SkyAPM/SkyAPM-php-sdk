@@ -17,7 +17,7 @@
 #include "sky_plugin_memcached.h"
 #include "php_skywalking.h"
 
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 
 std::vector<std::string> mecKeysCommands = {
@@ -97,13 +97,13 @@ std::vector<std::string> mecStrKeysCommands = {
         "decrementbykey"
 };
 
-Span *sky_plugin_memcached(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_plugin_memcached(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
     std::string cmd = function_name;
     std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::tolower);
     if (std::find(mecKeysCommands.begin(), mecKeysCommands.end(), cmd) != mecKeysCommands.end()) {
         auto *segment = sky_get_segment(execute_data, -1);
         if (segment) {
-            auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 36);
+            auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Cache, 36);
             span->setOperationName(class_name + "->" + function_name);
             span->addTag("db.type", "memcached");
 

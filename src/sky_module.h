@@ -20,7 +20,6 @@
 #define SKYWALKING_SKY_MODULE_H
 
 #include "php_skywalking.h"
-#include "manager.h"
 
 #define SKY_OLD_FN(n) static_cast<zend_function *>(zend_hash_str_find_ptr(CG(function_table), n, sizeof(n) - 1))
 

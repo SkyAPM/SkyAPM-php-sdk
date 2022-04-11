@@ -20,7 +20,7 @@
 #include "sky_plugin_curl.h"
 #include "php_skywalking.h"
 
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 
 void (*orig_curl_exec)(INTERNAL_FUNCTION_PARAMETERS) = nullptr;
@@ -145,7 +145,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     }
 
     // set header
-    Span *span;
+    SkyCoreSpan *span;
     int is_emalloc = 0;
     zval *option;
     option = zend_hash_index_find(Z_ARRVAL_P(&SKYWALKING_G(curl_header)), cid);
@@ -179,7 +179,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
             }
         }
 
-        span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
+        span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Http, 8002);
         span->setPeer(std::string(php_url_host) + ":" + std::to_string(peer_port));
         span->setOperationName(php_url_path == nullptr ? "/" : php_url_path);
         span->addTag("url", url_str);

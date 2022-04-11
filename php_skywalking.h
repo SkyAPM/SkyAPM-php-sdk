@@ -37,7 +37,7 @@
 
 #include "thread"
 
-#include "src/common.h"
+#include "src/sky_base.h"
 
 SKY_BEGIN_EXTERN_C()
 

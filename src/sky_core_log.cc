@@ -16,26 +16,24 @@
  */
 
 
-#ifndef SKYWALKING_LOG_H
-#define SKYWALKING_LOG_H
+#include "sky_core_log.h"
 
+#include <utility>
 #include <string>
-#include <vector>
+#include <sky_utils.h>
 
-class SkyCoreSpanLog {
-public:
-    SkyCoreSpanLog(std::string key, std::string value);
+SkyCoreLog::SkyCoreLog(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
+    _time = getUnixTimeStamp();
+}
 
-    long getTime();
+long SkyCoreLog::getTime() {
+    return _time;
+}
 
-    const std::string &getKey();
+const std::string &SkyCoreLog::getKey() {
+    return _key;
+}
 
-    const std::string &getValue();
-
-private:
-    long _time;
-    std::string _key;
-    std::string _value;
-};
-
-#endif //SKYWALKING_LOG_H
+const std::string &SkyCoreLog::getValue() {
+    return _value;
+}

@@ -16,19 +16,19 @@
  */
 
 
-#include "span.h"
-#include "sky_core_span_log.h"
+#include "sky_core_span.h"
+#include "sky_core_log.h"
 
 #include <iostream>
 #include <sky_utils.h>
 
-Span::Span() {
+SkyCoreSpan::SkyCoreSpan() {
     startTime = getUnixTimeStamp();
     isError = false;
     skipAnalysis = false;
 }
 
-Span::~Span() {
+SkyCoreSpan::~SkyCoreSpan() {
     for (auto ref : refs) {
         delete ref;
     }
@@ -49,115 +49,115 @@ Span::~Span() {
 }
 
 // get
-int Span::getSpanId() const {
+int SkyCoreSpan::getSpanId() const {
     return spanId;
 }
 
-int Span::getParentSpanId() const {
+int SkyCoreSpan::getParentSpanId() const {
     return parentSpanId;
 }
 
-long Span::getStartTime() const {
+long SkyCoreSpan::getStartTime() const {
     return startTime;
 }
 
-long Span::getEndTime() const {
+long SkyCoreSpan::getEndTime() const {
     return endTime;
 }
 
-const std::vector<SkySegmentReference*>& Span::getRefs() {
+const std::vector<SkyCoreSegmentReference*>& SkyCoreSpan::getRefs() {
     return refs;
 }
 
-const std::string& Span::getOperationName() {
+const std::string& SkyCoreSpan::getOperationName() {
     return operationName;
 }
 
-const std::string& Span::getPeer() {
+const std::string& SkyCoreSpan::getPeer() {
     return peer;
 }
 
-SkySpanType Span::getSpanType() {
+SkyCoreSpanType SkyCoreSpan::getSpanType() {
     return spanType;
 }
 
-SkySpanLayer Span::getSpanLayer() {
+SkyCoreSpanLayer SkyCoreSpan::getSpanLayer() {
     return spanLayer;
 }
 
-int Span::getComponentId() const {
+int SkyCoreSpan::getComponentId() const {
     return componentId;
 }
 
-bool Span::getIsError() const {
+bool SkyCoreSpan::getIsError() const {
     return isError;
 }
 
-const std::vector<Tag*>& Span::getTags() {
+const std::vector<SkyCoreTag*>& SkyCoreSpan::getTags() {
     return tags;
 }
 
-const std::vector<SkyCoreSpanLog*>& Span::getLogs() {
+const std::vector<SkyCoreLog*>& SkyCoreSpan::getLogs() {
     return logs;
 }
 
-bool Span::getSkipAnalysis() const {
+bool SkyCoreSpan::getSkipAnalysis() const {
     return skipAnalysis;
 }
 
 // set
-void Span::setEndTIme() {
+void SkyCoreSpan::setEndTIme() {
     endTime = getUnixTimeStamp();
 }
 
-void Span::setOperationName(const std::string &name) {
+void SkyCoreSpan::setOperationName(const std::string &name) {
     operationName = name.substr(0, name.find('?'));
 }
 
-void Span::setPeer(const std::string &p) {
+void SkyCoreSpan::setPeer(const std::string &p) {
     peer = p;
 }
 
-void Span::setSpanType(SkySpanType type) {
+void SkyCoreSpan::setSpanType(SkyCoreSpanType type) {
     spanType = type;
 }
 
-void Span::setSpanLayer(SkySpanLayer layer) {
+void SkyCoreSpan::setSpanLayer(SkyCoreSpanLayer layer) {
     spanLayer = layer;
 }
 
-void Span::setComponentId(int id) {
+void SkyCoreSpan::setComponentId(int id) {
     componentId = id;
 }
 
-void Span::setIsError(bool error) {
+void SkyCoreSpan::setIsError(bool error) {
     isError = error;
 }
 
-void Span::setSpanId(int id) {
+void SkyCoreSpan::setSpanId(int id) {
     spanId = id;
 }
 
-void Span::setParentSpanId(int id) {
+void SkyCoreSpan::setParentSpanId(int id) {
     parentSpanId = id;
 }
 
-void Span::pushTag(Tag *tag) {
+void SkyCoreSpan::pushTag(SkyCoreTag *tag) {
     tags.push_back(tag);
 }
 
-void Span::pushLog(SkyCoreSpanLog *log) {
+void SkyCoreSpan::pushLog(SkyCoreLog *log) {
     logs.push_back(log);
 }
 
-void Span::addTag(const std::string &key, const std::string &value) {
-    tags.push_back(new Tag(key, value));
+void SkyCoreSpan::addTag(const std::string &key, const std::string &value) {
+    tags.push_back(new SkyCoreTag(key, value));
 }
 
-void Span::addLog(const std::string &key, const std::string &value) {
-    logs.push_back(new SkyCoreSpanLog(key, value));
+void SkyCoreSpan::addLog(const std::string &key, const std::string &value) {
+    logs.push_back(new SkyCoreLog(key, value));
 }
 
-void Span::pushRefs(SkySegmentReference *ref) {
+void SkyCoreSpan::pushRefs(SkyCoreSegmentReference *ref) {
     refs.push_back(ref);
 }

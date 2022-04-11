@@ -17,15 +17,15 @@
 
 
 #include "sky_plugin_mysqli.h"
-#include "sky_core_span_log.h"
-#include "segment.h"
+#include "sky_core_log.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 #include "php_skywalking.h"
 
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
 
-void sky_mysqli_peer(Span *span, mysqli_object *mysqli) {
+void sky_mysqli_peer(SkyCoreSpan *span, mysqli_object *mysqli) {
     MYSQLI_RESOURCE *my_res = (MYSQLI_RESOURCE *) mysqli->ptr;
     if (my_res && my_res->ptr) {
         MY_MYSQL *mysql = (MY_MYSQL *) my_res->ptr;
@@ -45,7 +45,7 @@ void sky_mysqli_peer(Span *span, mysqli_object *mysqli) {
 }
 #endif
 
-Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 #ifdef MYSQLI_USE_MYSQLND
     mysqli_object *mysqli = nullptr;
     bool is_pdo_func = function_name == "query" || function_name == "autocommit" || function_name == "commit" || function_name == "rollback";
@@ -56,7 +56,7 @@ Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &clas
             return nullptr;
         }
 
-        auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8004);
+        auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Database, 8004);
         uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
 
         zval *statement = nullptr;
@@ -90,7 +90,7 @@ Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &clas
     return nullptr;
 }
 
-void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, Span *span, int is_oop) {
+void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, SkyCoreSpan *span, int is_oop) {
 #ifdef MYSQLI_USE_MYSQLND
     zval *obj, rv;
     if (is_oop == 1) {

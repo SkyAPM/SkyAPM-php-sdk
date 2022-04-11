@@ -21,8 +21,8 @@
 
 #include "php_skywalking.h"
 
-#include "span.h"
+#include "sky_core_span.h"
 
-Span *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, char *function_name);
+SkyCoreSpan *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, char *function_name);
 
 #endif //SKYWALKING_SKY_PLUGIN_GRPC_H

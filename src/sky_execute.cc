@@ -34,7 +34,7 @@
 #include "sky_pdo.h"
 #include "sky_plugin_mysqli.h"
 #include "sky_module.h"
-#include "segment.h"
+#include "sky_core_segment.h"
 
 void (*ori_execute_ex)(zend_execute_data *execute_data) = nullptr;
 
@@ -83,7 +83,7 @@ void sky_execute_ex(zend_execute_data *execute_data) {
         }
     }
 
-    Span *span = nullptr;
+    SkyCoreSpan *span = nullptr;
 
     if (class_name != nullptr && function_name != nullptr) {
         if (strcmp(function_name, "executeCommand") == 0) {
@@ -158,7 +158,7 @@ void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
         }
     }
 
-    Span *span = nullptr;
+    SkyCoreSpan *span = nullptr;
     if (class_name != nullptr) {
         if (strcmp(class_name, "PDO") == 0 || strcmp(class_name, "PDOStatement") == 0) {
             span = sky_pdo(execute_data, class_name, function_name);

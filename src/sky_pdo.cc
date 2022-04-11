@@ -20,11 +20,11 @@
 #include "sky_pdo.h"
 #include "sky_utils.h"
 
-#include "segment.h"
+#include "sky_core_segment.h"
 
 #include "php_skywalking.h"
 
-Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
     if (class_name == "PDO") {
         if (function_name == "exec" || function_name == "query" ||
@@ -35,7 +35,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
                 return nullptr;
             }
 
-            auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8003);
+            auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Database, 8003);
             span->setOperationName(class_name + "->" + function_name);
 
             uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
@@ -58,7 +58,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
                 return nullptr;
             }
 
-            auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Database, 8003);
+            auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Database, 8003);
             span->setOperationName(class_name + "->" + function_name);
 
             span->setPeer(sky_pdo_statement_peer(span, execute_data));
@@ -71,7 +71,7 @@ Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, co
     return nullptr;
 }
 
-std::string sky_pdo_statement_peer(Span *span, zend_execute_data *execute_data) {
+std::string sky_pdo_statement_peer(SkyCoreSpan *span, zend_execute_data *execute_data) {
     pdo_stmt_t *stmt = (pdo_stmt_t *) Z_PDO_STMT_P(&(execute_data->This));
 
     if (stmt != nullptr) {
@@ -89,7 +89,7 @@ std::string sky_pdo_statement_peer(Span *span, zend_execute_data *execute_data) 
     return nullptr;
 }
 
-std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data) {
+std::string sky_pdo_peer(SkyCoreSpan *span, zend_execute_data *execute_data) {
     pdo_dbh_t *dbh = Z_PDO_DBH_P(&(execute_data)->This);
 
     if (dbh != nullptr) {
@@ -99,7 +99,7 @@ std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data) {
     return nullptr;
 }
 
-std::string sky_pdo_dbh_peer(Span *span, pdo_dbh_t *dbh) {
+std::string sky_pdo_dbh_peer(SkyCoreSpan *span, pdo_dbh_t *dbh) {
     if (dbh->driver != nullptr) {
         span->addTag("db.type", dbh->driver->driver_name);
     }
@@ -131,15 +131,15 @@ std::string sky_pdo_dbh_peer(Span *span, pdo_dbh_t *dbh) {
     return nullptr;
 }
 
-void sky_pdo_check_errors(zend_execute_data *execute_data, Span *span) {    
+void sky_pdo_check_errors(zend_execute_data *execute_data, SkyCoreSpan *span) {
     zval *obj = &(execute_data)->This, property, return_ptr;
     ZVAL_STRING(&property, "errorInfo");
     
     call_user_function(CG(function_table), obj, &property, &return_ptr, 0, nullptr);
     if (Z_TYPE(return_ptr) == IS_ARRAY) {
-        span->pushLog(new SkyCoreSpanLog("SQLSTATE", Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 0))));
-        span->pushLog(new SkyCoreSpanLog("Error Code", std::to_string(Z_LVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 1)))));
-        span->pushLog(new SkyCoreSpanLog("Error", Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 2))));
+        span->pushLog(new SkyCoreLog("SQLSTATE", Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 0))));
+        span->pushLog(new SkyCoreLog("Error Code", std::to_string(Z_LVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 1)))));
+        span->pushLog(new SkyCoreLog("Error", Z_STRVAL_P(zend_hash_index_find(Z_ARRVAL(return_ptr), 2))));
     }
 
     zval_dtor(&return_ptr);

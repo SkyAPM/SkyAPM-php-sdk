@@ -19,8 +19,13 @@ package main
 
 import "C"
 import (
+	"fmt"
 	"github.com/SkyAPM/SkyAPM-php-sdk/src/golang/protocol"
-	"github.com/SkyAPM/SkyAPM-php-sdk/src/golang/utils"
+	"github.com/google/uuid"
+	"math/rand"
+	"strings"
+	"os"
+	"time"
 )
 
 var std *protocol.Protocol
@@ -28,7 +33,7 @@ var std *protocol.Protocol
 //export NewProtocol
 func NewProtocol(address, server, instance string) string {
 	std = protocol.NewProtocol(address, server, instance)
-	return std.Instance
+	return "123456"
 }
 
 //export ReportInstanceProperties
@@ -46,7 +51,9 @@ func WriteSegment() {
 
 //export GenerateTraceId
 func GenerateTraceId() *C.char {
-	return C.CString(utils.GenerateTraceId())
+	rand.Seed(time.Now().UnixNano())
+	traceId := fmt.Sprintf("%s.%d.%d", uuid.New().String(), os.Getpid(), rand.Intn(999999)+5000)
+    return C.CString(strings.ReplaceAll(traceId, "-", ""))
 }
 
 func main() {

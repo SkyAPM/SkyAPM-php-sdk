@@ -18,7 +18,7 @@
 
 #include <iostream>
 #include "sky_plugin_swoole_curl.h"
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "php_skywalking.h"
 #include "sky_utils.h"
 
@@ -28,7 +28,7 @@ void sky_plugin_swoole_curl(zend_execute_data *execute_data, const std::string &
     uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
 
     if (arg_count >= 1) {
-        Span *span = nullptr;
+        SkyCoreSpan *span = nullptr;
 
         zval *handle = ZEND_CALL_ARG(execute_data, 1);
 
@@ -61,7 +61,7 @@ void sky_plugin_swoole_curl(zend_execute_data *execute_data, const std::string &
             if (_scheme == "http" || _scheme == "https") {
                 auto *segment = sky_get_segment(execute_data, -1);
                 if (segment != nullptr) {
-                    span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
+                    span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Http, 8002);
                     span->setPeer(_host + ":" + std::to_string(_port));
                     span->setOperationName(_path);
                     span->addTag("url", _scheme + "://" + _host + ":" + std::to_string(_port) + _url);

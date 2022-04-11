@@ -16,23 +16,18 @@
  */
 
 
-#ifndef SKYWALKING_TAG_H
-#define SKYWALKING_TAG_H
+#include "sky_core_tag.h"
 
-#include <string>
+#include <utility>
 
-class Tag {
-public:
-    Tag(std::string key, std::string value);
+SkyCoreTag::SkyCoreTag(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
+    _value.erase(_value.find_last_not_of(' ') + 1);
+}
 
-    const std::string& getKey();
-    
-    const std::string& getValue();
+const std::string& SkyCoreTag::getKey() {
+    return _key;
+}
 
-private:
-    std::string _key;
-    std::string _value;
-};
-
-
-#endif //SKYWALKING_TAG_H
+const std::string& SkyCoreTag::getValue() {
+    return _value;
+}

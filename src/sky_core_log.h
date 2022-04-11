@@ -16,31 +16,26 @@
  */
 
 
-#ifndef SKYWALKING_SKY_SHM_H
-#define SKYWALKING_SKY_SHM_H
+#ifndef SKYWALKING_LOG_H
+#define SKYWALKING_LOG_H
 
-#include "string"
+#include <string>
+#include <vector>
 
-#define ACCESS_BIT 0666
-#define SEM_EXIST (-2)
+class SkyCoreLog {
+public:
+    SkyCoreLog(std::string key, std::string value);
 
-#if !defined(__APPLE__) && !defined(__MACH__)
-union semun {
-    int val;
-    struct semid_ds *buf;
-    unsigned short *array;
+    long getTime();
+
+    const std::string &getKey();
+
+    const std::string &getValue();
+
+private:
+    long _time;
+    std::string _key;
+    std::string _value;
 };
-#endif
 
-int sky_sem_new();
-
-int sky_sem_get();
-
-int sky_sem_p(int sem_id);
-
-int sky_sem_v(int sem_id);
-
-int sky_sem_del(int sem_id);
-
-
-#endif //SKYWALKING_SKY_SHM_H
+#endif //SKYWALKING_LOG_H

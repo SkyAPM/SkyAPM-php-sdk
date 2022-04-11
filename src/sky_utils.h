@@ -20,7 +20,7 @@
 #define SKYWALKING_SKY_UTILS_H
 
 #include "php_skywalking.h"
-#include "segment.h"
+#include "sky_core_segment.h"
 
 #include <string>
 
@@ -36,11 +36,11 @@ zval *sky_read_property(zval *obj, const char *property, int parent);
 
 int64_t sky_find_swoole_fd(zend_execute_data *execute_data);
 
-Segment *sky_get_segment(int64_t request_id);
+SkyCoreSegment *sky_get_segment(int64_t request_id);
 
-Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id);
+SkyCoreSegment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id);
 
-bool sky_insert_segment(uint64_t request_id, Segment *segment);
+bool sky_insert_segment(uint64_t request_id, SkyCoreSegment *segment);
 
 void sky_remove_segment(uint64_t request_id);
 

@@ -17,23 +17,24 @@
 
 
 
-#ifndef SKYWALKING_CROSS_PROCESS_BAG_H
-#define SKYWALKING_CROSS_PROCESS_BAG_H
-
-#define VERSION_8 8
+#ifndef SKYWALKING_SKY_CORE_CROSS_PROCESS_H
+#define SKYWALKING_SKY_CORE_CROSS_PROCESS_H
 
 #include <string>
 
-class CrossProcessBag {
+class SkyCoreCrossProcess {
 public:
-    CrossProcessBag(std::string serviceId,
-                    std::string serviceInstanceId, std::string segmentId,
-                    int version,
-                    const std::string &header);
+    SkyCoreCrossProcess(const std::string &header, const std::string &segmentId);
 
     std::string encode(int spanId, const std::string &peer);
 
-    void setOperationName(const std::string &name);
+    void setService(const std::string &service);
+
+    void setServiceInstance(const std::string &serviceInstance);
+
+    void setSegmentId(const std::string &segmentId);
+
+    void setEndpoint(const std::string &endpoint);
 
     const std::string &getTraceId();
 
@@ -47,18 +48,15 @@ public:
 
     const std::string &getParentEndpoint();
 
-    const std::string &getNetworkAddressUsedAtPeer();
-
+    const std::string &getNetworkAddress();
+    
 private:
-    void decode(const std::string &h);
+    std::string _service;
+    std::string _serviceInstance;
+    std::string _segmentId;
+    std::string _endpoint;
 
-private:
-    int version;
-    std::string currentTraceId;
-    std::string currentServiceId;
-    std::string currentServiceInstance;
-    std::string currentOperationName;
-
+    // https://github.com/apache/skywalking/blob/master/docs/en/protocols/Skywalking-Cross-Process-Propagation-Headers-Protocol-v3.md
     int sample;
     std::string traceId;
     std::string parentSegmentId;
@@ -66,8 +64,8 @@ private:
     std::string parentService;
     std::string parentServiceInstance;
     std::string parentEndpoint;
-    std::string networkAddressUsedAtPeer;
+    std::string networkAddress;
 };
 
 
-#endif //SKYWALKING_CROSS_PROCESS_BAG_H
+#endif //SKYWALKING_SKY_CORE_CROSS_PROCESS_H

@@ -20,10 +20,10 @@
 
 #include "php_skywalking.h"
 
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 
-Span *sky_predis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_predis(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
     if (class_name != "Predis\\Connection\\AbstractConnection") {
         return nullptr;
     }
@@ -34,7 +34,7 @@ Span *sky_predis(zend_execute_data *execute_data, const std::string &class_name,
         if (segment->skip()) {
             return nullptr;
         }
-        auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Cache, 8006);
+        auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Cache, 8006);
 
         zval *command = ZEND_CALL_ARG(execute_data, 1);
 

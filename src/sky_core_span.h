@@ -16,33 +16,34 @@
  */
 
 
-#ifndef SKYWALKING_SPAN_H
-#define SKYWALKING_SPAN_H
+#ifndef SKYWALKING_SKY_CORE_SPAN_H
+#define SKYWALKING_SKY_CORE_SPAN_H
 
 #include <string>
 #include <vector>
-#include "tag.h"
-#include "segment_reference.h"
-#include "sky_core_span_log.h"
+#include "sky_core_tag.h"
+#include "sky_core_segment_reference.h"
+#include "sky_core_log.h"
 
-enum class SkySpanType {
+enum class SkyCoreSpanType {
     Entry, Exit, Local
 };
 
-enum class SkySpanLayer {
+enum class SkyCoreSpanLayer {
     Unknown,
     Database,
     RPCFramework,
     Http,
     MQ,
-    Cache
+    Cache,
+    FAAS
 };
 
-class Span {
+class SkyCoreSpan {
 public:
-    Span();
+    SkyCoreSpan();
 
-    ~Span();
+    ~SkyCoreSpan();
 
     int getSpanId() const;
 
@@ -52,23 +53,23 @@ public:
 
     long getEndTime() const;
 
-    const std::vector<SkySegmentReference *>& getRefs();
+    const std::vector<SkyCoreSegmentReference *> &getRefs();
 
-    const std::string& getOperationName();
+    const std::string &getOperationName();
 
-    const std::string& getPeer();
+    const std::string &getPeer();
 
-    SkySpanType getSpanType();
+    SkyCoreSpanType getSpanType();
 
-    SkySpanLayer getSpanLayer();
+    SkyCoreSpanLayer getSpanLayer();
 
     int getComponentId() const;
 
     bool getIsError() const;
 
-    const std::vector<Tag *>& getTags();
+    const std::vector<SkyCoreTag *> &getTags();
 
-    const std::vector<SkyCoreSpanLog*>& getLogs();
+    const std::vector<SkyCoreLog *> &getLogs();
 
     bool getSkipAnalysis() const;
 
@@ -79,9 +80,9 @@ public:
 
     void setPeer(const std::string &peer);
 
-    void setSpanType(SkySpanType type);
+    void setSpanType(SkyCoreSpanType type);
 
-    void setSpanLayer(SkySpanLayer layer);
+    void setSpanLayer(SkyCoreSpanLayer layer);
 
     void setComponentId(int id);
 
@@ -91,32 +92,33 @@ public:
 
     void setParentSpanId(int id);
 
-    void pushTag(Tag *tag);
+    void pushTag(SkyCoreTag *tag);
 
-    void pushLog(SkyCoreSpanLog *log);
+    void pushLog(SkyCoreLog *log);
 
     void addTag(const std::string &key, const std::string &value);
 
     void addLog(const std::string &key, const std::string &value);
 
-    void pushRefs(SkySegmentReference *ref);
+    void pushRefs(SkyCoreSegmentReference *ref);
 
 private:
+    // Tracing.proto
     int spanId;
     int parentSpanId;
     long startTime;
     long endTime;
-    std::vector<SkySegmentReference *> refs;
+    std::vector<SkyCoreSegmentReference *> refs;
     std::string operationName;
     std::string peer;
-    SkySpanType spanType;
-    SkySpanLayer spanLayer;
+    SkyCoreSpanType spanType;
+    SkyCoreSpanLayer spanLayer;
     int componentId;
     bool isError;
-    std::vector<Tag *> tags;
-    std::vector<SkyCoreSpanLog *> logs;
+    std::vector<SkyCoreTag *> tags;
+    std::vector<SkyCoreLog *> logs;
     bool skipAnalysis;
 };
 
 
-#endif //SKYWALKING_SPAN_H
+#endif //SKYWALKING_SKY_CORE_SPAN_H
