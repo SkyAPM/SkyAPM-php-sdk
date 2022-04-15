@@ -30,25 +30,22 @@
   | Author:                                                              |
   +----------------------------------------------------------------------+
 */
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 
-#include <src/sky_base.h>
-#include <fstream>
+#include "php.h"
+#include "SAPI.h"
+#include "ext/standard/info.h"
 #include "php_skywalking.h"
 
-#include "src/sky_utils.h"
-#include "src/sky_module.h"
-#include "src/sky_core_segment.h"
-#include "sys/mman.h"
-#include "sys/ipc.h"
-#include "sys/shm.h"
+#include "sky_core_module.h"
 
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
 #endif
 
 ZEND_DECLARE_MODULE_GLOBALS(skywalking)
-
-mutex_service *ms = nullptr;
 
 PHP_INI_BEGIN()
     STD_PHP_INI_BOOLEAN("skywalking.enable", "0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
@@ -80,21 +77,23 @@ PHP_INI_BEGIN()
 PHP_INI_END()
 
 static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_globals) {
-    skywalking_globals->app_code = nullptr;
+    skywalking_globals->app_code = NULL;
     skywalking_globals->enable = 0;
     skywalking_globals->version = 0;
-    skywalking_globals->authentication = nullptr;
+    skywalking_globals->authentication = NULL;
+
+    skywalking_globals->cross_process_protocol = "3.0";
 
     // tls
-    skywalking_globals->grpc = nullptr;
+    skywalking_globals->grpc = NULL;
     skywalking_globals->grpc_tls_enable = 0;
-    skywalking_globals->grpc_tls_pem_root_certs = nullptr;
-    skywalking_globals->grpc_tls_pem_private_key = nullptr;
-    skywalking_globals->grpc_tls_pem_cert_chain = nullptr;
+    skywalking_globals->grpc_tls_pem_root_certs = NULL;
+    skywalking_globals->grpc_tls_pem_private_key = NULL;
+    skywalking_globals->grpc_tls_pem_cert_chain = NULL;
 
     // log
     skywalking_globals->log_enable = 0;
-    skywalking_globals->log_path = nullptr;
+    skywalking_globals->log_path = NULL;
 
     // php error log
     skywalking_globals->error_handler_enable = 0;
@@ -106,19 +105,19 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     skywalking_globals->sample_n_per_3_secs = -1;
 
     // uuid path
-    skywalking_globals->instance_name = nullptr;
+    skywalking_globals->instance_name = NULL;
 
     skywalking_globals->curl_response_enable = 0;
 }
 
 PHP_FUNCTION (skywalking_trace_id) {
-    auto *segment = sky_get_segment(execute_data, -1);
-    if (SKYWALKING_G(enable) && segment != nullptr) {
-        std::string trace_id = segment->getTraceId();
-        RETURN_STRING(trace_id.c_str());
-    } else {
+//    auto *segment = sky_get_segment(execute_data, -1);
+//    if (SKYWALKING_G(enable) && segment != NULL) {
+//        std::string trace_id = segment->getTraceId();
+//        RETURN_STRING(trace_id.c_str());
+//    } else {
         RETURN_STRING("");
-    }
+//    }
 }
 
 /* {{{ proto void skywalking_log(string key, string log [, bool is_error]) */
@@ -137,19 +136,19 @@ PHP_FUNCTION(skywalking_log)
         Z_PARAM_BOOL(is_error)
     ZEND_PARSE_PARAMETERS_END();
 
-    auto *segment = sky_get_segment(execute_data, -1);
-    if (!SKYWALKING_G(enable) || segment == nullptr) {
-        return;
-    }
-
-    if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
-        auto span = segment->findOrCreateSpan(name->val, SkyCoreSpanType::Local, SkyCoreSpanLayer::Unknown, 0);
-        span->addLog(key->val, value->val);
-        if (is_error) {
-            span->setIsError(true);
-        }
-        span->setEndTIme();
-    }
+//    auto *segment = sky_get_segment(execute_data, -1);
+//    if (!SKYWALKING_G(enable) || segment == NULL) {
+//        return;
+//    }
+//
+//    if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
+//        auto span = segment->findOrCreateSpan(name->val, SkyCoreSpanType::Local, SkyCoreSpanLayer::Unknown, 0);
+//        span->addLog(key->val, value->val);
+//        if (is_error) {
+//            span->setIsError(true);
+//        }
+//        span->setEndTIme();
+//    }
 }
 
 /* {{{ proto void skywalking_tag(string key, string value) */
@@ -165,16 +164,16 @@ PHP_FUNCTION(skywalking_tag)
         Z_PARAM_STR(value)
     ZEND_PARSE_PARAMETERS_END();
 
-    auto *segment = sky_get_segment(execute_data, -1);
-    if (!SKYWALKING_G(enable) || segment == nullptr) {
-        return;
-    }
-
-    if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
-        auto span = segment->findOrCreateSpan(name->val, SkyCoreSpanType::Local, SkyCoreSpanLayer::Unknown, 0);
-        span->addTag(key->val, value->val);
-        span->setEndTIme();
-    }
+//    auto *segment = sky_get_segment(execute_data, -1);
+//    if (!SKYWALKING_G(enable) || segment == nullptr) {
+//        return;
+//    }
+//
+//    if (ZSTR_LEN(name) > 0 && ZSTR_LEN(key) > 0 && ZSTR_LEN(value) > 0) {
+//        auto span = segment->findOrCreateSpan(name->val, SkyCoreSpanType::Local, SkyCoreSpanLayer::Unknown, 0);
+//        span->addTag(key->val, value->val);
+//        span->setEndTIme();
+//    }
 }
 
 PHP_MINIT_FUNCTION (skywalking) {
@@ -182,7 +181,7 @@ PHP_MINIT_FUNCTION (skywalking) {
 	REGISTER_INI_ENTRIES();
 
 	if (SKYWALKING_G(enable)) {
-        sky_module_init();
+        sky_core_module_init(INIT_FUNC_ARGS_PASSTHRU);
 	}
 
 	return SUCCESS;
@@ -192,7 +191,7 @@ PHP_MSHUTDOWN_FUNCTION (skywalking) {
     UNREGISTER_INI_ENTRIES();
 
     if (SKYWALKING_G(enable)) {
-        sky_module_cleanup();
+        sky_core_module_free();
     }
 
     return SUCCESS;
@@ -204,30 +203,16 @@ PHP_RINIT_FUNCTION(skywalking)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
     if (SKYWALKING_G(enable)) {
-        if (strcasecmp("fpm-fcgi", sapi_module.name) == 0 || true) {
-            if (ms == nullptr || strlen(ms->serviceInstance) == 0) {
-                return SUCCESS;
-            }
-
-            sky_request_init(nullptr, 0);
-        }
+        sky_core_request_init(NULL, 0);
     }
     return SUCCESS;
 }
 
-PHP_RSHUTDOWN_FUNCTION(skywalking)
-{
-	if (SKYWALKING_G(enable)) {
-        if (strcasecmp("fpm-fcgi", sapi_module.name) == 0 || true) {
-            if (SKYWALKING_G(segment) == nullptr) {
-                return SUCCESS;
-            }
-
-            sky_request_flush(nullptr, 0);
-            zval_dtor(&SKYWALKING_G(curl_header));
-        }
-	}
-	return SUCCESS;
+PHP_RSHUTDOWN_FUNCTION (skywalking) {
+    if (SKYWALKING_G(enable)) {
+        sky_core_request_free(NULL, 0);
+    }
+    return SUCCESS;
 }
 
 PHP_MINFO_FUNCTION(skywalking)

@@ -19,20 +19,13 @@
 #ifndef SKYWALKING_SKY_CORE_TAG_H
 #define SKYWALKING_SKY_CORE_TAG_H
 
-#include <string>
+typedef struct sky_core_tag_t {
+    const char *key;
+    const char *value;
+} sky_core_tag_t;
 
-class SkyCoreTag {
-public:
-    SkyCoreTag(std::string key, std::string value);
+sky_core_tag_t *sky_core_tag_new(const char *key, const char *value);
 
-    const std::string& getKey();
-    
-    const std::string& getValue();
-
-private:
-    std::string _key;
-    std::string _value;
-};
-
+void sky_core_tag_free(sky_core_tag_t *tag);
 
 #endif //SKYWALKING_SKY_CORE_TAG_H

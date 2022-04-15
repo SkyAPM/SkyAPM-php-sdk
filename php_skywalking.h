@@ -33,39 +33,10 @@
 
 
 #ifndef PHP_SKYWALKING_H
-#define PHP_SKYWALKING_H
-
-#include "thread"
-
-#include "src/sky_base.h"
-
-SKY_BEGIN_EXTERN_C()
-
-#include "php.h"
-#include "php_ini.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "main/SAPI.h"
-#include "zend_API.h"
-#include <curl/curl.h>
-#include "ext/standard/url.h"
-#if PHP_VERSION_ID >= 80000
-#include "ext/curl/php_curl.h"
-#endif
-#include "zend_interfaces.h"
-#include "ext/pdo/php_pdo_driver.h"
-#include "ext/standard/php_var.h"
-
-#include "zend_smart_str.h"
-#include "Zend/zend_smart_str.h"
-#include "ext/json/php_json.h"
-#include "ext/standard/php_smart_string.h"
+# define PHP_SKYWALKING_H
 
 extern zend_module_entry skywalking_module_entry;
-#define phpext_skywalking_ptr &skywalking_module_entry
+# define phpext_skywalking_ptr &skywalking_module_entry
 
 #define PHP_SKYWALKING_VERSION "4.2.0"
 
@@ -125,8 +96,11 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     zval curl_header;
     int version;
 
-    void *segment;
+    void *segments;
     zend_bool is_swoole;
+
+    // protocol
+    char *cross_process_protocol;
 
     // tls
     zend_bool grpc_tls_enable;
@@ -167,9 +141,8 @@ extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
 #define SKYWALKING_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(skywalking, v)
 #endif
 
-#if defined(ZTS) && defined(COMPILE_DL_SKYWALKING)
+# if defined(ZTS) && defined(COMPILE_DL_SKYWALKING)
 ZEND_TSRMLS_CACHE_EXTERN()
-#endif
+# endif
 
-SKY_END_EXTERN_C()
 #endif

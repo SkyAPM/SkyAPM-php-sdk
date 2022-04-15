@@ -20,52 +20,78 @@
 #ifndef SKYWALKING_SKY_CORE_SEGMENT_H
 #define SKYWALKING_SKY_CORE_SEGMENT_H
 
-#define VERSION_8 8
-
-#include <string>
-#include <vector>
-#include "sky_core_cross_process.h"
+#include <stdbool.h>
 #include "sky_core_span.h"
+#include "sky_core_cross_process.h"
 
-class SkyCoreSegment {
-public:
-    explicit SkyCoreSegment(const std::string &header);
+#define btoa(x) ((x)?"true":"false")
 
-    SkyCoreSpan *createSpan(SkyCoreSpanType type, SkyCoreSpanLayer layer, int componentId);
+typedef struct sky_core_segment_t {
+    sky_core_cross_process_t *cross_process;
 
-    SkyCoreSpan *findOrCreateSpan(const std::string &name, SkyCoreSpanType type, SkyCoreSpanLayer layer, int componentId);
-
-    SkyCoreSpan *firstSpan();
-
-    std::string marshal();
-
-    void setStatusCode(int code);
-
-    std::string createHeader(SkyCoreSpan *span);
-
-    void createRefs();
-
-    const std::string &getTraceId();
-
-    void setSkip(bool skip);
-
-    bool skip() const;
-
-    ~SkyCoreSegment();
-
-private:
-    SkyCoreCrossProcess *cp;
-    std::string header;
-    bool isSkip;
+    int span_total;
+    int span_size;
 
     // Tracing.proto
-    std::string traceId;
-    std::string traceSegmentId;
-    std::vector<SkyCoreSpan *> spans;
-    std::string service;
-    std::string serviceInstance;
-    bool isSizeLimited = false;
-};
+    char *traceId;
+    char *traceSegmentId;
+    sky_core_span_t **spans;
+    char *service;
+    char *serviceInstance;
+    bool isSizeLimited;
+} sky_core_segment_t;
+
+sky_core_segment_t *sky_core_segment_new(char *protocol);
+
+void sky_core_segment_add_span(sky_core_segment_t *segment, sky_core_span_t *span);
+
+char *sky_core_segment_to_json(sky_core_segment_t *segment);
+
+//#include <string>
+//#include <vector>
+//#include "sky_core_cross_process.h"
+//#include "sky_core_span.h"
+//
+//class SkyCoreSegment{
+//        public:
+//        explicit SkyCoreSegment(const std::string &header);
+//
+//        SkyCoreSpan *createSpan(SkyCoreSpanType type, SkyCoreSpanLayer layer, int componentId);
+//
+//        SkyCoreSpan *
+//        findOrCreateSpan(const std::string &name, SkyCoreSpanType type, SkyCoreSpanLayer layer, int componentId);
+//
+//        SkyCoreSpan *firstSpan();
+//
+//        std::string marshal();
+//
+//        void setStatusCode(int code);
+//
+//        std::string createHeader(SkyCoreSpan *span);
+//
+//        void createRefs();
+//
+//        const std::string &getTraceId();
+//
+//        void setSkip(bool skip);
+//
+//        bool skip() const;
+//
+//        ~SkyCoreSegment();
+//
+//        private:
+//        SkyCoreCrossProcess *cp;
+//        std::string header;
+//        bool isSkip;
+//
+//        // Tracing.proto
+//        std::string traceId;
+//        std::string traceSegmentId;
+//        std::vector<SkyCoreSpan *> spans;
+//        std::string service;
+//        std::string serviceInstance;
+//        bool isSizeLimited = false;
+//};
 
 
 #endif //SKYWALKING_SKY_CORE_SEGMENT_H

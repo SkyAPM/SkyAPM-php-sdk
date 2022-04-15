@@ -20,52 +20,69 @@
 #ifndef SKYWALKING_SKY_CORE_CROSS_PROCESS_H
 #define SKYWALKING_SKY_CORE_CROSS_PROCESS_H
 
-#include <string>
-
-class SkyCoreCrossProcess {
-public:
-    SkyCoreCrossProcess(const std::string &header, const std::string &segmentId);
-
-    std::string encode(int spanId, const std::string &peer);
-
-    void setService(const std::string &service);
-
-    void setServiceInstance(const std::string &serviceInstance);
-
-    void setSegmentId(const std::string &segmentId);
-
-    void setEndpoint(const std::string &endpoint);
-
-    const std::string &getTraceId();
-
-    const std::string &getParentTraceSegmentId();
-
-    int getParentSpanId() const;
-
-    const std::string &getParentService();
-
-    const std::string &getParentServiceInstance();
-
-    const std::string &getParentEndpoint();
-
-    const std::string &getNetworkAddress();
-    
-private:
-    std::string _service;
-    std::string _serviceInstance;
-    std::string _segmentId;
-    std::string _endpoint;
+typedef struct sky_core_cross_process_t {
 
     // https://github.com/apache/skywalking/blob/master/docs/en/protocols/Skywalking-Cross-Process-Propagation-Headers-Protocol-v3.md
     int sample;
-    std::string traceId;
-    std::string parentSegmentId;
+    char *traceId;
+    char *parentSegmentId;
     int parentSpanId;
-    std::string parentService;
-    std::string parentServiceInstance;
-    std::string parentEndpoint;
-    std::string networkAddress;
-};
+    char *parentService;
+    char *parentServiceInstance;
+    char *parentEndpoint;
+    char *networkAddress;
+} sky_core_cross_process_t;
+
+sky_core_cross_process_t *sky_core_cross_process_new(char *header);
+
+void sky_core_cross_process_set_trace_id(sky_core_cross_process_t *cross_process, char *trace_id);
+
+//#include <string>
+//
+//class SkyCoreCrossProcess {
+//public:
+//    SkyCoreCrossProcess(const std::string &header, const std::string &segmentId);
+//
+//    std::string encode(int spanId, const std::string &peer);
+//
+//    void setService(const std::string &service);
+//
+//    void setServiceInstance(const std::string &serviceInstance);
+//
+//    void setSegmentId(const std::string &segmentId);
+//
+//    void setEndpoint(const std::string &endpoint);
+//
+//    const std::string &getTraceId();
+//
+//    const std::string &getParentTraceSegmentId();
+//
+//    int getParentSpanId() const;
+//
+//    const std::string &getParentService();
+//
+//    const std::string &getParentServiceInstance();
+//
+//    const std::string &getParentEndpoint();
+//
+//    const std::string &getNetworkAddress();
+//
+//private:
+//    std::string _service;
+//    std::string _serviceInstance;
+//    std::string _segmentId;
+//    std::string _endpoint;
+//
+//    // https://github.com/apache/skywalking/blob/master/docs/en/protocols/Skywalking-Cross-Process-Propagation-Headers-Protocol-v3.md
+//    int sample;
+//    std::string traceId;
+//    std::string parentSegmentId;
+//    int parentSpanId;
+//    std::string parentService;
+//    std::string parentServiceInstance;
+//    std::string parentEndpoint;
+//    std::string networkAddress;
+//};
 
 
 #endif //SKYWALKING_SKY_CORE_CROSS_PROCESS_H

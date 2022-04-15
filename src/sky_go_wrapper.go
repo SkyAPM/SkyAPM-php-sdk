@@ -26,14 +26,32 @@ import (
 	"strings"
 	"os"
 	"time"
+	"unsafe"
+	"bufio"
 )
 
 var std *protocol.Protocol
+var refs struct {
+    objs map[int32]*protocol.Protocol
+}
 
-//export NewProtocol
-func NewProtocol(address, server, instance string) string {
-	std = protocol.NewProtocol(address, server, instance)
-	return "123456"
+func init() {
+    refs.objs = make(map[int32]*protocol.Protocol)
+}
+
+//export skywalking_connect
+func skywalking_connect(address, server, instance *C.char) *C.char {
+    var id int32 = 1
+    refs.objs[id] = protocol.NewProtocol(C.GoString(address), C.GoString(server), C.GoString(instance))
+
+	return (*C.char)(unsafe.Pointer(uintptr(id)))
+}
+
+//export skywalking_get_instance
+func skywalking_get_instance(sky *C.char) *C.char {
+    id := int32(uintptr(unsafe.Pointer(sky)))
+    instance := refs.objs[id].Instance
+    return C.CString(instance)
 }
 
 //export ReportInstanceProperties
@@ -44,13 +62,21 @@ func ReportInstanceProperties() int {
 	return 0
 }
 
-//export WriteSegment
-func WriteSegment() {
-	std.WriteSegment()
+//export skywalking_write_segment
+func skywalking_write_segment(sky, json *C.char) {
+    id := int32(uintptr(unsafe.Pointer(sky)))
+    obj := refs.objs[id]
+    fmt.Println(C.GoString(json), obj)
+    f, _ := os.OpenFile("/Users/yanlong/go.log", os.O_WRONLY|os.O_APPEND, 0666)
+    write := bufio.NewWriter(f)
+    write.WriteString(fmt.Sprintf("%s, %s, %d", C.GoString(json), obj, os.Getpid()))
+    write.Flush()
+    f.Close()
+	// std.WriteSegment()
 }
 
-//export GenerateTraceId
-func GenerateTraceId() *C.char {
+//export skywalking_trace_id_new
+func skywalking_trace_id_new() *C.char {
 	rand.Seed(time.Now().UnixNano())
 	traceId := fmt.Sprintf("%s.%d.%d", uuid.New().String(), os.Getpid(), rand.Intn(999999)+5000)
     return C.CString(strings.ReplaceAll(traceId, "-", ""))

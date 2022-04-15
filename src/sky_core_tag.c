@@ -16,21 +16,16 @@
  */
 
 
-#ifndef SKYWALKING_BASE64_H
-#define SKYWALKING_BASE64_H
+#include "sky_core_tag.h"
+#include <stdlib.h>
 
-#include <string>
+sky_core_tag_t *sky_core_tag_new(const char *key, const char *value) {
+    sky_core_tag_t *tag = (sky_core_tag_t *) malloc(sizeof(sky_core_tag_t));
+    tag->key = key;
+    tag->value = value;
+    return tag;
+}
 
-typedef unsigned char uchar;
-static const std::string b = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+void sky_core_tag_free(sky_core_tag_t *tag) {
 
-class Base64 {
-public:
-    static std::string encode(const std::string &in);
-
-    static std::string decode(const std::string &in);
-
-};
-
-
-#endif //SKYWALKING_BASE64_H
+}

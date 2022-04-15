@@ -19,7 +19,7 @@
 #ifndef SKYWALKING_SKY_PLUGIN_CURL_H
 #define SKYWALKING_SKY_PLUGIN_CURL_H
 
-#include "php_skywalking.h"
+#include "php.h"
 
 #define SKY_CURLOPT_HTTPHEADER 9923
 

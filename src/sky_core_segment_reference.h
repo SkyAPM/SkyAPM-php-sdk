@@ -20,58 +20,22 @@
 #ifndef SKYWALKING_SKY_CORE_SEGMENT_REFERENCE_H
 #define SKYWALKING_SKY_CORE_SEGMENT_REFERENCE_H
 
-#include <string>
-
-enum class SkyCoreRefType {
+typedef enum sky_core_segment_ref_type {
     CrossProcess, CrossThread
-};
+} sky_core_segment_ref_type;
 
-class SkyCoreSegmentReference {
-public:
-
-    SkyCoreRefType getRefType() const;
-
-    const std::string &getTraceId() const;
-
-    const std::string &getParentTraceSegmentId() const;
-
-    int getParentSpanId() const;
-
-    const std::string &getParentService() const;
-
-    const std::string &getParentServiceInstance() const;
-
-    const std::string &getParentEndpoint() const;
-
-    const std::string &getNetworkAddressUsedAtPeer() const;
-
-    void setRefType(SkyCoreRefType refType);
-
-    void setTraceId(const std::string &traceId);
-
-    void setParentTraceSegmentId(const std::string &parentTraceSegmentId);
-
-    void setParentSpanId(int parentSpanId);
-
-    void setParentService(const std::string &parentService);
-
-    void setParentServiceInstance(const std::string &parentServiceInstance);
-
-    void setParentEndpoint(const std::string &parentEndpoint);
-
-    void setNetworkAddressUsedAtPeer(const std::string &networkAddressUsedAtPeer);
-
-private:
+typedef struct sky_core_segment_ref_t {
     // Tracing.proto
-    SkyCoreRefType refType;
-    std::string traceId;
-    std::string parentTraceSegmentId;
+    sky_core_segment_ref_type refType;
+    char *traceId;
+    char *parentTraceSegmentId;
     int parentSpanId;
-    std::string parentService;
-    std::string parentServiceInstance;
-    std::string parentEndpoint;
-    std::string networkAddressUsedAtPeer;
-};
+    char *parentService;
+    char *parentServiceInstance;
+    char *parentEndpoint;
+    char *networkAddressUsedAtPeer;
+} sky_core_segment_ref_t;
 
+sky_core_segment_ref_t * sky_core_segment_ref_new();
 
 #endif //SKYWALKING_SKY_CORE_SEGMENT_REFERENCE_H

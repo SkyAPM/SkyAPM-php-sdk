@@ -20,14 +20,14 @@
 
 #include <utility>
 
-SkyCoreTag::SkyCoreTag(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
+sky_core_tag_t::SkyCoreTag(std::string key, std::string value) : _key(std::move(key)), _value(std::move(value)) {
     _value.erase(_value.find_last_not_of(' ') + 1);
 }
 
-const std::string& SkyCoreTag::getKey() {
+const std::string& sky_core_tag_t::getKey() {
     return _key;
 }
 
-const std::string& SkyCoreTag::getValue() {
+const std::string& sky_core_tag_t::getValue() {
     return _value;
 }

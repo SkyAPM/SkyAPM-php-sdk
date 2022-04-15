@@ -173,66 +173,7 @@ void sky_request_init(zval *request, uint64_t request_id) {
             peer += std::to_string(Z_LVAL_P(peer_val));
         }
     } else {
-        zend_bool jit_initialization = PG(auto_globals_jit);
 
-        if (jit_initialization) {
-            zend_string *server_str = zend_string_init("_SERVER", sizeof("_SERVER") - 1, 0);
-            zend_is_auto_global(server_str);
-            zend_string_release(server_str);
-        }
-        carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
-
-        if (SKYWALKING_G(version) == 5) {
-            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
-        } else if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) {
-            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
-        } else if (SKYWALKING_G(version) == 8) {
-            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW8", sizeof("HTTP_SW8") - 1);
-        } else {
-            sw = nullptr;
-        }
-
-        header = (sw != nullptr ? Z_STRVAL_P(sw) : "");
-        uri = get_page_request_uri();
-        peer = get_page_request_peer();
     }
 
-    std::unordered_map<uint64_t, SkyCoreSegment *> *segments = static_cast<std::unordered_map<uint64_t, SkyCoreSegment *> *>SKYWALKING_G(segment);
-
-    auto *segment = new SkyCoreSegment(header);
-    (void)sky_insert_segment(request_id, segment);
-
-    auto *span = segments->at(request_id)->createSpan(SkyCoreSpanType::Entry, SkyCoreSpanLayer::Http, 8001);
-    span->setOperationName(uri);
-    span->setPeer(peer);
-    span->addTag("url", uri);
-    segments->at(request_id)->createRefs();
-
-    zval *request_method = zend_hash_str_find(Z_ARRVAL(PG(http_globals)[TRACK_VARS_SERVER]), ZEND_STRL("REQUEST_METHOD"));
-    if (request_method != NULL) {
-        span->addTag("http.method", Z_STRVAL_P(request_method));
-    }
-}
-
-
-void sky_request_flush(zval *response, uint64_t request_id) {
-    auto *segment = sky_get_segment(nullptr, request_id);
-    if (nullptr == segment) {
-        return;
-    }
-    if (segment->skip()) {
-        delete segment;
-        sky_remove_segment(request_id);
-
-        return;
-    }
-
-    if (response == nullptr) {
-        segment->setStatusCode(SG(sapi_headers).http_response_code);
-    }
-
-    std::string msg = segment->marshal();
-    delete segment;
-    sky_remove_segment(request_id);
-    // todo
 }

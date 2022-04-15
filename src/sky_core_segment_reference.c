@@ -16,18 +16,11 @@
  */
 
 
-#ifndef SKYWALKING_SKY_MODULE_H
-#define SKYWALKING_SKY_MODULE_H
 
-#include "php_skywalking.h"
+#include "sky_core_segment_reference.h"
+#include "php.h"
+#include <stdlib.h>
 
-#define SKY_OLD_FN(n) static_cast<zend_function *>(zend_hash_str_find_ptr(CG(function_table), n, sizeof(n) - 1))
-
-void sky_module_init();
-
-void sky_module_cleanup();
-
-void sky_request_init(zval *request, uint64_t request_id);
-
-
-#endif //SKYWALKING_SKY_MODULE_H
+sky_core_segment_ref_t *sky_core_segment_ref_new() {
+    return (sky_core_segment_ref_t *) emalloc(sizeof(sky_core_segment_ref_t));
+}

@@ -1,6 +1,3 @@
-PHP_REQUIRE_CXX()
-CXXFLAGS="$CXXFLAGS -Wall -std=c++11 -Wno-deprecated-register"
-
 PHP_ARG_ENABLE([skywalking],
   [whether to enable skywalking support],
   [AS_HELP_STRING([--enable-skywalking],
@@ -10,10 +7,6 @@ PHP_ARG_ENABLE([skywalking],
 if test "$PHP_THREAD_SAFETY" == "yes"; then
   AC_MSG_ERROR([skywalking does not support ZTS])
 fi
-
-AC_LANG_PUSH(C++)
-AX_CHECK_COMPILE_FLAG([-std=c++0x], , [AC_MSG_ERROR([compiler not accept c++11])])
-AC_LANG_POP()
 
 AC_MSG_CHECKING([for php_json.h])
 json_inc_path=""
@@ -53,48 +46,22 @@ if test "$PHP_SKYWALKING" != "no"; then
   PHP_ADD_LIBRARY(dl,,SKYWALKING_SHARED_LIBADD)
   PHP_ADD_LIBRARY(dl)
 
-  case $host in
-    *darwin*)
-      PHP_ADD_LIBRARY(c++,1,SKYWALKING_SHARED_LIBADD)
-      ;;
-    *)
-      PHP_ADD_LIBRARY(rt,,SKYWALKING_SHARED_LIBADD)
-      PHP_ADD_LIBRARY(rt)
-      ;;
-  esac
-
   PHP_SUBST(SKYWALKING_SHARED_LIBADD)
 
   PHP_ADD_INCLUDE(src)
+  AC_DEFINE(HAVE_SKYWALKING, 1, [ Have skywalking support ])
 
   PHP_NEW_EXTENSION(skywalking, \
-      skywalking.cc \
-      src/base64.cc \
-      src/sky_core_cross_process.cc \
-      src/sky_core_log.cc \
-      src/sky_core_segment.cc \
-      src/sky_core_segment_reference.cc \
-      src/sky_core_span.cc \
-      src/sky_core_tag.cc \
-      src/sky_execute.cc \
-      src/sky_go_utils.cc \
-      src/sky_log.cc \
-      src/sky_module.cc \
-      src/sky_plugin_mysqli.cc \
-      src/sky_pdo.cc \
-      src/sky_plugin_curl.cc \
-      src/sky_plugin_error.cc \
-      src/sky_plugin_grpc.cc \
-      src/sky_plugin_hyperf_guzzle.cc \
-      src/sky_plugin_predis.cc \
-      src/sky_plugin_rabbit_mq.cc \
-      src/sky_plugin_redis.cc \
-      src/sky_plugin_memcached.cc \
-      src/sky_plugin_yar.cc \
-      src/sky_plugin_swoole_curl.cc \
-      src/sky_rate_limit.cc \
-      src/sky_utils.cc \
-  , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, cxx)
+      skywalking.c \
+      src/sky_core_cross_process.c \
+      src/sky_core_module.c \
+      src/sky_core_segment.c \
+      src/sky_core_segment_reference.c \
+      src/sky_core_span.c \
+      src/sky_core_tag.c \
+      src/sky_plugin_curl.c \
+      src/sky_util_base64.c \
+  , $ext_shared)
 fi
 
 if test -r $phpincludedir/ext/mysqli/mysqli_mysqlnd.h; then
