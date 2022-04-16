@@ -40,6 +40,10 @@ sky_core_span_t *sky_core_span_new(sky_core_span_type type, sky_core_span_layer 
     return span;
 }
 
+void sky_core_span_set_end_time(sky_core_span_t *span) {
+
+}
+
 void sky_core_span_add_refs(sky_core_span_t *span, sky_core_segment_ref_t *ref) {
     span->refs[span->refs_size] = ref;
 }
@@ -57,6 +61,10 @@ void sky_core_span_set_operation_name(sky_core_span_t *span, char *name) {
 
 void sky_core_span_set_peer(sky_core_span_t *span, char *peer) {
     span->peer = peer;
+}
+
+void sky_core_span_set_error(sky_core_span_t *span, bool isError) {
+    span->isError = isError;
 }
 
 void sky_core_span_add_tag(sky_core_span_t *span, sky_core_tag_t *tag) {

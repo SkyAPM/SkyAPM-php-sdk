@@ -86,6 +86,8 @@ void sky_core_module_free() {
 
 void sky_core_request_init(zval *request, u_int64_t request_id) {
 
+    array_init(&SKYWALKING_G(curl_cache));
+
     zval *_server = NULL;
     zval *cross_process_protocol = NULL;
     char *operation_name = NULL;
@@ -147,6 +149,7 @@ void sky_core_request_init(zval *request, u_int64_t request_id) {
 }
 
 void sky_core_request_free(zval *response, u_int64_t request_id) {
+    zval_dtor(&SKYWALKING_G(curl_cache));
 
     if (SKYWALKING_G(segments) == NULL) {
         return;

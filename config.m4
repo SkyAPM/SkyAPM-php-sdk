@@ -61,6 +61,7 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/sky_core_tag.c \
       src/sky_plugin_curl.c \
       src/sky_util_base64.c \
+      src/sky_utils.c \
   , $ext_shared)
 fi
 

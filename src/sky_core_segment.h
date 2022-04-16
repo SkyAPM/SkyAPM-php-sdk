@@ -27,6 +27,7 @@
 #define btoa(x) ((x)?"true":"false")
 
 typedef struct sky_core_segment_t {
+    bool isSkip;
     sky_core_cross_process_t *cross_process;
 
     int span_total;

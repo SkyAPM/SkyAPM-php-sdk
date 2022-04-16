@@ -20,6 +20,10 @@
 #define SKYWALKING_SKY_PLUGIN_CURL_H
 
 #include "php.h"
+#include <curl/curl.h>
+#if PHP_VERSION_ID >= 80000
+#include "ext/curl/php_curl.h"
+#endif
 
 #define SKY_CURLOPT_HTTPHEADER 9923
 

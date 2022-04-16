@@ -93,7 +93,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     char *grpc;
     zend_bool enable;
     zval context;
-    zval curl_header;
+
     int version;
 
     void *segments;
@@ -130,6 +130,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
 
     // cURL
     zend_bool curl_response_enable;
+    zval curl_cache;
 
 ZEND_END_MODULE_GLOBALS(skywalking)
 
