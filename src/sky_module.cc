@@ -224,6 +224,9 @@ void sky_request_init(zval *request, uint64_t request_id) {
 
 void sky_request_flush(zval *response, uint64_t request_id) {
     auto *segment = sky_get_segment(nullptr, request_id);
+    if (nullptr == segment) {
+        return;
+    }
     if (segment->skip()) {
         delete segment;
         sky_remove_segment(request_id);

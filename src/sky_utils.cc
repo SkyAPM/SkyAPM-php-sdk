@@ -124,6 +124,18 @@ int64_t sky_find_swoole_fd(zend_execute_data *execute_data) {
     return -1;
 }
 
+Segment *sky_get_segment(int64_t request_id) {
+    if (SKYWALKING_G(segment) == nullptr) {
+        return nullptr;
+    }
+    auto *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
+    auto it = segments->find(request_id);
+        if (it != segments->end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
 Segment *sky_get_segment(zend_execute_data *execute_data, int64_t request_id) {
 
     if (SKYWALKING_G(segment) == nullptr) {
