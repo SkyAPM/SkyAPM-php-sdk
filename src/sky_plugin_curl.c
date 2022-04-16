@@ -127,18 +127,13 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 
     int is_record = 0;
 
-    zval func;
-    zval args[1];
-    zval url_info;
-    ZVAL_COPY(&args[0], zid);
-    ZVAL_STRING(&func, "curl_getinfo");
-    call_user_function(CG(function_table), NULL, &func, &url_info, 1, args);
-    zval_dtor(&func);
-    zval_dtor(&args[0]);
+    zval params[5];
+    ZVAL_COPY(&params[0], zid);
+    zval *url_info = sky_util_call_user_func("curl_getinfo", 1, params);
 
     // check
     php_url *url_parse = NULL;
-    zval *z_url = zend_hash_str_find(Z_ARRVAL(url_info), ZEND_STRL("url"));
+    zval *z_url = zend_hash_str_find(Z_ARRVAL_P(url_info), ZEND_STRL("url"));
     char *url_str = Z_STRVAL_P(z_url);
     if (strlen(url_str) > 0 && (starts_with("http://", url_str) || starts_with("https://", url_str))) {
         url_parse = php_url_parse(url_str);
@@ -191,18 +186,12 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
 //        std::string sw_header = segment->createHeader(span);
 //        add_next_index_string(option, ("sw8: " + sw_header).c_str());
 
-        zval argv[3];
-        zval ret;
-        ZVAL_STRING(&func, "curl_setopt");
-        ZVAL_COPY(&argv[0], zid);
-        ZVAL_LONG(&argv[1], SKY_CURLOPT_HTTPHEADER);
-        ZVAL_COPY(&argv[2], header);
-        call_user_function(CG(function_table), NULL, &func, &ret, 3, argv);
-        zval_dtor(&func);
-        zval_dtor(&ret);
-        zval_dtor(&argv[0]);
-        zval_dtor(&argv[1]);
-        zval_dtor(&argv[2]);
+        ZVAL_COPY(&params[0], zid);
+        ZVAL_LONG(&params[1], SKY_CURLOPT_HTTPHEADER);
+        ZVAL_COPY(&params[2], header);
+        zval *set_result = sky_util_call_user_func("curl_setopt", 3, params);
+        zval_dtor(&set_result);
+
         if (is_malloc) {
             zval_ptr_dtor(header);
             efree(header);
@@ -215,30 +204,20 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     if (is_record == 1) {
 
         // get response
-        zval url_response;
-        ZVAL_COPY(&args[0], zid);
-        ZVAL_STRING(&func, "curl_getinfo");
-        call_user_function(CG(function_table), NULL, &func, &url_response, 1, args);
-        zval_dtor(&func);
-        zval_dtor(&args[0]);
+        ZVAL_COPY(&params[0], zid);
+        zval *url_response = sky_util_call_user_func("curl_getinfo", 1, params);
 
-        zval *response_http_code = zend_hash_str_find(Z_ARRVAL(url_response), ZEND_STRL("http_code"));
+        zval *response_http_code = zend_hash_str_find(Z_ARRVAL_P(url_response), ZEND_STRL("http_code"));
         char code[255] = {0};
         sprintf(code, "%lld", Z_LVAL_P(response_http_code));
         sky_core_span_add_tag(span, sky_core_tag_new("status_code", code));
         if (Z_LVAL_P(response_http_code) == 0) {
             // get errors
-            zval curl_error;
-            ZVAL_COPY(&args[0], zid);
-            ZVAL_STRING(&func, "curl_error");
-            call_user_function(CG(function_table), NULL, &func, &curl_error, 1, args);
-
+            ZVAL_COPY(&params[0], zid);
+            zval *curl_error = sky_util_call_user_func("curl_error", 1, params);
 //            span->addLog("CURL_ERROR", Z_STRVAL(curl_error));
             sky_core_span_set_error(span, true);
-
-            zval_dtor(&func);
-            zval_dtor(&args[0]);
-            zval_dtor(&curl_error);
+            zval_dtor(curl_error);
         } else if (Z_LVAL_P(response_http_code) >= 400) {
             if (SKYWALKING_G(curl_response_enable) && Z_TYPE_P(return_value) == IS_STRING) {
                 sky_core_span_add_tag(span, sky_core_tag_new("http.response", Z_STRVAL_P(return_value)));
@@ -248,12 +227,12 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
         } else {
             sky_core_span_set_error(span, false);
         }
-        zval_dtor(&url_response);
+        zval_dtor(url_response);
 
         sky_core_span_set_end_time(span);
     }
 
-    zval_dtor(&url_info);
+    zval_dtor(url_info);
     if (url_parse != NULL) {
         php_url_free(url_parse);
     }

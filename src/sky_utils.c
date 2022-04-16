@@ -18,6 +18,7 @@
 
 #include "sky_utils.h"
 #include "php_skywalking.h"
+#include "zend_variables.h"
 
 //// protect SKYWALKING_G(segment)'s insert and remove
 //static std::mutex segments_mutex;
@@ -172,6 +173,19 @@ bool starts_with(const char *pre, const char *str) {
     size_t pre_len = strlen(pre);
     size_t str_len = strlen(str);
     return str_len < pre_len ? false : memcmp(pre, str, pre_len) == 0;
+}
+
+zval *sky_util_call_user_func(const char *name, uint32_t count, zval params[]) {
+    zval func;
+    zval *result = (zval *) emalloc(sizeof(zval));
+    ZVAL_STRING(&func, name);
+    call_user_function(CG(function_table), NULL, &func, result, count, params);
+    zval_dtor(&func);
+
+    for (int i = 0; i < count; i++) {
+        zval_dtor(&params[i]);
+    }
+    return result;
 }
 
 //bool sky_insert_segment(uint64_t request_id, SkyCoreSegment *segment) {
