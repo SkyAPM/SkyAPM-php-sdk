@@ -27,7 +27,6 @@ import (
 	"os"
 	"time"
 	"unsafe"
-	"bufio"
 )
 
 var std *protocol.Protocol
@@ -67,11 +66,6 @@ func skywalking_write_segment(sky, json *C.char) {
     id := int32(uintptr(unsafe.Pointer(sky)))
     obj := refs.objs[id]
     fmt.Println(C.GoString(json), obj)
-    f, _ := os.OpenFile("/Users/yanlong/go.log", os.O_WRONLY|os.O_APPEND, 0666)
-    write := bufio.NewWriter(f)
-    write.WriteString(fmt.Sprintf("%s, %s, %d", C.GoString(json), obj, os.Getpid()))
-    write.Flush()
-    f.Close()
 	// std.WriteSegment()
 }
 

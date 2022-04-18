@@ -16,6 +16,7 @@
 #include "sky_core_cross_process.h"
 #include "sky_plugin_curl.h"
 #include "sky_go_wrapper.h"
+#include "sky_plugin_redis.h"
 
 int le_skywalking_pconnect;
 
@@ -34,6 +35,10 @@ extern void (*origin_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 extern void (*origin_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
 int sky_core_module_init(INIT_FUNC_ARGS) {
+
+    if (1 == 1) {
+        sky_plugin_redis_hooks();
+    }
 
     // todo if on
     if (1 == 1) {
