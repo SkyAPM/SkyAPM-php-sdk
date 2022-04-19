@@ -28,8 +28,3 @@ skywalking.log_enable = 0
 ; skywalking.curl_response_enable = 0
 ```
 
-
-
-## Important
-
-1. Make sure php-fpm is running in foreground mode `--nodaemonize`
