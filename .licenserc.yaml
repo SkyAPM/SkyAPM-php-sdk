@@ -32,6 +32,8 @@ header:
     - 'config.m4'
     - 'config.w32'
     - 'config.w32'
+    - 'src/protocol'
+    - 'src/collect'
     - 'e2e/composer.json'
 
   comment: on-failure
