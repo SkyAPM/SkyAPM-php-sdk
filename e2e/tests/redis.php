@@ -22,32 +22,27 @@ function testRedis() {
 
     $key = 'skywalking';
     // strings
-    $redis->append($key, "test");
-    $redis->bitcount($key);
-    $redis->bitcount($key, 0);
-    $redis->bitcount($key, 0, 1);
-    $redis->bitpos($key, 0, 1, 2);
-    $redis->bitop('AND', $key, $key . '_01', $key . '_02', $key . '_03');
-    $redis->setbit($key, 1, 1);
-    $redis->setbit($key, 1, 0);
-    $redis->setbit($key, 1, true);
-    $redis->setbit($key, 1, false);
-    $redis->getbit($key, 1);
+    $redis->append($key, "12131");
     $redis->decr($key);
-    $redis->get($key);
-    $redis->getSet($key, "test");
-    $redis->incr($key);
-    $redis->incrBy($key, 10);
+    $redis->decr($key, 10);
     $redis->decrBy($key, 10);
-    $redis->incrByFloat($key, 10.5);
-    $redis->setnx($key, "test");
+    $redis->get($key);
+    $redis->getRange($key, 0, 1);
+    $redis->getSet($key, "11221122");
+    $redis->incr($key);
+    $redis->incr($key, 10);
+    $redis->incrBy($key, 10);
+    $redis->mGet([$key, "key1"]);
+    $redis->mSet([$key => "1818181", "key1" => "8888"]);
+    $redis->mSetNx([$key => "1818181", "key1" => "8888"]);
+    $redis->pSetEx($key, 100, 'value');
+    $redis->set($key, "11");
+    $redis->set($key, "11", 10);
+    $redis->set($key, "11", ["xx", "ex" => 10]);
+    $redis->setEx($key, 3600, 'value');
+    $redis->setNx($key, 'value');
+    $redis->setRange($key, 6, "redis");
     $redis->strlen($key);
-    $redis->set($key, "test");
-    $redis->set($key, "test", 100);
-    $redis->set($key, "test", ["nx", "ex" => 200]);
-    $redis->setex($key, 300, "test");
-    $redis->setrange($key, 1, "222");
-    $redis->getrange($key, 1, 4);
 
     // multiple keys
     $redis->mget([$key .'_1', $key . '_2', $key . '_3']);

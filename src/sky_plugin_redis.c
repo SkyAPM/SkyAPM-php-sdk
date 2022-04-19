@@ -48,7 +48,28 @@ zif_handler origin_redis_substr = NULL;
 void sky_plugin_redis_hooks() {
     zend_function *origin_function;
     REDIS_HOOK("redis", "append", origin_redis_append, sky_plugin_redis_append_handler)
+    REDIS_HOOK("redis", "decr", origin_redis_decr, sky_plugin_redis_decr_handler)
+    REDIS_HOOK("redis", "decrby", origin_redis_decrby, sky_plugin_redis_decrby_handler)
     REDIS_HOOK("redis", "get", origin_redis_get, sky_plugin_redis_get_handler)
+    REDIS_HOOK("redis", "getdel", origin_redis_getdel, sky_plugin_redis_getdel_handler)
+    REDIS_HOOK("redis", "getex", origin_redis_getex, sky_plugin_redis_getex_handler)
+    REDIS_HOOK("redis", "getrange", origin_redis_getrange, sky_plugin_redis_getrange_handler)
+    REDIS_HOOK("redis", "getset", origin_redis_getset, sky_plugin_redis_getset_handler)
+    REDIS_HOOK("redis", "incr", origin_redis_incr, sky_plugin_redis_incr_handler)
+    REDIS_HOOK("redis", "incrby", origin_redis_incrby, sky_plugin_redis_incrby_handler)
+    REDIS_HOOK("redis", "incrbyfloat", origin_redis_incrbyfloat, sky_plugin_redis_incrbyfloat_handler)
+    REDIS_HOOK("redis", "lcs", origin_redis_lcs, sky_plugin_redis_lcs_handler)
+    REDIS_HOOK("redis", "mget", origin_redis_mget, sky_plugin_redis_mget_handler)
+    REDIS_HOOK("redis", "mset", origin_redis_mset, sky_plugin_redis_mset_handler)
+    REDIS_HOOK("redis", "msetnx", origin_redis_msetnx, sky_plugin_redis_msetnx_handler)
+    REDIS_HOOK("redis", "psetex", origin_redis_psetex, sky_plugin_redis_psetex_handler)
+    REDIS_HOOK("redis", "set", origin_redis_set, sky_plugin_redis_set_handler)
+    REDIS_HOOK("redis", "setex", origin_redis_setex, sky_plugin_redis_setex_handler)
+    REDIS_HOOK("redis", "setnx", origin_redis_setnx, sky_plugin_redis_setnx_handler)
+    REDIS_HOOK("redis", "setrange", origin_redis_setrange, sky_plugin_redis_setrange_handler)
+    REDIS_HOOK("redis", "strlen", origin_redis_strlen, sky_plugin_redis_strlen_handler)
+    REDIS_HOOK("redis", "substr", origin_redis_substr, sky_plugin_redis_substr_handler)
+
 }
 
 void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
@@ -63,6 +84,54 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
 
     while (*fmt) {
         switch (*fmt) {
+            case 'm':
+                arg.zv = va_arg(ap, zval*);
+                if (Z_TYPE_P(arg.zv) == IS_ARRAY) {
+                    HashTable *hash = Z_ARRVAL_P(arg.zv);
+                    if (zend_hash_num_elements(hash) > 0) {
+                        zend_ulong idx;
+                        zend_string *zkey;
+                        zval *zmem;
+                        char buf[64];
+                        size_t keylen;
+                        ZEND_HASH_FOREACH_KEY_VAL(hash, idx, zkey, zmem) {
+                            if (zkey) {
+                                smart_string_appendl(&cmd, " ", strlen(" "));
+                                smart_string_appendl(&cmd, ZSTR_VAL(zkey), ZSTR_LEN(zkey));
+                            } else {
+                                keylen = snprintf(buf, sizeof(buf), "%ld", (long)idx);
+                                smart_string_appendl(&cmd, " ", strlen(" "));
+                                smart_string_appendl(&cmd, buf, keylen);
+                            }
+                            if (Z_TYPE_P(arg.zv) == IS_STRING) {
+                                smart_string_appendl(&cmd, " ", strlen(" "));
+                                smart_string_appendl(&cmd, Z_STRVAL_P(zmem), Z_STRLEN_P(zmem));
+                            }
+                        } ZEND_HASH_FOREACH_END();
+                    }
+                }
+                break;
+            case 'a':
+                arg.zv = va_arg(ap, zval*);
+                if (Z_TYPE_P(arg.zv) == IS_ARRAY) {
+                    HashTable *hash = Z_ARRVAL_P(arg.zv);
+                    if (zend_hash_num_elements(hash) > 0) {
+                        zval *z_ele;
+                        ZEND_HASH_FOREACH_VAL(hash, z_ele) {
+                            zend_string *zstr = zval_get_string(z_ele);
+                            smart_string_appendl(&cmd, " ", strlen(" "));
+                            smart_string_appendl(&cmd, ZSTR_VAL(zstr), ZSTR_LEN(zstr));
+                            zend_string_release(zstr);
+                        } ZEND_HASH_FOREACH_END();
+                    }
+                }
+                break;
+            case 's':
+                arg.str = va_arg(ap, char*);
+                arglen = va_arg(ap, size_t);
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, arg.str, arglen);
+                break;
             case 'k':
                 arg.str = va_arg(ap, char*);
                 arglen = va_arg(ap, size_t);
@@ -75,6 +144,33 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                     smart_string_appendl(&cmd, " ", strlen(" "));
                     smart_string_appendl(&cmd, Z_STRVAL_P(arg.zv), Z_STRLEN_P(arg.zv));
                 }
+                break;
+            case 'f':
+            case 'F':
+                arg.dval = va_arg(ap, double);
+                char tmp[64], *p;
+                int len;
+                len = snprintf(tmp, sizeof(tmp), "%.17g", arg.dval);
+                if ((p = strchr(tmp, ',')) != NULL) *p = '.';
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, tmp, len);
+                break;
+            case 'i':
+            case 'd':
+                arg.ival = va_arg(ap, int);
+                char int_buf[32];
+                int int_len = snprintf(int_buf, sizeof(int_buf), "%d", arg.ival);
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, int_buf, int_len);
+                break;
+            case 'l':
+            case 'L':
+                arg.lval = va_arg(ap, long);
+                char long_buf[32];
+                int long_len = snprintf(long_buf, sizeof(long_buf), "%ld", arg.lval);
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, long_buf, long_len);
+                break;
         }
         fmt++;
     }
@@ -92,10 +188,122 @@ void sky_plugin_redis_append_handler(INTERNAL_FUNCTION_PARAMETERS) {
     REDIS_SPAN_END
 }
 
+void sky_plugin_redis_decr_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_INDECR_PARSE("Redis", "DECR")
+    origin_redis_decr(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_decrby_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KL_PARSE("Redis", "DECRBY")
+    origin_redis_decrby(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
 void sky_plugin_redis_get_handler(INTERNAL_FUNCTION_PARAMETERS) {
     REDIS_K_PARSE("Redis", "GET")
     origin_redis_get(INTERNAL_FUNCTION_PARAM_PASSTHRU);
     REDIS_SPAN_END
+}
+
+void sky_plugin_redis_getdel_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    origin_redis_getdel(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
+void sky_plugin_redis_getex_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    origin_redis_getex(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
+void sky_plugin_redis_getrange_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KLL_PARSE("Redis", "GETRANGE")
+    origin_redis_getrange(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_getset_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KV_PARSE("Redis", "GETSET")
+    origin_redis_getset(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_incr_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_INDECR_PARSE("Redis", "INCR")
+    origin_redis_incr(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_incrby_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KL_PARSE("Redis", "INCRBY")
+    origin_redis_incrby(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_incrbyfloat_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KF_PARSE("Redis", "INCRBYFLOAT")
+    origin_redis_incrbyfloat(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_lcs_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    origin_redis_lcs(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
+void sky_plugin_redis_mget_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_A_PARSE("Redis", "MGET")
+    origin_redis_mget(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_mset_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_M_PARSE("Redis", "MSET")
+    origin_redis_mset(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_msetnx_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_M_PARSE("Redis", "MSETNX")
+    origin_redis_msetnx(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_psetex_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KLV_PARSE("Redis", "PSETEX")
+    origin_redis_psetex(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_set_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_SET_PARSE("Redis", "SET")
+    origin_redis_set(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_setex_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KLV_PARSE("Redis", "SETEX")
+    origin_redis_setex(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_setnx_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KV_PARSE("Redis", "SETNX")
+    origin_redis_setnx(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_setrange_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_KDS_PARSE("Redis", "SETRANGE")
+    origin_redis_setrange(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_strlen_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    REDIS_K_PARSE("Redis", "STRLEN")
+    origin_redis_strlen(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+    REDIS_SPAN_END
+}
+
+void sky_plugin_redis_substr_handler(INTERNAL_FUNCTION_PARAMETERS) {
+    origin_redis_substr(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
 //std::unordered_map<std::string, redis_cmd_cb> commands = {
