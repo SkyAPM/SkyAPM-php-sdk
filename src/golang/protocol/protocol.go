@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+
 package protocol
 
 import (
@@ -23,6 +24,7 @@ import (
 	"github.com/SkyAPM/SkyAPM-php-sdk/src/golang/utils"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
 	"os"
 	"runtime"
 	"time"
@@ -33,7 +35,8 @@ type Protocol struct {
 	address  string
 	server   string
 	Instance string
-	segments chan *agent.SegmentObject
+	ready    bool
+	segments chan []byte
 }
 
 func NewProtocol(address, server, instance string) *Protocol {
@@ -45,11 +48,14 @@ func NewProtocol(address, server, instance string) *Protocol {
 		}
 		instance = fmt.Sprintf("%s@%s", uuid.New().String(), ip)
 	}
-	return &Protocol{
+	p := &Protocol{
 		address:  address,
 		server:   server,
 		Instance: instance,
+		segments: make(chan []byte, 1024),
 	}
+	go p.ReportInstanceProperties()
+	return p
 }
 
 func (s *Protocol) ReportInstanceProperties() error {
@@ -92,6 +98,7 @@ func (s *Protocol) ReportInstanceProperties() error {
 		return err
 	}
 
+	s.ready = true
 	go s.keepAlive()
 	go s.collect()
 
@@ -121,16 +128,30 @@ func (s *Protocol) keepAlive() error {
 	return nil
 }
 
-func (s *Protocol) WriteSegment() {
-	// todo
+func (s *Protocol) WriteSegment(json string) {
+	select {
+	case s.segments <- []byte(json):
+	default:
+	}
 }
 
 func (s *Protocol) collect() {
+	err := s.dail()
+	if err != nil {
+		return
+	}
 	c := agent.NewTraceSegmentReportServiceClient(s.conn)
 	sender, _ := c.Collect(context.Background())
 
-	for segment := range s.segments {
-		sender.Send(segment)
+	for bts := range s.segments {
+		if !s.ready {
+			continue
+		}
+		var segment *agent.SegmentObject
+		if protojson.Unmarshal(bts, segment) == nil {
+			fmt.Println(segment)
+			sender.Send(segment)
+		}
 	}
 }
 
