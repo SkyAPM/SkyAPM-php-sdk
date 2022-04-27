@@ -105,7 +105,7 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                             }
                             if (Z_TYPE_P(arg.zv) == IS_STRING) {
                                 smart_string_appendl(&cmd, " ", strlen(" "));
-                                smart_string_appendl(&cmd, Z_STRVAL_P(zmem), Z_STRLEN_P(zmem));
+                                smart_string_appendl(&cmd, ZSTR_VAL(Z_STR_P(zmem)), ZSTR_LEN(Z_STR_P(zmem)));
                             }
                         } ZEND_HASH_FOREACH_END();
                     }
@@ -142,7 +142,7 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                 arg.zv = va_arg(ap, zval*);
                 if (Z_TYPE_P(arg.zv) == IS_STRING) {
                     smart_string_appendl(&cmd, " ", strlen(" "));
-                    smart_string_appendl(&cmd, Z_STRVAL_P(arg.zv), Z_STRLEN_P(arg.zv));
+                    smart_string_appendl(&cmd, ZSTR_VAL(Z_STR_P(arg.zv)), ZSTR_LEN(Z_STR_P(arg.zv)));
                 }
                 break;
             case 'f':
@@ -179,7 +179,7 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
 
     smart_string_0(&cmd);
     *command = (char *) emalloc(cmd.len);
-    memcpy(*command, cmd.c, cmd.len);
+    memcpy(*command, cmd.c, cmd.len+1);
 }
 
 void sky_plugin_redis_append_handler(INTERNAL_FUNCTION_PARAMETERS) {

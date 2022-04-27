@@ -20,6 +20,8 @@
 #include "php.h"
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
+#include "zend_smart_string.h"
 
 sky_core_span_t *sky_core_span_new(sky_core_span_type type, sky_core_span_layer layer, int componentId) {
     sky_core_span_t *span = (sky_core_span_t *) emalloc(sizeof(sky_core_span_t));
@@ -27,21 +29,30 @@ sky_core_span_t *sky_core_span_new(sky_core_span_type type, sky_core_span_layer 
     span->refs_size = 0;
     span->tags_total = 4;
     span->tags_size = 0;
+    span->logs_total = 4;
+    span->logs_size = 0;
 
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    span->startTime = tv.tv_sec * 1000 + tv.tv_usec / 1000;
     span->refs = (sky_core_segment_ref_t **) emalloc(span->refs_total);
-    span->peer = NULL;
+    span->peer = (char *) emalloc(512);
+    bzero(span->peer, 512);
     span->spanType = type;
     span->spanLayer = layer;
     span->componentId = componentId;
 
     span->isError = false;
     span->tags = (sky_core_tag_t **) emalloc(span->tags_total);
+    span->logs = (sky_core_log_t **) emalloc(span->logs_total);
     span->skipAnalysis = false;
     return span;
 }
 
 void sky_core_span_set_end_time(sky_core_span_t *span) {
-
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    span->endTime = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 void sky_core_span_add_refs(sky_core_span_t *span, sky_core_segment_ref_t *ref) {
@@ -60,6 +71,10 @@ void sky_core_span_set_operation_name(sky_core_span_t *span, char *name) {
 }
 
 void sky_core_span_set_peer(sky_core_span_t *span, char *peer) {
+    if (peer == NULL) {
+        span->peer = "";
+        return;
+    }
     span->peer = peer;
 }
 
@@ -80,6 +95,71 @@ void sky_core_span_add_tag(sky_core_span_t *span, sky_core_tag_t *tag) {
 
     span->tags[span->tags_size] = tag;
     span->tags_size++;
+}
+
+char *sky_core_span_to_json(sky_core_span_t *span) {
+    char *json;
+    char *temp = "{"
+                 "\"spanId\":%d,"
+                 "\"parentSpanId\":%d,"
+                 "\"startTime\":%ld,"
+                 "\"endTime\":%ld,"
+                 "\"refs\":%s,"
+                 "\"operationName\":\"%s\","
+                 "\"peer\":\"%s\","
+                 "\"spanType\":%d,"
+                 "\"spanLayer\":%d,"
+                 "\"componentId\":%d,"
+                 "\"isError\":%s,"
+                 "\"tags\":%s,"
+                 "\"logs\":%s,"
+                 "\"skipAnalysis\":%s"
+                 "}";
+
+    smart_string tags = {0};
+    smart_string_appendl(&tags, "[", 1);
+    for (int i = 0; i < span->tags_size; ++i) {
+        sky_core_tag_t *tag = span->tags[i];
+        char *tag_json = sky_core_tag_to_json(tag);
+        smart_string_appendl(&tags, tag_json, strlen(tag_json));
+        if (i + 1 < span->tags_size) {
+            smart_string_appendl(&tags, ",", 1);
+        }
+    }
+    smart_string_appendl(&tags, "]", 1);
+    smart_string_0(&tags);
+
+    smart_string logs = {0};
+    smart_string_appendl(&logs, "[", 1);
+    for (int i = 0; i < span->logs_size; ++i) {
+        sky_core_log_t *log = span->logs[i];
+        char *log_json = sky_core_log_to_json(log);
+        smart_string_appendl(&logs, log_json, strlen(log_json));
+        if (i + 1 < span->logs_size) {
+            smart_string_appendl(&logs, ",", 1);
+        }
+    }
+    smart_string_appendl(&logs, "]", 1);
+    smart_string_0(&logs);
+
+
+    asprintf(&json, temp,
+             span->spanId,
+             span->parentSpanId,
+             span->startTime,
+             span->endTime,
+             "[]", // refs
+             span->operationName,
+             span->peer,
+             span->spanType,
+             span->spanLayer,
+             span->componentId,
+             span->isError ? "true" : "false",
+             tags.c,
+             logs.c,
+             span->skipAnalysis ? "true" : "false"
+    );
+    return json;
 }
 
 //SkyCoreSpan::SkyCoreSpan() {

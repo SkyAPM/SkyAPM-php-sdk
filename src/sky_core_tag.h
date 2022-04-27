@@ -28,4 +28,6 @@ sky_core_tag_t *sky_core_tag_new(const char *key, const char *value);
 
 void sky_core_tag_free(sky_core_tag_t *tag);
 
+char *sky_core_tag_to_json(sky_core_tag_t *span);
+
 #endif //SKYWALKING_SKY_CORE_TAG_H

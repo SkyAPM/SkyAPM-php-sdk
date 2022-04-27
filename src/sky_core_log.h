@@ -19,23 +19,43 @@
 #ifndef SKYWALKING_LOG_H
 #define SKYWALKING_LOG_H
 
-#include <string>
-#include <vector>
+typedef struct sky_core_log_data_t {
+    const char *key;
+    const char *value;
+} sky_core_log_data_t;
 
-class SkyCoreLog {
-public:
-    SkyCoreLog(std::string key, std::string value);
+typedef struct sky_core_log_t {
+    int data_total;
+    int data_size;
 
-    long getTime();
+    long time;
+    sky_core_log_data_t **data;
+} sky_core_log_t;
 
-    const std::string &getKey();
+sky_core_log_t *sky_core_log_new();
 
-    const std::string &getValue();
+void sky_core_log_add_data(sky_core_log_t *log, const char *key, const char *value);
 
-private:
-    long _time;
-    std::string _key;
-    std::string _value;
-};
+void sky_core_log_free(sky_core_log_t *tag);
+
+char *sky_core_log_to_json(sky_core_log_t *span);
+
+//
+//
+//class SkyCoreLog {
+//public:
+//    SkyCoreLog(std::string key, std::string value);
+//
+//    long getTime();
+//
+//    const std::string &getKey();
+//
+//    const std::string &getValue();
+//
+//private:
+//    long _time;
+//    std::string _key;
+//    std::string _value;
+//};
 
 #endif //SKYWALKING_LOG_H

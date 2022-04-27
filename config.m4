@@ -54,6 +54,7 @@ if test "$PHP_SKYWALKING" != "no"; then
   PHP_NEW_EXTENSION(skywalking, \
       skywalking.c \
       src/sky_core_cross_process.c \
+      src/sky_core_log.c \
       src/sky_core_module.c \
       src/sky_core_segment.c \
       src/sky_core_segment_reference.c \

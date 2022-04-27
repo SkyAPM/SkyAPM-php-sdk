@@ -21,6 +21,7 @@
 
 #include <stdbool.h>
 #include "sky_core_tag.h"
+#include "sky_core_log.h"
 #include "sky_core_segment_reference.h"
 
 typedef enum sky_core_span_type {
@@ -44,6 +45,9 @@ typedef struct sky_core_span_t {
     int tags_total;
     int tags_size;
 
+    int logs_total;
+    int logs_size;
+
     // Tracing.proto
     int spanId;
     int parentSpanId;
@@ -57,7 +61,7 @@ typedef struct sky_core_span_t {
     int componentId;
     bool isError;
     sky_core_tag_t **tags;
-//    std::vector<SkyCoreLog *> logs;
+    sky_core_log_t **logs;
     bool skipAnalysis;
 } sky_core_span_t;
 
@@ -74,6 +78,8 @@ void sky_core_span_set_peer(sky_core_span_t *span, char *peer);
 void sky_core_span_set_error(sky_core_span_t *span, bool isError);
 
 void sky_core_span_add_tag(sky_core_span_t *span, sky_core_tag_t *tag);
+
+char *sky_core_span_to_json(sky_core_span_t *span);
 
 //class SkyCoreSpan {
 //public:

@@ -18,6 +18,7 @@
 
 #include "sky_core_tag.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 sky_core_tag_t *sky_core_tag_new(const char *key, const char *value) {
     sky_core_tag_t *tag = (sky_core_tag_t *) malloc(sizeof(sky_core_tag_t));
@@ -28,4 +29,10 @@ sky_core_tag_t *sky_core_tag_new(const char *key, const char *value) {
 
 void sky_core_tag_free(sky_core_tag_t *tag) {
 
+}
+
+char *sky_core_tag_to_json(sky_core_tag_t *tag) {
+    char *json;
+    asprintf(&json, "{\"key\":\"%s\",\"value\":\"%s\"}", tag->key, tag->value);
+    return json;
 }

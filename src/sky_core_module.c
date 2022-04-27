@@ -1,6 +1,19 @@
-//
-// Created by Yanlong He on 12/4/22.
-//
+/*
+ * Copyright 2022 SkyAPM
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
 #include "sky_core_module.h"
 #include "php.h"
@@ -76,7 +89,8 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
     skywalking_t *skywalking = pecalloc(1, sizeof(skywalking_t), 1);
     strcpy(skywalking->serviceInstance, instance);
     skywalking->connect = sky_connect;
-    zend_register_persistent_resource(skywalking_persistent_id, strlen(skywalking_persistent_id), skywalking, le_skywalking_pconnect);
+    zend_register_persistent_resource(skywalking_persistent_id, strlen(skywalking_persistent_id), skywalking,
+                                      le_skywalking_pconnect);
 
     return 0;
 }
@@ -166,13 +180,17 @@ void sky_core_request_free(zval *response, u_int64_t request_id) {
     if (response == NULL) {
 //        segment->setStatusCode(SG(sapi_headers).http_response_code);
     }
+    sky_core_span_set_end_time(core_segment->spans[0]);
 
-    char *json = sky_core_segment_to_json(core_segment);
 
     zend_string *persistent_id = zend_string_init(skywalking_persistent_id, strlen(skywalking_persistent_id), 0);
     zend_resource *le = zend_hash_find_ptr(&EG(persistent_list), persistent_id);
     zend_string_release(persistent_id);
     skywalking_t *skywalking = (skywalking_t *) le->ptr;
+    sky_core_segment_set_service(core_segment, skywalking->service);
+    sky_core_segment_set_service_instance(core_segment, skywalking->serviceInstance);
+
+    char *json = sky_core_segment_to_json(core_segment);
     skywalking_write_segment(skywalking->connect, json);
 
     zend_hash_index_del(SKYWALKING_G(segments), request_id);

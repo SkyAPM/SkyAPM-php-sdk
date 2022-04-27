@@ -46,6 +46,10 @@ sky_core_segment_t *sky_core_segment_new(char *protocol);
 
 void sky_core_segment_add_span(sky_core_segment_t *segment, sky_core_span_t *span);
 
+void sky_core_segment_set_service(sky_core_segment_t *segment, char *service);
+
+void sky_core_segment_set_service_instance(sky_core_segment_t *segment, char *instance);
+
 char *sky_core_segment_to_json(sky_core_segment_t *segment);
 
 //#include <string>

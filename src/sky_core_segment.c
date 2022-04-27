@@ -23,6 +23,7 @@
 #include "sky_core_cross_process.h"
 #include "sky_core_segment_reference.h"
 #include "sky_go_wrapper.h"
+#include "zend_smart_string.h"
 
 sky_core_segment_t *sky_core_segment_new(char *protocol) {
     sky_core_segment_t *segment = (sky_core_segment_t *) emalloc(sizeof(sky_core_segment_t));
@@ -33,11 +34,6 @@ sky_core_segment_t *sky_core_segment_new(char *protocol) {
     segment->traceId = NULL;
     segment->traceSegmentId = skywalking_trace_id_new();
     segment->spans = (sky_core_span_t **) emalloc(segment->span_total);
-    segment->service = (char *) emalloc(sizeof(char));
-    memset(segment->service, 0, strlen(segment->service));
-    segment->serviceInstance = (char *) emalloc(sizeof(char));
-    memset(segment->serviceInstance, 0, strlen(segment->serviceInstance));
-
 
     segment->cross_process = sky_core_cross_process_new(protocol);
     sky_core_cross_process_set_trace_id(segment->cross_process, segment->traceSegmentId);
@@ -76,14 +72,45 @@ void sky_core_segment_add_span(sky_core_segment_t *segment, sky_core_span_t *spa
     segment->span_size++;
 }
 
+void sky_core_segment_set_service(sky_core_segment_t *segment, char *service) {
+    segment->service = (char *) emalloc(strlen(service) + 1);
+    bzero(segment->service, strlen(service) + 1);
+    memcpy(segment->service, service, strlen(service));
+}
+
+void sky_core_segment_set_service_instance(sky_core_segment_t *segment, char *instance) {
+    segment->serviceInstance = (char *) emalloc(strlen(instance) + 1);
+    bzero(segment->serviceInstance, strlen(instance) + 1);
+    memcpy(segment->serviceInstance, instance, strlen(instance));
+}
+
 char *sky_core_segment_to_json(sky_core_segment_t *segment) {
     char *json;
-    char *temp = "{\"traceId\":\"%s\",\"traceSegmentId\":\"%s\",\"spans\":%s,\"service\":\"%s\",\"serviceInstance\":\"%s\",\"isSizeLimited\":%s}";
+    char *temp = "{"
+                 "\"traceId\":\"%s\","
+                 "\"traceSegmentId\":\"%s\","
+                 "\"spans\":%s,"
+                 "\"service\":\"%s\","
+                 "\"serviceInstance\":\"%s\","
+                 "\"isSizeLimited\":%s"
+                 "}";
+    smart_string spans = {0};
+    smart_string_appendl(&spans, "[", 1);
+    for (int i = 0; i < segment->span_size; ++i) {
+        sky_core_span_t *span = segment->spans[i];
+        char *span_json = sky_core_span_to_json(span);
+        smart_string_appendl(&spans, span_json, strlen(span_json));
+        if (i + 1 < segment->span_size) {
+            smart_string_appendl(&spans, ",", 1);
+        }
+    }
+    smart_string_appendl(&spans, "]", 1);
+    smart_string_0(&spans);
 
     asprintf(&json, temp,
              segment->traceId,
              segment->traceSegmentId,
-             "[{}]",
+             spans.c,
              segment->service,
              segment->serviceInstance,
              btoa(segment->isSizeLimited)
