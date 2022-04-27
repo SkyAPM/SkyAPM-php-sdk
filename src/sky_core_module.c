@@ -83,12 +83,12 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
     SKYWALKING_G(segments) = segments;
 
     // register
-    char *sky_connect = skywalking_connect(SKYWALKING_G(grpc), SKYWALKING_G(app_code), SKYWALKING_G(instance_name));
-    char *instance = skywalking_get_instance(sky_connect);
+    skywalking_connect(SKYWALKING_G(grpc), SKYWALKING_G(app_code), SKYWALKING_G(instance_name));
+    char *instance = skywalking_get_instance();
 
     skywalking_t *skywalking = pecalloc(1, sizeof(skywalking_t), 1);
     strcpy(skywalking->serviceInstance, instance);
-    skywalking->connect = sky_connect;
+//    skywalking->connect = sky_connect;
     zend_register_persistent_resource(skywalking_persistent_id, strlen(skywalking_persistent_id), skywalking,
                                       le_skywalking_pconnect);
 
