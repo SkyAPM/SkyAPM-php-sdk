@@ -32,10 +32,14 @@
 #define sky_util_smart_string smart_string
 #define sky_util_smart_string_appendl(str, src, len) smart_string_appendl(str, src, len)
 #define sky_util_smart_string_0(str) smart_string_0(str)
+#define sky_util_smart_string_to_char(str) str.c
+#define sky_util_smart_string_len(str) str.len
 #else
 #define sky_util_smart_string smart_str
 #define sky_util_smart_string_appendl(str, src, len) smart_str_appendl(str, src, len)
 #define sky_util_smart_string_0(str) smart_str_0(str)
+#define sky_util_smart_string_to_char(str) ZSTR_VAL(Z_STR_P(str.s))
+#define sky_util_smart_string_len(str) str.a
 #endif
 
 void *sky_util_find_obj_func(const char *obj, const char *name);

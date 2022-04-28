@@ -76,6 +76,6 @@ char *sky_core_log_to_json(sky_core_log_t *log) {
     sky_util_smart_string_appendl(&data, "]", 1);
     sky_util_smart_string_0(&data);
 
-    asprintf(&json, "{\"time\":%ld,\"data\":%s}", log->time, data.c);
+    asprintf(&json, "{\"time\":%ld,\"data\":%s}", log->time, sky_util_smart_string_to_char(data));
     return json;
 }

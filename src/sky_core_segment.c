@@ -110,7 +110,7 @@ char *sky_core_segment_to_json(sky_core_segment_t *segment) {
     asprintf(&json, temp,
              segment->traceId,
              segment->traceSegmentId,
-             spans.c,
+             sky_util_smart_string_to_char(spans),
              segment->service,
              segment->serviceInstance,
              btoa(segment->isSizeLimited)

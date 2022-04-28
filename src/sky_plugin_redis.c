@@ -177,8 +177,8 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
     va_end(ap);
 
     sky_util_smart_string_0(&cmd);
-    *command = (char *) emalloc(cmd.len);
-    memcpy(*command, cmd.c, cmd.len+1);
+    *command = (char *) emalloc(sky_util_smart_string_len(cmd));
+    memcpy(*command, sky_util_smart_string_to_char(cmd), sky_util_smart_string_len(cmd)+1);
 }
 
 void sky_plugin_redis_append_handler(INTERNAL_FUNCTION_PARAMETERS) {

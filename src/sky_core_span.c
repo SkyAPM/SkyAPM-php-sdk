@@ -155,8 +155,8 @@ char *sky_core_span_to_json(sky_core_span_t *span) {
              span->spanLayer,
              span->componentId,
              span->isError ? "true" : "false",
-             tags.c,
-             logs.c,
+             sky_util_smart_string_to_char(tags),
+             sky_util_smart_string_to_char(logs),
              span->skipAnalysis ? "true" : "false"
     );
     return json;
