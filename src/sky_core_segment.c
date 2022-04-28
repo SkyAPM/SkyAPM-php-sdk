@@ -23,7 +23,7 @@
 #include "sky_core_cross_process.h"
 #include "sky_core_segment_reference.h"
 #include "sky_go_wrapper.h"
-#include "zend_smart_string.h"
+#include "sky_util_php.h"
 
 sky_core_segment_t *sky_core_segment_new(char *protocol) {
     sky_core_segment_t *segment = (sky_core_segment_t *) emalloc(sizeof(sky_core_segment_t));
@@ -94,18 +94,18 @@ char *sky_core_segment_to_json(sky_core_segment_t *segment) {
                  "\"serviceInstance\":\"%s\","
                  "\"isSizeLimited\":%s"
                  "}";
-    smart_string spans = {0};
-    smart_string_appendl(&spans, "[", 1);
+    sky_util_smart_string spans = {0};
+    sky_util_smart_string_appendl(&spans, "[", 1);
     for (int i = 0; i < segment->span_size; ++i) {
         sky_core_span_t *span = segment->spans[i];
         char *span_json = sky_core_span_to_json(span);
-        smart_string_appendl(&spans, span_json, strlen(span_json));
+        sky_util_smart_string_appendl(&spans, span_json, strlen(span_json));
         if (i + 1 < segment->span_size) {
-            smart_string_appendl(&spans, ",", 1);
+            sky_util_smart_string_appendl(&spans, ",", 1);
         }
     }
-    smart_string_appendl(&spans, "]", 1);
-    smart_string_0(&spans);
+    sky_util_smart_string_appendl(&spans, "]", 1);
+    sky_util_smart_string_0(&spans);
 
     asprintf(&json, temp,
              segment->traceId,

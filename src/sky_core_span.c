@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include "zend_smart_string.h"
+#include "sky_util_php.h"
 
 sky_core_span_t *sky_core_span_new(sky_core_span_type type, sky_core_span_layer layer, int componentId) {
     sky_core_span_t *span = (sky_core_span_t *) emalloc(sizeof(sky_core_span_t));
@@ -116,31 +116,31 @@ char *sky_core_span_to_json(sky_core_span_t *span) {
                  "\"skipAnalysis\":%s"
                  "}";
 
-    smart_string tags = {0};
-    smart_string_appendl(&tags, "[", 1);
+    sky_util_smart_string tags = {0};
+    sky_util_smart_string_appendl(&tags, "[", 1);
     for (int i = 0; i < span->tags_size; ++i) {
         sky_core_tag_t *tag = span->tags[i];
         char *tag_json = sky_core_tag_to_json(tag);
-        smart_string_appendl(&tags, tag_json, strlen(tag_json));
+        sky_util_smart_string_appendl(&tags, tag_json, strlen(tag_json));
         if (i + 1 < span->tags_size) {
-            smart_string_appendl(&tags, ",", 1);
+            sky_util_smart_string_appendl(&tags, ",", 1);
         }
     }
-    smart_string_appendl(&tags, "]", 1);
-    smart_string_0(&tags);
+    sky_util_smart_string_appendl(&tags, "]", 1);
+    sky_util_smart_string_0(&tags);
 
-    smart_string logs = {0};
-    smart_string_appendl(&logs, "[", 1);
+    sky_util_smart_string logs = {0};
+    sky_util_smart_string_appendl(&logs, "[", 1);
     for (int i = 0; i < span->logs_size; ++i) {
         sky_core_log_t *log = span->logs[i];
         char *log_json = sky_core_log_to_json(log);
-        smart_string_appendl(&logs, log_json, strlen(log_json));
+        sky_util_smart_string_appendl(&logs, log_json, strlen(log_json));
         if (i + 1 < span->logs_size) {
-            smart_string_appendl(&logs, ",", 1);
+            sky_util_smart_string_appendl(&logs, ",", 1);
         }
     }
-    smart_string_appendl(&logs, "]", 1);
-    smart_string_0(&logs);
+    sky_util_smart_string_appendl(&logs, "]", 1);
+    sky_util_smart_string_0(&logs);
 
 
     asprintf(&json, temp,

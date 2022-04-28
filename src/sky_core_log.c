@@ -19,7 +19,7 @@
 #include "sky_core_log.h"
 #include "php.h"
 #include <sys/time.h>
-#include "zend_smart_string.h"
+#include "sky_util_php.h"
 
 sky_core_log_t *sky_core_log_new() {
     sky_core_log_t *log = (sky_core_log_t *) emalloc(sizeof(sky_core_log_t));
@@ -59,20 +59,22 @@ void sky_core_log_free(sky_core_log_t *log) {
 char *sky_core_log_to_json(sky_core_log_t *log) {
     char *json;
 
-    smart_string data = {0};
-    smart_string_appendl(&data, "[", 1);
+    sky_util_smart_string data = {0};
+    sky_util_smart_string_appendl(&data, "[", 1);
+
     for (int i = 0; i < log->data_size; ++i) {
         sky_core_log_data_t *log_data = log->data[i];
         char *data_json;
         asprintf(&data_json, "{\"key\":\"%s\",\"value\":\"%s\"}", log_data->key, log_data->value);
-        smart_string_appendl(&data, data_json, strlen(data_json));
+        sky_util_smart_string_appendl(&data, data_json, strlen(data_json));
         free(data_json);
         if (i + 1 < log->data_size) {
-            smart_string_appendl(&data, ",", 1);
+            sky_util_smart_string_appendl(&data, ",", 1);
         }
     }
-    smart_string_appendl(&data, "]", 1);
-    smart_string_0(&data);
+
+    sky_util_smart_string_appendl(&data, "]", 1);
+    sky_util_smart_string_0(&data);
 
     asprintf(&json, "{\"time\":%ld,\"data\":%s}", log->time, data.c);
     return json;

@@ -20,6 +20,24 @@
 
 #include "php.h"
 
+#if PHP_VERSION_ID >= 70200
+
+#include "zend_smart_string.h"
+
+#else
+#include "zend_smart_str.h"
+#endif
+
+#if PHP_VERSION_ID >= 70200
+#define sky_util_smart_string smart_string
+#define sky_util_smart_string_appendl(str, src, len) smart_string_appendl(str, src, len)
+#define sky_util_smart_string_0(str) smart_string_0(str)
+#else
+#define sky_util_smart_string smart_str
+#define sky_util_smart_string_appendl(str, src, len) smart_str_appendl(str, src, len)
+#define sky_util_smart_string_0(str) smart_str_0(str)
+#endif
+
 void *sky_util_find_obj_func(const char *obj, const char *name);
 
 #endif //SKYWALKING_SKY_UTIL_PHP_H

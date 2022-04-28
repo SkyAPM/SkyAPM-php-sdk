@@ -19,7 +19,6 @@
 #include "sky_plugin_redis.h"
 #include "sky_util_php.h"
 #include "sky_utils.h"
-#include "zend_smart_string.h"
 
 // strings
 zif_handler origin_redis_append = NULL;
@@ -73,14 +72,14 @@ void sky_plugin_redis_hooks() {
 }
 
 void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
-    smart_string cmd = {0};
+    sky_util_smart_string cmd = {0};
 
     va_list ap;
     union resparg arg;
     size_t arglen;
     va_start(ap, fmt);
 
-    smart_string_appendl(&cmd, kw, strlen(kw));
+    sky_util_smart_string_appendl(&cmd, kw, strlen(kw));
 
     while (*fmt) {
         switch (*fmt) {
@@ -96,16 +95,16 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                         size_t keylen;
                         ZEND_HASH_FOREACH_KEY_VAL(hash, idx, zkey, zmem) {
                             if (zkey) {
-                                smart_string_appendl(&cmd, " ", strlen(" "));
-                                smart_string_appendl(&cmd, ZSTR_VAL(zkey), ZSTR_LEN(zkey));
+                                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                                sky_util_smart_string_appendl(&cmd, ZSTR_VAL(zkey), ZSTR_LEN(zkey));
                             } else {
                                 keylen = snprintf(buf, sizeof(buf), "%ld", (long)idx);
-                                smart_string_appendl(&cmd, " ", strlen(" "));
-                                smart_string_appendl(&cmd, buf, keylen);
+                                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                                sky_util_smart_string_appendl(&cmd, buf, keylen);
                             }
                             if (Z_TYPE_P(arg.zv) == IS_STRING) {
-                                smart_string_appendl(&cmd, " ", strlen(" "));
-                                smart_string_appendl(&cmd, ZSTR_VAL(Z_STR_P(zmem)), ZSTR_LEN(Z_STR_P(zmem)));
+                                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                                sky_util_smart_string_appendl(&cmd, ZSTR_VAL(Z_STR_P(zmem)), ZSTR_LEN(Z_STR_P(zmem)));
                             }
                         } ZEND_HASH_FOREACH_END();
                     }
@@ -119,8 +118,8 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                         zval *z_ele;
                         ZEND_HASH_FOREACH_VAL(hash, z_ele) {
                             zend_string *zstr = zval_get_string(z_ele);
-                            smart_string_appendl(&cmd, " ", strlen(" "));
-                            smart_string_appendl(&cmd, ZSTR_VAL(zstr), ZSTR_LEN(zstr));
+                                    sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                                    sky_util_smart_string_appendl(&cmd, ZSTR_VAL(zstr), ZSTR_LEN(zstr));
                             zend_string_release(zstr);
                         } ZEND_HASH_FOREACH_END();
                     }
@@ -129,20 +128,20 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
             case 's':
                 arg.str = va_arg(ap, char*);
                 arglen = va_arg(ap, size_t);
-                smart_string_appendl(&cmd, " ", strlen(" "));
-                smart_string_appendl(&cmd, arg.str, arglen);
+                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                sky_util_smart_string_appendl(&cmd, arg.str, arglen);
                 break;
             case 'k':
                 arg.str = va_arg(ap, char*);
                 arglen = va_arg(ap, size_t);
-                smart_string_appendl(&cmd, " ", strlen(" "));
-                smart_string_appendl(&cmd, arg.str, arglen);
+                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                sky_util_smart_string_appendl(&cmd, arg.str, arglen);
                 break;
             case 'v':
                 arg.zv = va_arg(ap, zval*);
                 if (Z_TYPE_P(arg.zv) == IS_STRING) {
-                    smart_string_appendl(&cmd, " ", strlen(" "));
-                    smart_string_appendl(&cmd, ZSTR_VAL(Z_STR_P(arg.zv)), ZSTR_LEN(Z_STR_P(arg.zv)));
+                    sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                    sky_util_smart_string_appendl(&cmd, ZSTR_VAL(Z_STR_P(arg.zv)), ZSTR_LEN(Z_STR_P(arg.zv)));
                 }
                 break;
             case 'f':
@@ -152,24 +151,24 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                 int len;
                 len = snprintf(tmp, sizeof(tmp), "%.17g", arg.dval);
                 if ((p = strchr(tmp, ',')) != NULL) *p = '.';
-                smart_string_appendl(&cmd, " ", strlen(" "));
-                smart_string_appendl(&cmd, tmp, len);
+                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                sky_util_smart_string_appendl(&cmd, tmp, len);
                 break;
             case 'i':
             case 'd':
                 arg.ival = va_arg(ap, int);
                 char int_buf[32];
                 int int_len = snprintf(int_buf, sizeof(int_buf), "%d", arg.ival);
-                smart_string_appendl(&cmd, " ", strlen(" "));
-                smart_string_appendl(&cmd, int_buf, int_len);
+                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                sky_util_smart_string_appendl(&cmd, int_buf, int_len);
                 break;
             case 'l':
             case 'L':
                 arg.lval = va_arg(ap, long);
                 char long_buf[32];
                 int long_len = snprintf(long_buf, sizeof(long_buf), "%ld", arg.lval);
-                smart_string_appendl(&cmd, " ", strlen(" "));
-                smart_string_appendl(&cmd, long_buf, long_len);
+                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
+                sky_util_smart_string_appendl(&cmd, long_buf, long_len);
                 break;
         }
         fmt++;
@@ -177,7 +176,7 @@ void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
 
     va_end(ap);
 
-    smart_string_0(&cmd);
+    sky_util_smart_string_0(&cmd);
     *command = (char *) emalloc(cmd.len);
     memcpy(*command, cmd.c, cmd.len+1);
 }
