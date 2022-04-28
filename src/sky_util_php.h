@@ -20,6 +20,10 @@
 
 #include "php.h"
 
+#if PHP_VERSION_ID < 70200
+typedef void (*zif_handler)(INTERNAL_FUNCTION_PARAMETERS);
+#endif
+
 #if PHP_VERSION_ID >= 70200
 
 #include "zend_smart_string.h"
@@ -38,7 +42,7 @@
 #define sky_util_smart_string smart_str
 #define sky_util_smart_string_appendl(str, src, len) smart_str_appendl(str, src, len)
 #define sky_util_smart_string_0(str) smart_str_0(str)
-#define sky_util_smart_string_to_char(str) ZSTR_VAL(Z_STR_P(str.s))
+#define sky_util_smart_string_to_char(str) ZSTR_VAL(str.s)
 #define sky_util_smart_string_len(str) str.a
 #endif
 

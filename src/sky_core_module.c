@@ -89,8 +89,12 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
     skywalking_t *skywalking = pecalloc(1, sizeof(skywalking_t), 1);
     strcpy(skywalking->serviceInstance, instance);
 //    skywalking->connect = sky_connect;
+#if PHP_VERSION_ID >= 70300
     zend_register_persistent_resource(skywalking_persistent_id, strlen(skywalking_persistent_id), skywalking,
                                       le_skywalking_pconnect);
+#else
+    zend_register_resource(skywalking, le_skywalking_pconnect);
+#endif
 
     return 0;
 }
