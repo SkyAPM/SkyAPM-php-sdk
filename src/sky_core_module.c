@@ -86,14 +86,17 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
     skywalking_connect(SKYWALKING_G(grpc), SKYWALKING_G(app_code), SKYWALKING_G(instance_name));
     char *instance = skywalking_get_instance();
 
-    skywalking_t *skywalking = pecalloc(1, sizeof(skywalking_t), 1);
+    skywalking_t *skywalking = (skywalking_t *) pecalloc(1, sizeof(skywalking_t), 1);
     strcpy(skywalking->serviceInstance, instance);
 //    skywalking->connect = sky_connect;
 #if PHP_VERSION_ID >= 70300
     zend_register_persistent_resource(skywalking_persistent_id, strlen(skywalking_persistent_id), skywalking,
                                       le_skywalking_pconnect);
 #else
-    zend_register_resource(skywalking, le_skywalking_pconnect);
+    zend_resource new_le;
+    new_le.type = le_skywalking_pconnect;
+    new_le.ptr = skywalking;
+    zend_hash_str_update_mem(&EG(persistent_list), skywalking_persistent_id, strlen(skywalking_persistent_id), &new_le, sizeof(zend_resource));
 #endif
 
     return 0;
