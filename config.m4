@@ -37,8 +37,9 @@ if test "$PHP_SKYWALKING" != "no"; then
     AC_MSG_ERROR([go command missing, please reinstall the go distribution])
   fi
   go build -buildmode=c-archive -o src src/sky_go_wrapper.go
+  cargo build
 
-  EXTRA_LDFLAGS="$EXTRA_LDFLAGS src/sky_go_wrapper.a"
+  EXTRA_LDFLAGS="$EXTRA_LDFLAGS src/sky_go_wrapper.a target/debug/libsky_core_report.a"
   LIBS="-lpthread $LIBS"
 
   SKYWALKING_SHARED_LIBADD="-lpthread $SKYWALKING_SHARED_LIBADD"

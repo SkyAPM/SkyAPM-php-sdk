@@ -1,0 +1,19 @@
+[package]
+name = "SkyAPM-php-sdk"
+version = "1.0.0"
+edition = "2021"
+authors = ["Yanlong He <heyanlong@apache.org>"]
+
+[dependencies]
+tonic = "0.5.2"
+prost = "0.8.0"
+prost-derive = "0.8.0"
+
+
+[build-dependencies]
+tonic-build = "0.5.2"
+
+[lib]
+name = "sky_core_report"
+crate-type = ["staticlib"]
+path = "src/sky_core_report.rs"
