@@ -14,28 +14,20 @@
  * limitations under the License.
  *
  */
-
-
-#ifndef SKYWALKING_COMMON_H
-#define SKYWALKING_COMMON_H
-
-#include <boost/interprocess/ipc/message_queue.hpp>
-
-#ifdef __cplusplus
-#define SKY_BEGIN_EXTERN_C() extern "C" {
-#define SKY_END_EXTERN_C() }
-#else
-#define SKY_BEGIN_EXTERN_C()
-#define SKY_END_EXTERN_C()
-#endif
-
-struct service_info {
-    char service[0x400];
-    char service_instance[0x400];
-    char mq_name[32];
-    char log_mq_name[32];
-
-    boost::interprocess::message_queue *mq;
+#ifndef SKYWALKING_LOGGING_TRACE_CONTEXT_H
+#define SKYWALKING_LOGGING_TRACE_CONTEXT_H
+#include <string>
+class LogTraceContext{
+    private:
+        std::string _traceId;
+        std::string _traceSegmentId;
+        int _spanId;
+    public:
+    LogTraceContext();
+    LogTraceContext(const std::string &traceId, const std::string &traceSegmentId, const int spanId);
+    ~LogTraceContext();
+    std::string getTraceId();
+    std::string getTraceSegmentId();
+    int getSpanId();
 };
-
-#endif //SKYWALKING_COMMON_H
+#endif

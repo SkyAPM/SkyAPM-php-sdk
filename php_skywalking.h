@@ -157,6 +157,13 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // cURL
     zend_bool curl_response_enable;
 
+    //logging
+    zend_bool logging_enable;
+    int logging_mq_max_message_length;
+    int logging_mq_length;
+    char *logging_yii_target_name;
+    zend_bool logging_yii_enable;
+
 ZEND_END_MODULE_GLOBALS(skywalking)
 
 extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);

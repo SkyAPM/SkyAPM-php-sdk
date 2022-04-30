@@ -16,26 +16,17 @@
  */
 
 
-#ifndef SKYWALKING_COMMON_H
-#define SKYWALKING_COMMON_H
+#include "src/logging/logging_tag.h"
 
-#include <boost/interprocess/ipc/message_queue.hpp>
+#include <utility>
 
-#ifdef __cplusplus
-#define SKY_BEGIN_EXTERN_C() extern "C" {
-#define SKY_END_EXTERN_C() }
-#else
-#define SKY_BEGIN_EXTERN_C()
-#define SKY_END_EXTERN_C()
-#endif
+LogTag::LogTag(std::string key, std::string value) : _key(key), _value(value) {
+}
 
-struct service_info {
-    char service[0x400];
-    char service_instance[0x400];
-    char mq_name[32];
-    char log_mq_name[32];
+const std::string& LogTag::getKey() {
+    return _key;
+}
 
-    boost::interprocess::message_queue *mq;
-};
-
-#endif //SKYWALKING_COMMON_H
+const std::string& LogTag::getValue() {
+    return _value;
+}

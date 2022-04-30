@@ -39,6 +39,7 @@
 #include "src/sky_module.h"
 #include "src/segment.h"
 #include "sys/mman.h"
+#include "sky_plugin_logging.h"
 
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
@@ -72,8 +73,12 @@ PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("skywalking.instance_name", "", PHP_INI_ALL, OnUpdateString, instance_name, zend_skywalking_globals, skywalking_globals)
 
     STD_PHP_INI_BOOLEAN("skywalking.curl_response_enable", "0", PHP_INI_ALL, OnUpdateBool, curl_response_enable, zend_skywalking_globals, skywalking_globals)
-
-
+    
+    STD_PHP_INI_BOOLEAN("skywalking.logging_enable", "0", PHP_INI_ALL, OnUpdateBool, logging_enable, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.logging_mq_max_message_length", "20480", PHP_INI_ALL, OnUpdateLong, logging_mq_max_message_length, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.logging_mq_length", "1024", PHP_INI_ALL, OnUpdateLong, logging_mq_length, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.logging_yii_target_name", "", PHP_INI_ALL, OnUpdateString, logging_yii_target_name, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_BOOLEAN("skywalking.logging_yii_enable", "0", PHP_INI_ALL, OnUpdateBool, logging_yii_enable, zend_skywalking_globals, skywalking_globals)
 
 PHP_INI_END()
 
@@ -107,6 +112,13 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     skywalking_globals->instance_name = nullptr;
 
     skywalking_globals->curl_response_enable = 0;
+
+    // logging
+    skywalking_globals->logging_enable = 0;
+    skywalking_globals->logging_mq_max_message_length = 0;
+    skywalking_globals->logging_mq_length = 0;
+    skywalking_globals->logging_yii_target_name = nullptr;
+    skywalking_globals->logging_yii_enable = 0;
 }
 
 PHP_FUNCTION (skywalking_trace_id) {
@@ -116,6 +128,26 @@ PHP_FUNCTION (skywalking_trace_id) {
         RETURN_STRING(trace_id.c_str());
     } else {
         RETURN_STRING("");
+    }
+}
+
+/* {{{ proto void skywalking_logging_report(string message, string log_level) */
+PHP_FUNCTION(skywalking_logging_report){
+    zend_string *message;
+    zend_string *level;
+
+    ZEND_PARSE_PARAMETERS_START(2,2)
+    Z_PARAM_STR(message)
+    Z_PARAM_STR(level)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if (!SKYWALKING_G(enable) || !SKYWALKING_G(logging_enable)) {
+        return;
+    }
+    if (ZSTR_LEN(message) > 0 && ZSTR_LEN(level) > 0) {
+        auto *segment = sky_get_segment(execute_data, -1);
+        std::string trace_id = segment ? segment->getTraceId() : Manager::generateUUID();
+        skywalking_logging_report(trace_id, message->val, level->val);
     }
 }
 
@@ -267,10 +299,16 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_tag, 0, 0, 3)
     ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_skywalking_logging_report, 0, 0, 2)
+    ZEND_ARG_INFO(0, message)
+    ZEND_ARG_INFO(0, level)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry skywalking_functions[] = {
         PHP_FE (skywalking_trace_id, arginfo_skywalking_trace_id)
         PHP_FE (skywalking_log,      arginfo_skywalking_log)
         PHP_FE (skywalking_tag,      arginfo_skywalking_tag)
+        PHP_FE (skywalking_logging_report, arginfo_skywalking_logging_report)
         PHP_FE_END
 };
 

@@ -30,6 +30,7 @@
 #include "sky_plugin_error.h"
 #include "sky_log.h"
 #include "sky_rate_limit.h"
+#include "src/logging/logging_manager.h"
 
 extern struct service_info *s_info;
 
@@ -112,6 +113,7 @@ void sky_module_init() {
     opt.instance_name = SKYWALKING_G(instance_name);
 
     Manager::init(opt, s_info);
+    LogginManager::init(opt, s_info);
 }
 
 void sky_module_cleanup() {
@@ -129,6 +131,7 @@ void sky_module_cleanup() {
 
     delete segments;
     delete static_cast<FixedWindowRateLimiter*>(SKYWALKING_G(rate_limiter));
+    LogginManager::cleanup();
 }
 
 void sky_request_init(zval *request, uint64_t request_id) {

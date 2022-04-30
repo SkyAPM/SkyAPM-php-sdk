@@ -35,6 +35,7 @@
 #include "sky_plugin_mysqli.h"
 #include "sky_module.h"
 #include "segment.h"
+#include "sky_plugin_logging.h"
 
 void (*ori_execute_ex)(zend_execute_data *execute_data) = nullptr;
 
@@ -42,11 +43,14 @@ void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value
 
 void sky_execute_ex(zend_execute_data *execute_data) {
 
+    if (sky_plugin_logging_exec(execute_data)) {
+        return;
+    }
     zend_function *fn = execute_data->func;
     int is_class = fn->common.scope != nullptr && fn->common.scope->name != nullptr;
     char *class_name = is_class ? ZSTR_VAL(fn->common.scope->name) : nullptr;
     char *function_name = fn->common.function_name != nullptr ? ZSTR_VAL(fn->common.function_name) : nullptr;
-
+    
     // swoole
     bool swoole = false;
     int64_t request_id = -1;
@@ -119,6 +123,10 @@ void sky_execute_ex(zend_execute_data *execute_data) {
 }
 
 void sky_execute_internal(zend_execute_data *execute_data, zval *return_value) {
+    
+    if (sky_plugin_logging_internal_exec(execute_data, return_value)) {
+        return;
+    }
 
     if (SKYWALKING_G(is_swoole)) {
         if (sky_get_segment(execute_data, -1) == nullptr) {

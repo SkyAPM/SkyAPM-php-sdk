@@ -14,28 +14,27 @@
  * limitations under the License.
  *
  */
+#ifndef SKYWALKING_LOGGING_DATA_BODY_H
+#define SKYWALKING_LOGGING_DATA_BODY_H
+#include <string>
+#include <vector>
 
 
-#ifndef SKYWALKING_COMMON_H
-#define SKYWALKING_COMMON_H
-
-#include <boost/interprocess/ipc/message_queue.hpp>
-
-#ifdef __cplusplus
-#define SKY_BEGIN_EXTERN_C() extern "C" {
-#define SKY_END_EXTERN_C() }
-#else
-#define SKY_BEGIN_EXTERN_C()
-#define SKY_END_EXTERN_C()
-#endif
-
-struct service_info {
-    char service[0x400];
-    char service_instance[0x400];
-    char mq_name[32];
-    char log_mq_name[32];
-
-    boost::interprocess::message_queue *mq;
+enum ContentType {
+    TEXT,
+    JSON,
+    YAML
 };
 
-#endif //SKYWALKING_COMMON_H
+class LogDataBody{
+    private:
+        ContentType _type;
+        std::string _content;
+    public:
+        LogDataBody();
+        LogDataBody(const ContentType &type, const std::string &content);
+        ~LogDataBody();
+        ContentType getType();
+        std::string getContent();
+};
+#endif

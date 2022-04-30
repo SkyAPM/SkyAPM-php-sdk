@@ -14,28 +14,14 @@
  * limitations under the License.
  *
  */
+#ifndef SKYWALKING_SKY_PLUGIN_LOGGING_H
+#define SKYWALKING_SKY_PLUGIN_LOGGING_H
+#include "php_skywalking.h"
+#include "src/logging/logging_common.h"
 
+void register_logging_hander(LoggingHander *hander);
 
-#ifndef SKYWALKING_COMMON_H
-#define SKYWALKING_COMMON_H
+bool sky_plugin_logging_exec(zend_execute_data *execute_data);
 
-#include <boost/interprocess/ipc/message_queue.hpp>
-
-#ifdef __cplusplus
-#define SKY_BEGIN_EXTERN_C() extern "C" {
-#define SKY_END_EXTERN_C() }
-#else
-#define SKY_BEGIN_EXTERN_C()
-#define SKY_END_EXTERN_C()
-#endif
-
-struct service_info {
-    char service[0x400];
-    char service_instance[0x400];
-    char mq_name[32];
-    char log_mq_name[32];
-
-    boost::interprocess::message_queue *mq;
-};
-
-#endif //SKYWALKING_COMMON_H
+bool sky_plugin_logging_internal_exec(zend_execute_data *execute_data, zval *return_value);
+#endif 

@@ -190,6 +190,10 @@ const std::string& Segment::getTraceId() {
     return _traceId;
 }
 
+const std::string& Segment::getSegmentId() {
+    return _traceSegmentId;
+}
+
 void Segment::setSkip(bool skip) {
     this->doSkip = skip;
 }

@@ -14,28 +14,16 @@
  * limitations under the License.
  *
  */
-
-
-#ifndef SKYWALKING_COMMON_H
-#define SKYWALKING_COMMON_H
-
-#include <boost/interprocess/ipc/message_queue.hpp>
-
-#ifdef __cplusplus
-#define SKY_BEGIN_EXTERN_C() extern "C" {
-#define SKY_END_EXTERN_C() }
-#else
-#define SKY_BEGIN_EXTERN_C()
-#define SKY_END_EXTERN_C()
-#endif
-
-struct service_info {
-    char service[0x400];
-    char service_instance[0x400];
-    char mq_name[32];
-    char log_mq_name[32];
-
-    boost::interprocess::message_queue *mq;
+#ifndef SKYWALKING_SKY_LOGGING_MANAGER_H
+#define SKYWALKING_SKY_LOGGING_MANAGER_H
+#include "src/manager.h"
+class LogginManager{
+    public:
+    static void init(const ManagerOptions &options, struct service_info *info);
+    static void cleanup();
+    private: 
+    LogginManager()=delete;
+    static std::shared_ptr<grpc::ChannelCredentials> getCredentials(const ManagerOptions &options);
+    static void logConsumer(const ManagerOptions &options, struct service_info *info);
 };
-
-#endif //SKYWALKING_COMMON_H
+#endif

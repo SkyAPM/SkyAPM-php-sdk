@@ -47,6 +47,7 @@ public:
     void createRefs();
 
     const std::string& getTraceId();
+    const std::string& getSegmentId();
 
     void setSkip(bool skip);
 

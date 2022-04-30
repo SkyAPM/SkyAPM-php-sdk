@@ -240,6 +240,7 @@ if test "$PHP_SKYWALKING" != "no"; then
   $PROTOC -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN --cpp_out=src/network/v3 src/protocol/v3/language-agent/*.proto
   $PROTOC -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN --cpp_out=src/network/v3 src/protocol/v3/profile/*.proto
   $PROTOC -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN --cpp_out=src/network/v3 src/protocol/v3/management/*.proto
+  $PROTOC -I src/protocol/v3 --grpc_out=src/network/v3 --plugin=protoc-gen-grpc=$GRPC_CPP_PLUGIN --cpp_out=src/network/v3 src/protocol/v3/logging/*.proto
   find src -name "*.grpc.pb.cc" | while read id; do mv $id ${id/.grpc/_grpc}; done
 
   dnl shared grpc
@@ -284,12 +285,22 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/sky_utils.cc \
       src/span.cc \
       src/tag.cc \
+      src/logging/logging_data_body.cc \
+      src/logging/logging_tag.cc \
+      src/logging/logging_trace_context.cc \
+      src/logging/logging_data.cc \
+      src/sky_plugin_logging.cc \
+      src/logging/logging_hander_yii.cc \
+      src/logging/logging_manager.cc \
+      src/logging/logging_common.cc \
       src/network/v3/common/Common_grpc.pb.cc \
       src/network/v3/common/Common.pb.cc \
       src/network/v3/language-agent/Tracing.pb.cc \
       src/network/v3/language-agent/Tracing_grpc.pb.cc \
       src/network/v3/management/Management_grpc.pb.cc \
       src/network/v3/management/Management.pb.cc \
+      src/network/v3/logging/Logging_grpc.pb.cc \
+      src/network/v3/logging/Logging.pb.cc \
   , $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, cxx)
 fi
 
