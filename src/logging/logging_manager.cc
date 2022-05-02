@@ -21,6 +21,7 @@
 #include "grpc/grpc.h"
 #include "grpc++/grpc++.h"
 #include "src/logging/logging_hander_yii.h"
+#include "src/logging/logging_hander_thinkphp.h"
 #include "sky_log.h"
 #include <vector>
 #include "sky_plugin_logging.h"
@@ -47,12 +48,19 @@ void LogginManager::init(const ManagerOptions &options, struct service_info *inf
     std::thread logth(logConsumer, options, info);
     logth.detach();
     if (SKYWALKING_G(logging_yii_enable)) {
+        sky_log("logging yii plugin enable, target_name:" + std::string(SKYWALKING_G(logging_yii_target_name)));
         register_logging_hander(new YiiLoggingHander(SKYWALKING_G(logging_yii_target_name)));
     }
+
+    if (SKYWALKING_G(logging_thinkphp_enable)) {
+        sky_log("logging thinkphp plugin enable, target_name:" + std::string(SKYWALKING_G(logging_thinkphp_target_name)));
+        register_logging_hander(new ThinkphpLoggingHander(SKYWALKING_G(logging_thinkphp_target_name)));
+    }
+
     sky_log("logging plugin init success, mq_name: [" + std::string(info->log_mq_name) 
     + "],logging_mq_length: [" + std::to_string(SKYWALKING_G(logging_mq_length))
     + "],logging_mq_max_message_length: " +  std::to_string(SKYWALKING_G(logging_mq_max_message_length))
-    + "], logging_yii_target_name:[" + SKYWALKING_G(logging_yii_target_name) + "]");
+    + "]");
 }
 
 void LogginManager::logConsumer(const ManagerOptions &options, struct service_info *info) {

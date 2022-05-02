@@ -30,4 +30,6 @@ void skywalking_logging_report(std::string trace_id, std::string message, std::s
 
 void skywalking_logging_report(LogData * log_data);
 
+std::string random_generator_uuid();
+
 #endif

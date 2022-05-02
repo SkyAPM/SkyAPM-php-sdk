@@ -163,6 +163,8 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     int logging_mq_length;
     char *logging_yii_target_name;
     zend_bool logging_yii_enable;
+    zend_bool logging_thinkphp_enable;
+    char *logging_thinkphp_target_name;
 
 ZEND_END_MODULE_GLOBALS(skywalking)
 

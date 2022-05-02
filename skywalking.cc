@@ -77,8 +77,10 @@ PHP_INI_BEGIN()
     STD_PHP_INI_BOOLEAN("skywalking.logging_enable", "0", PHP_INI_ALL, OnUpdateBool, logging_enable, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.logging_mq_max_message_length", "20480", PHP_INI_ALL, OnUpdateLong, logging_mq_max_message_length, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.logging_mq_length", "1024", PHP_INI_ALL, OnUpdateLong, logging_mq_length, zend_skywalking_globals, skywalking_globals)
-    STD_PHP_INI_ENTRY("skywalking.logging_yii_target_name", "", PHP_INI_ALL, OnUpdateString, logging_yii_target_name, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.logging_yii_target_name", "yii\\log\\FileTarget", PHP_INI_ALL, OnUpdateString, logging_yii_target_name, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_BOOLEAN("skywalking.logging_yii_enable", "0", PHP_INI_ALL, OnUpdateBool, logging_yii_enable, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_BOOLEAN("skywalking.logging_thinkphp_enable", "0", PHP_INI_ALL, OnUpdateBool, logging_thinkphp_enable, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.logging_thinkphp_target_name", "think\\log\\driver\\File", PHP_INI_ALL, OnUpdateString, logging_thinkphp_target_name, zend_skywalking_globals, skywalking_globals)
 
 PHP_INI_END()
 
@@ -117,8 +119,10 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     skywalking_globals->logging_enable = 0;
     skywalking_globals->logging_mq_max_message_length = 0;
     skywalking_globals->logging_mq_length = 0;
-    skywalking_globals->logging_yii_target_name = nullptr;
+    skywalking_globals->logging_yii_target_name = "yii\\log\\FileTarget";
     skywalking_globals->logging_yii_enable = 0;
+    skywalking_globals->logging_thinkphp_enable = 0;
+    skywalking_globals->logging_thinkphp_target_name = "think\\log\\driver\\File";
 }
 
 PHP_FUNCTION (skywalking_trace_id) {

@@ -18,6 +18,10 @@
 #include <boost/interprocess/ipc/message_queue.hpp>
 #include "sky_log.h"
 #include "sky_utils.h"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+
 extern struct service_info *s_info;
 void _send_message_mq(std::string msg);
 
@@ -64,4 +68,9 @@ void _send_message_mq(std::string msg){
         sky_log("logging message_queue ex" + std::string(ex.what()));
         php_error(E_WARNING, "%s %s", "[skywalking] logging open queue fail ", ex.what());
     }
+}
+
+std::string random_generator_uuid() {
+    auto uuid = boost::uuids::random_generator()();
+	return boost::uuids::to_string(uuid);
 }
