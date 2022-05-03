@@ -26,6 +26,25 @@ skywalking.log_enable = 0
 
 ; Enable with cURL response, default 0
 ; skywalking.curl_response_enable = 0
+
+; Enable logging report, default 0
+skywalking.logging_enable = 0
+skywalking.logging_mq_max_message_length = 20480
+skywalking.logging_mq_length = 1024
+
+; Enable yii logging report, default 0
+skywalking.logging_yii_enable = 0
+; Intercept yii\log\FileTarget export method and report logging to the oap server
+skywalking.logging_yii_target_name = yii\log\FileTarget
+
+; Enable thinkphp logging report, default 0
+skywalking.logging_thinkphp_enable = 0
+; Intercept think\log\driver\File save method and report logging to the oap server
+skywalking.logging_thinkphp_target_name = think\log\driver\File
+
+; Enable internal (error_log) logging report, default 0
+skywalking.logging_internal_enable = 0
+
 ```
 
 

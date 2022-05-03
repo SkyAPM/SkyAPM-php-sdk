@@ -29,6 +29,7 @@ SkyAPM PHP
 1. Swoft ([Swoft](https://github.com/swoft-cloud/swoft))
 1. Tars-php ([Tars-php](https://github.com/TarsPHP/TarsPHP))
 1. LaravelS ([LaravelS](https://github.com/hhxsv5/laravel-s))
+1. Logging report
 
 ## Documents
 * [Documents in English](docs/README.md)
