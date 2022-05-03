@@ -22,6 +22,7 @@
 #include "grpc++/grpc++.h"
 #include "src/logging/logging_hander_yii.h"
 #include "src/logging/logging_hander_thinkphp.h"
+#include "src/logging/logging_hander_internal.h"
 #include "sky_log.h"
 #include <vector>
 #include "sky_plugin_logging.h"
@@ -55,6 +56,11 @@ void LogginManager::init(const ManagerOptions &options, struct service_info *inf
     if (SKYWALKING_G(logging_thinkphp_enable)) {
         sky_log("logging thinkphp plugin enable, target_name:" + std::string(SKYWALKING_G(logging_thinkphp_target_name)));
         register_logging_hander(new ThinkphpLoggingHander(SKYWALKING_G(logging_thinkphp_target_name)));
+    }
+
+    if (SKYWALKING_G(logging_internal_enable)) {
+        sky_log("logging internal plugin enable");
+        register_logging_hander(new InternalLoggingHander());
     }
 
     sky_log("logging plugin init success, mq_name: [" + std::string(info->log_mq_name) 

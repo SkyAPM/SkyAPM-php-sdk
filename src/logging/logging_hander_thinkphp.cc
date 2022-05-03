@@ -21,7 +21,7 @@
 
 ThinkphpLoggingHander::ThinkphpLoggingHander(char* target_name):_target_name(target_name){};
 
-bool ThinkphpLoggingHander::is_support(zend_execute_data *execute_data, char *class_name, char *function_name, bool is_after) {
+bool ThinkphpLoggingHander::is_support(zend_execute_data *execute_data, char *class_name, char *function_name, bool is_internal) {
     return class_name && function_name 
             && strcmp(class_name, _target_name) == 0 
             && strcmp(function_name, "save") == 0;
@@ -56,6 +56,7 @@ void ThinkphpLoggingHander::before_parse(zend_execute_data *execute_data, std::v
                 log_data->addTraceContext(trace_id,segment_id, 0);
                 log_data->setTimestamp(time_now);
                 log_data->addTag("level", ZSTR_VAL(level));
+                log_data->addTag("logger", _target_name);
                 log_data->addBody(TEXT, ZSTR_VAL(Z_STR_P(item)));
                 log_datas.push_back(log_data);
             }ZEND_HASH_FOREACH_END();
@@ -64,6 +65,7 @@ void ThinkphpLoggingHander::before_parse(zend_execute_data *execute_data, std::v
             log_data->addTraceContext(trace_id,segment_id, 0);
             log_data->setTimestamp(time_now);
             log_data->addTag("level", ZSTR_VAL(level));
+            log_data->addTag("logger", _target_name);
             log_data->addBody(TEXT, ZSTR_VAL(Z_STR_P(msg)));
             log_datas.push_back(log_data);
         }

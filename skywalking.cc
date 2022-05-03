@@ -81,6 +81,7 @@ PHP_INI_BEGIN()
     STD_PHP_INI_BOOLEAN("skywalking.logging_yii_enable", "0", PHP_INI_ALL, OnUpdateBool, logging_yii_enable, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_BOOLEAN("skywalking.logging_thinkphp_enable", "0", PHP_INI_ALL, OnUpdateBool, logging_thinkphp_enable, zend_skywalking_globals, skywalking_globals)
     STD_PHP_INI_ENTRY("skywalking.logging_thinkphp_target_name", "think\\log\\driver\\File", PHP_INI_ALL, OnUpdateString, logging_thinkphp_target_name, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_BOOLEAN("skywalking.logging_internal_enable", "0", PHP_INI_ALL, OnUpdateBool, logging_internal_enable, zend_skywalking_globals, skywalking_globals)
 
 PHP_INI_END()
 
@@ -123,6 +124,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     skywalking_globals->logging_yii_enable = 0;
     skywalking_globals->logging_thinkphp_enable = 0;
     skywalking_globals->logging_thinkphp_target_name = "think\\log\\driver\\File";
+    skywalking_globals->logging_internal_enable = 0;
 }
 
 PHP_FUNCTION (skywalking_trace_id) {

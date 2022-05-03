@@ -292,6 +292,7 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/sky_plugin_logging.cc \
       src/logging/logging_hander_yii.cc \
       src/logging/logging_hander_thinkphp.cc \
+      src/logging/logging_hander_internal.cc \
       src/logging/logging_manager.cc \
       src/logging/logging_common.cc \
       src/network/v3/common/Common_grpc.pb.cc \

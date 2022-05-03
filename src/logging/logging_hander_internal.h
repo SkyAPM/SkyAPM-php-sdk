@@ -14,20 +14,18 @@
  * limitations under the License.
  *
  */
-#ifndef SKYWALKING_THINKPHP_LOGGING_HANDER_H
-#define SKYWALKING_THINKPHP_LOGGING_HANDER_H
+#ifndef SKYWALKING_INTERNAL_LOGGING_HANDER_H
+#define SKYWALKING_INTERNAL_LOGGING_HANDER_H
 #include "src/logging/logging_data.h"
 #include "src/logging/logging_common.h"
 #include <vector>
 
-class ThinkphpLoggingHander : public LoggingHander {
+class InternalLoggingHander : public LoggingHander {
     public:
-        ThinkphpLoggingHander(char *target_name);
+        InternalLoggingHander();
         bool is_support(zend_execute_data *execute_data, char *class_name, char *function_name, bool is_internal);
         void after_parse(zend_execute_data *execute_data, std::vector<LogData *> &log_datas, zval *return_value);
         void before_parse(zend_execute_data *execute_data, std::vector<LogData *> &log_datas);
-    private:
-        char *_target_name;
 };
 
 #endif

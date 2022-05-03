@@ -19,7 +19,7 @@
 #include "sky_utils.h"
 #include <src/logging/logging_data.h>
 
-static LogData* _log_message_parse(zval *pDest, zend_execute_data *arg);
+static LogData* _log_message_parse(zval *pDest, zend_execute_data *arg, std::string yii_target_name);
 
 enum YII_LOGGING_LEVEL {
     ERROR= 0x01,
@@ -46,14 +46,14 @@ void YiiLoggingHander::after_parse(zend_execute_data *execute_data, std::vector<
     const std::vector<LogData *> log_dataaa;
     int count = zend_array_count(messages);
     for(int i = 0; i < count; i++) {
-        LogData *log_data = _log_message_parse(zend_hash_index_find(messages, i), execute_data);
+        LogData *log_data = _log_message_parse(zend_hash_index_find(messages, i), execute_data, _yii_target_name);
         if (log_data) {
             log_datas.push_back(log_data);
         }
     }
 };
 
-LogData* _log_message_parse(zval *pDest, zend_execute_data *execute_data) {
+LogData* _log_message_parse(zval *pDest, zend_execute_data *execute_data, std::string yii_target_name) {
     /**
      * @var array logged messages. This property is managed by [[log()]] and [[flush()]].
      * Each log message is of the following structure:
@@ -111,5 +111,6 @@ LogData* _log_message_parse(zval *pDest, zend_execute_data *execute_data) {
     log_data->setTimestamp(time_now.count());
     log_data->addBody(TEXT, content);
     log_data->addTag("level", level_tag);
+    log_data->addTag("logger", yii_target_name);
     return log_data;
 };
