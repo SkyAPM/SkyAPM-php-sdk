@@ -87,12 +87,12 @@ void sky_core_segment_set_service_instance(sky_core_segment_t *segment, char *in
 char *sky_core_segment_to_json(sky_core_segment_t *segment) {
     char *json;
     char *temp = "{"
-                 "\"traceId\":\"%s\","
-                 "\"traceSegmentId\":\"%s\","
+                 "\"trace_id\":\"%s\","
+                 "\"trace_segment_id\":\"%s\","
                  "\"spans\":%s,"
                  "\"service\":\"%s\","
-                 "\"serviceInstance\":\"%s\","
-                 "\"isSizeLimited\":%s"
+                 "\"service_instance\":\"%s\","
+                 "\"is_size_limited\":%s"
                  "}";
     sky_util_smart_string spans = {0};
     sky_util_smart_string_appendl(&spans, "[", 1);

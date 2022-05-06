@@ -84,19 +84,16 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
     SKYWALKING_G(segments) = segments;
 
     // register
-    skywalking_connect(SKYWALKING_G(grpc), SKYWALKING_G(app_code), SKYWALKING_G(instance_name));
-    char *instance = skywalking_get_instance();
-
-    skywalking_t *skywalking = (skywalking_t *) pecalloc(1, sizeof(skywalking_t), 1);
-    strcpy(skywalking->serviceInstance, instance);
-//    skywalking->connect = sky_connect;
+    sky_core_report_t *report = sky_core_report_new(SKYWALKING_G(grpc),
+                                                    SKYWALKING_G(app_code),
+                                                    SKYWALKING_G(instance_name));
 #if PHP_VERSION_ID >= 70300
-    zend_register_persistent_resource(skywalking_persistent_id, strlen(skywalking_persistent_id), skywalking,
+    zend_register_persistent_resource(skywalking_persistent_id, strlen(skywalking_persistent_id), report,
                                       le_skywalking_pconnect);
 #else
     zend_resource new_le;
     new_le.type = le_skywalking_pconnect;
-    new_le.ptr = skywalking;
+    new_le.ptr = report;
     zend_hash_str_update_mem(&EG(persistent_list), skywalking_persistent_id, strlen(skywalking_persistent_id), &new_le, sizeof(zend_resource));
 #endif
 
@@ -194,12 +191,12 @@ void sky_core_request_free(zval *response, u_int64_t request_id) {
     zend_string *persistent_id = zend_string_init(skywalking_persistent_id, strlen(skywalking_persistent_id), 0);
     zend_resource *le = zend_hash_find_ptr(&EG(persistent_list), persistent_id);
     zend_string_release(persistent_id);
-    skywalking_t *skywalking = (skywalking_t *) le->ptr;
-    sky_core_segment_set_service(core_segment, skywalking->service);
-    sky_core_segment_set_service_instance(core_segment, skywalking->serviceInstance);
+    sky_core_report_t *report = (sky_core_report_t *) le->ptr;
+    sky_core_segment_set_service(core_segment, report->address);
+    sky_core_segment_set_service_instance(core_segment, report->service_instance);
 
     char *json = sky_core_segment_to_json(core_segment);
-    skywalking_write_segment(skywalking->connect, json);
+    sky_core_report_push(report, json);
 
     zend_hash_index_del(SKYWALKING_G(segments), request_id);
 //    efree(segment);

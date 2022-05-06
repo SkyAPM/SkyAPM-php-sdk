@@ -100,20 +100,20 @@ void sky_core_span_add_tag(sky_core_span_t *span, sky_core_tag_t *tag) {
 char *sky_core_span_to_json(sky_core_span_t *span) {
     char *json;
     char *temp = "{"
-                 "\"spanId\":%d,"
-                 "\"parentSpanId\":%d,"
-                 "\"startTime\":%ld,"
-                 "\"endTime\":%ld,"
+                 "\"span_id\":%d,"
+                 "\"parent_span_id\":%d,"
+                 "\"start_time\":%ld,"
+                 "\"end_time\":%ld,"
                  "\"refs\":%s,"
-                 "\"operationName\":\"%s\","
+                 "\"operation_name\":\"%s\","
                  "\"peer\":\"%s\","
-                 "\"spanType\":%d,"
-                 "\"spanLayer\":%d,"
-                 "\"componentId\":%d,"
-                 "\"isError\":%s,"
+                 "\"span_type\":%d,"
+                 "\"span_layer\":%d,"
+                 "\"component_id\":%d,"
+                 "\"is_error\":%s,"
                  "\"tags\":%s,"
                  "\"logs\":%s,"
-                 "\"skipAnalysis\":%s"
+                 "\"skip_analysis\":%s"
                  "}";
 
     sky_util_smart_string tags = {0};

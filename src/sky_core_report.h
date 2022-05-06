@@ -5,6 +5,14 @@
 #ifndef SKYWALKING_SKY_CORE_REPORT_H
 #define SKYWALKING_SKY_CORE_REPORT_H
 
-extern void greet();
+typedef struct sky_core_report_t {
+    char *address;
+    char *service;
+    char *service_instance;
+} sky_core_report_t;
+
+sky_core_report_t *sky_core_report_new(char *address, char *service, char *service_instance);
+
+void sky_core_report_push(sky_core_report_t *report, char *json);
 
 #endif //SKYWALKING_SKY_CORE_REPORT_H

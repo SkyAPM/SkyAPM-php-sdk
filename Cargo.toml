@@ -8,10 +8,18 @@ authors = ["Yanlong He <heyanlong@apache.org>"]
 tonic = "0.5.2"
 prost = "0.8.0"
 prost-derive = "0.8.0"
+tokio = { version = "1", features = ["full"] }
+gethostname = "0.2.3"
+local-ip-address = "0.4.4"
+uuid = { version = "1.0.0", features = ["v4"] }
+serde = { version = "1.0", features = ["serde_derive"] }
+serde_json = "1.0"
+futures-util = "0.3.21"
 
 
 [build-dependencies]
 tonic-build = "0.5.2"
+cbindgen = "0.23.0"
 
 [lib]
 name = "sky_core_report"
