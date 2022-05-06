@@ -28,6 +28,8 @@ header:
     - '**/*.a'
     - '**/*.lo'
     - '**/*.dep'
+    - 'target'
+    - 'Cargo.lock'
     - 'LICENSE'
     - 'NOTICE'
     - 'CREDITS'
