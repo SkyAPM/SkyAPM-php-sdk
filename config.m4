@@ -32,14 +32,13 @@ fi
 
 
 if test "$PHP_SKYWALKING" != "no"; then
-  AC_PATH_PROG(GO, go, no)
-  if ! test -x "$GO"; then
-    AC_MSG_ERROR([go command missing, please reinstall the go distribution])
+  AC_PATH_PROG(CARGO, cargo, no)
+  if ! test -x "$CARGO"; then
+    AC_MSG_ERROR([cargo command missing, please reinstall the cargo distribution])
   fi
-  go build -buildmode=c-archive -o src src/sky_go_wrapper.go
-  cargo build
+  $CARGO build
 
-  EXTRA_LDFLAGS="$EXTRA_LDFLAGS src/sky_go_wrapper.a target/debug/libsky_core_report.a"
+  EXTRA_LDFLAGS="$EXTRA_LDFLAGS target/debug/libsky_core_report.a"
   LIBS="-lpthread $LIBS"
 
   SKYWALKING_SHARED_LIBADD="-lpthread $SKYWALKING_SHARED_LIBADD"
