@@ -12,6 +12,7 @@ dependencies = [
  "local-ip-address",
  "prost",
  "prost-derive",
+ "rand",
  "serde",
  "serde_json",
  "tokio",

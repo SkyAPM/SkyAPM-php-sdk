@@ -28,4 +28,6 @@ sky_core_report_t *sky_core_report_new(char *address, char *service, char *servi
 
 void sky_core_report_push(sky_core_report_t *report, char *json);
 
+char *sky_core_report_trace_id();
+
 #endif //SKYWALKING_SKY_CORE_REPORT_H

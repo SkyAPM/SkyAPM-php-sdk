@@ -28,7 +28,6 @@
 #include "sky_core_tag.h"
 #include "sky_core_cross_process.h"
 #include "sky_plugin_curl.h"
-#include "sky_go_wrapper.h"
 #include "sky_core_report.h"
 #include "sky_plugin_redis.h"
 

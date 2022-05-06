@@ -22,7 +22,7 @@
 #include "php.h"
 #include "sky_core_cross_process.h"
 #include "sky_core_segment_reference.h"
-#include "sky_go_wrapper.h"
+#include "sky_core_report.h"
 #include "sky_util_php.h"
 
 sky_core_segment_t *sky_core_segment_new(char *protocol) {
@@ -32,7 +32,7 @@ sky_core_segment_t *sky_core_segment_new(char *protocol) {
 
     // Tracing.proto
     segment->traceId = NULL;
-    segment->traceSegmentId = skywalking_trace_id_new();
+    segment->traceSegmentId = sky_core_report_trace_id();
     segment->spans = (sky_core_span_t **) emalloc(segment->span_total);
 
     segment->cross_process = sky_core_cross_process_new(protocol);
