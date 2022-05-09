@@ -74,6 +74,13 @@ fi
 if test -r $phpincludedir/ext/mysqli/mysqli_mysqlnd.h; then
     AC_DEFINE([MYSQLI_USE_MYSQLND], 1, [Whether mysqlnd is enabled])
 fi
-shared_objects_skywalking="rust $shared_objects_skywalking"
+shared_objects_skywalking="target/debug/libsky_core_report.a $shared_objects_skywalking"
 dnl PHP_SUBST(shared_objects_skywalking)
-echo 'rust:\n	cargo build' >> Makefile.objects
+case $host in
+    *darwin*)
+      echo "target/debug/libsky_core_report.a:\n	cargo build" >> Makefile.objects
+      ;;
+    *)
+      echo -e "target/debug/libsky_core_report.a:\n	cargo build" >> Makefile.objects
+      ;;
+  esac
