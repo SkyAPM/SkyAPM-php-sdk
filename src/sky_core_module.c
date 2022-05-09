@@ -109,6 +109,10 @@ void sky_core_module_free() {
 
 void sky_core_request_init(zval *request, u_int64_t request_id) {
 
+    if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
+        return;
+    }
+
     array_init(&SKYWALKING_G(curl_cache));
 
     zval *_server = NULL;
@@ -172,6 +176,9 @@ void sky_core_request_init(zval *request, u_int64_t request_id) {
 }
 
 void sky_core_request_free(zval *response, u_int64_t request_id) {
+    if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
+        return;
+    }
     zval_dtor(&SKYWALKING_G(curl_cache));
 
     if (SKYWALKING_G(segments) == NULL) {
