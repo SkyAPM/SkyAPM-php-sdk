@@ -27,24 +27,26 @@
 sky_core_cross_process_t *sky_core_cross_process_new(char *header) {
     sky_core_cross_process_t *cross_process = (sky_core_cross_process_t *) emalloc(sizeof(sky_core_cross_process_t));
 
-    char **bag = (char **) malloc(8);
-    char *p = strtok(header, "-");
-    int i = 0;
-    while (p != NULL) {
-        asprintf(&bag[i], "%s", p);
-        i++;
-        p = strtok(NULL, "-");
-    }
+    if (header != NULL) {
+        char **bag = (char **) malloc(8);
+        char *p = strtok(header, "-");
+        int i = 0;
+        while (p != NULL) {
+            asprintf(&bag[i], "%s", p);
+            i++;
+            p = strtok(NULL, "-");
+        }
 
-    if (i >= 8) {
-        cross_process->sample = (int) strtol(bag[0], NULL, 10);
-        cross_process->traceId = sky_util_base64_decode(bag[1]);
-        cross_process->parentSegmentId = sky_util_base64_decode(bag[2]);
-        cross_process->parentSpanId = (int) strtol(bag[3], NULL, 10);
-        cross_process->parentService = sky_util_base64_decode(bag[4]);
-        cross_process->parentServiceInstance = sky_util_base64_decode(bag[5]);
-        cross_process->parentEndpoint = sky_util_base64_decode(bag[6]);
-        cross_process->networkAddress = sky_util_base64_decode(bag[7]);
+        if (i >= 8) {
+            cross_process->sample = (int) strtol(bag[0], NULL, 10);
+            cross_process->traceId = sky_util_base64_decode(bag[1]);
+            cross_process->parentSegmentId = sky_util_base64_decode(bag[2]);
+            cross_process->parentSpanId = (int) strtol(bag[3], NULL, 10);
+            cross_process->parentService = sky_util_base64_decode(bag[4]);
+            cross_process->parentServiceInstance = sky_util_base64_decode(bag[5]);
+            cross_process->parentEndpoint = sky_util_base64_decode(bag[6]);
+            cross_process->networkAddress = sky_util_base64_decode(bag[7]);
+        }
     }
 
     return cross_process;
