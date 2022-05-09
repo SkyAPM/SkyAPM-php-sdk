@@ -36,7 +36,10 @@ if test "$PHP_SKYWALKING" != "no"; then
   if ! test -x "$CARGO"; then
     AC_MSG_ERROR([cargo command missing, please reinstall the cargo distribution])
   fi
-  $CARGO build
+  AC_PATH_PROG(RUSTFMT, rustfmt, no)
+  if ! test -x "$RUSTFMT"; then
+    AC_MSG_ERROR([rustfmt command missing, please reinstall the cargo distribution])
+  fi
 
   EXTRA_LDFLAGS="$EXTRA_LDFLAGS target/debug/libsky_core_report.a"
   LIBS="-lpthread $LIBS"
@@ -71,3 +74,6 @@ fi
 if test -r $phpincludedir/ext/mysqli/mysqli_mysqlnd.h; then
     AC_DEFINE([MYSQLI_USE_MYSQLND], 1, [Whether mysqlnd is enabled])
 fi
+shared_objects_skywalking="rust $shared_objects_skywalking"
+dnl PHP_SUBST(shared_objects_skywalking)
+echo 'rust:\n	cargo build' >> Makefile.objects

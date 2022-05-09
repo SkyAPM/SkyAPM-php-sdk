@@ -62,7 +62,7 @@ impl Reporter {
                 .build()
                 .unwrap()
                 .block_on(async move {
-                    let mut management = ManagementClient::connect("http://10.122.94.115:11800").await.unwrap();
+                    let mut management = ManagementClient::connect(format!("http://{}", address)).await.unwrap();
                     let mut properties = Vec::<KeyStringValuePair>::new();
                     properties.push(KeyStringValuePair {
                         key: "os_name".to_string(),
@@ -102,7 +102,7 @@ impl Reporter {
                     .build()
                     .unwrap()
                     .block_on(async move {
-                        let mut management = ManagementClient::connect("http://10.122.94.115:11800").await.unwrap();
+                        let mut management = ManagementClient::connect(format!("http://{}", address)).await.unwrap();
                         let response = management.keep_alive(tonic::Request::new(InstancePingPkg {
                             service: r_service,
                             service_instance: r_service_instance,
@@ -130,7 +130,8 @@ impl Reporter {
             .build()
             .unwrap()
             .block_on(async move {
-                let mut segment_report = SegmentReportClient::connect("http://10.122.94.115:11800").await.unwrap();
+                let address = unsafe { CStr::from_ptr(self.address) };
+                let mut segment_report = SegmentReportClient::connect(format!("http://{}", address.to_str().unwrap().to_owned())).await.unwrap();
                 let response = segment_report.collect(stream::iter(vec![segment])).await.unwrap();
                 println!("RESPONSE={:?}", response);
             });
