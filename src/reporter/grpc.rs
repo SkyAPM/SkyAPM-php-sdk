@@ -51,9 +51,11 @@ impl Reporter {
             service_instance = Uuid::new_v4().to_string() + "@" + &local_ip().unwrap().to_string();
         }
 
+        let new_address = address.clone();
         let new_service = service.clone();
         let new_service_instance = service_instance.clone();
         thread::spawn(move || {
+            let k_address = address.clone();
             let k_service = service.clone();
             let k_service_instance = service_instance.clone();
             tokio::runtime::Builder::new_current_thread()
@@ -62,7 +64,7 @@ impl Reporter {
                 .build()
                 .unwrap()
                 .block_on(async move {
-                    let mut management = ManagementClient::connect(format!("http://{}", address)).await.unwrap();
+                    let mut management = ManagementClient::connect(format!("http://{}", k_address)).await.unwrap();
                     let mut properties = Vec::<KeyStringValuePair>::new();
                     properties.push(KeyStringValuePair {
                         key: "os_name".to_string(),
@@ -94,6 +96,7 @@ impl Reporter {
                     println!("RESPONSE={:?}", response);
                 });
             loop {
+                let r_address = address.clone();
                 let r_service = service.clone();
                 let r_service_instance = service_instance.clone();
                 tokio::runtime::Builder::new_current_thread()
@@ -102,7 +105,7 @@ impl Reporter {
                     .build()
                     .unwrap()
                     .block_on(async move {
-                        let mut management = ManagementClient::connect(format!("http://{}", address)).await.unwrap();
+                        let mut management = ManagementClient::connect(format!("http://{}", r_address)).await.unwrap();
                         let response = management.keep_alive(tonic::Request::new(InstancePingPkg {
                             service: r_service,
                             service_instance: r_service_instance,
@@ -115,7 +118,7 @@ impl Reporter {
         });
 
         return Self {
-            address: CString::new(address).expect("").into_raw(),
+            address: CString::new(new_address).expect("").into_raw(),
             service: CString::new(new_service).expect("").into_raw(),
             service_instance: CString::new(new_service_instance).expect("").into_raw(),
         };
