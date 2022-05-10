@@ -69,10 +69,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check System
-        run: |
-          sudo cat /etc/security/limits.conf
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -125,11 +121,18 @@ jobs:
           sudo php -dskywalking.enable=0 e2e.php ${{ matrix.php-version }}
           sudo cat /tmp/skywalking-php.log
 
-      - uses: actions/upload-artifact@v2
+      - name: Copy crash
+        if: failure()
+        run: |
+          sudo mkdir -p /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/crash
+          sudo cp /var/crash/* /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/crash/
+          sudo chmod 0644 /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/crash/*
+
+      - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: crashes
-          path: /var/crash
+          path: /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/crash
 
   publish:
     if: github.repository == 'SkyAPM/SkyAPM-php-sdk'
