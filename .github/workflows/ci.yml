@@ -75,7 +75,7 @@ jobs:
           YAR_LIBS: libcurl4-openssl-dev
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: dev, curl, json, redis, pdo_mysql, memcached, yar-laruence/yar@yar-2.2.0
+          extensions: curl, json, redis, pdo_mysql, memcached, yar-laruence/yar@yar-2.2.0
           tools: php-config, phpize, composer
 
       - name: Install library
@@ -84,6 +84,7 @@ jobs:
           sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
+          sudo apt-get install -y php${{ matrix.php-version }}-dev
           if ! [ -e /usr/bin/php-fpm ]; then
             sudo apt-get install -y php${{ matrix.php-version }}-fpm
             sudo cp /usr/sbin/php-fpm${{ matrix.php-version }} /usr/bin/php-fpm
