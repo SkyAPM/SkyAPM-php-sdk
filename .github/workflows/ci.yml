@@ -85,9 +85,13 @@ jobs:
 #          tar zxvf php-${{ matrix.php-version }}.tar.gz
 #          cd php-src-php-7.4.29
 #          ./buildconf --force
-#          ./configure --enable-debug --enable-fpm --with-curl --enable-mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli --enable-pdo
+#          ./configure --with-config-file-scan-dir=/usr/local/lib/conf.d --enable-debug --enable-fpm --with-curl --enable-mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli --enable-pdo
 #          make -j$(nproc)
 #          sudo make install
+#          sudo mv php.ini-development /usr/local/lib/php.ini
+#          sudo mv /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf
+#          sudo mv /usr/local/etc/php-fpm.d/www.conf.default /usr/local/etc/php-fpm.d/www.conf
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -148,8 +152,8 @@ jobs:
           sudo cp /var/crash/* /tmp/crash/
           sudo chmod 0644 /tmp/crash/*
           cd /tmp/crash
-          apport-unpack _usr_sbin_php-fpm${{ matrix.php-version }}.0.crash unpack
-          gdb -ex="bt" -ex="quit" -c unpack/CoreDump
+          sudo apport-unpack _usr_sbin_php-fpm${{ matrix.php-version }}.0.crash unpack
+          sudo gdb -ex="bt" -ex="quit" -c unpack/CoreDump
 
       - uses: actions/upload-artifact@v3
         if: failure()
