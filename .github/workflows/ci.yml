@@ -70,51 +70,49 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#      - name: Install library
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install -y wget autoconf automake make g++
-#          sudo apt-get install -y pkg-config build-essential autoconf bison re2c libxml2-dev libsqlite3-dev
-#          sudo apt-get install -y libcurl4-openssl-dev zlib1g-dev
-#
-#      - name: Setup PHP
-#        run: |
-#          sudo mkdir -p /tmp/php${{ matrix.php-version }}
-#          cd /tmp/php${{ matrix.php-version }}
-#          wget https://github.com/php/php-src/archive/refs/tags/php-${{ matrix.php-version }}.tar.gz
-#          tar zxvf php-${{ matrix.php-version }}.tar.gz
-#          cd php-src-php-7.4.29
-#          ./buildconf --force
-#          ./configure --with-config-file-scan-dir=/usr/local/lib/conf.d --enable-debug --enable-fpm --with-curl --enable-mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli --enable-pdo
-#          make -j$(nproc)
-#          sudo make install
-#          sudo mv php.ini-development /usr/local/lib/php.ini
-#          sudo mv /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf
-#          sudo mv /usr/local/etc/php-fpm.d/www.conf.default /usr/local/etc/php-fpm.d/www.conf
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        env:
-          YAR_LIBS: libcurl4-openssl-dev
-        with:
-          php-version: ${{ matrix.php-version }}
-          extensions: curl, json, redis, pdo_mysql, memcached, yar-laruence/yar@yar-2.2.0
-          tools: php-config, phpize, composer
-
       - name: Install library
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl libcurl4-openssl-dev nginx gdb
-          sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
-          sudo apt-get install -y autoconf automake libtool curl make g++ unzip
-          sudo apt-get install -y php${{ matrix.php-version }}-dev
-          if ! [ -e /usr/bin/php-fpm ]; then
-            sudo apt-get install -y php${{ matrix.php-version }}-fpm
-            sudo cp /usr/sbin/php-fpm${{ matrix.php-version }} /usr/bin/php-fpm
-          fi
-          cd e2e
+          sudo apt-get install -y wget autoconf automake make g++ libssl-dev
+          sudo apt-get install -y pkg-config build-essential autoconf bison re2c libxml2-dev libsqlite3-dev
+          sudo apt-get install -y curl libcurl4-openssl-dev zlib1g-dev
+          sudo apt-get install -y nginx gdb unzip
+
+      - name: Setup PHP
+        run: |
+          sudo mkdir -p /tmp/php${{ matrix.php-version }}
+          cd /tmp/php${{ matrix.php-version }}
+          wget https://github.com/php/php-src/archive/refs/tags/php-${{ matrix.php-version }}.tar.gz
+          tar zxvf php-${{ matrix.php-version }}.tar.gz
+          cd php-src-php-${{ matrix.php-version }}
+          ./buildconf --force
+          ./configure --with-config-file-scan-dir=/usr/local/lib/conf.d --enable-debug --enable-fpm --with-curl \
+            --enable-mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli --enable-pdo --with-openssl
+          make -j$(nproc)
+          sudo make install
+          sudo mv php.ini-development /usr/local/lib/php.ini
+          sudo mv /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf
+          sudo mv /usr/local/etc/php-fpm.d/www.conf.default /usr/local/etc/php-fpm.d/www.conf
+          sudo sed -i "s#include=NONE#include=/usr/local#g" /usr/local/etc/php-fpm.conf
+          sudo groupadd nobody
+
+#      - name: Setup PHP
+#        uses: shivammathur/setup-php@v2
+#        env:
+#          YAR_LIBS: libcurl4-openssl-dev
+#        with:
+#          php-version: ${{ matrix.php-version }}
+#          extensions: curl, json, redis, pdo_mysql, memcached, yar-laruence/yar@yar-2.2.0
+#          tools: php-config, phpize, composer
+
+      - name: Composer
+        run: |
+          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+          php -r "if (hash_file('sha384', 'composer-setup.php') === '55ce33d7678c5a611085589f1f3ddf8b3c52d662cd01d4ba75c0ee0459970c2200a51f492d557530c71c15d8dba01eae') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+          php composer-setup.php
+          php -r "unlink('composer-setup.php');"
+          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/e2e
           composer install
-          cd ..
 
       - name: Build SkyWalking-PHP
         run: |
@@ -128,12 +126,10 @@ jobs:
         run: |
           ulimit -c unlimited
           sudo cp e2e/99-skywalking.ini $(php -i | grep 'additional .ini' | sed -e "s|.*=> s*||")
-          sudo cp e2e/99-skywalking.ini $(php-fpm -i | grep 'additional .ini' | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
-          sudo sed -i "s/VERSION/${{ matrix.php-version }}/g" /etc/nginx/conf.d/nginx.conf
           sudo cp -r e2e/vendor e2e/tests /var/www/html/
           sudo cp e2e/tests.php e2e/index.php /var/www/html/
-          sudo systemctl restart php${{ matrix.php-version }}-fpm
+          sudo php-fpm -F &
           sudo systemctl restart nginx
           sleep 15
 
@@ -152,8 +148,9 @@ jobs:
           sudo cp /var/crash/* /tmp/crash/
           sudo chmod 0644 /tmp/crash/*
           cd /tmp/crash
-          sudo apport-unpack _usr_sbin_php-fpm${{ matrix.php-version }}.0.crash unpack
-          sudo gdb -ex="bt" -ex="quit" -c unpack/CoreDump
+          ls -l
+          # sudo apport-unpack _usr_sbin_php-fpm${{ matrix.php-version }}.0.crash unpack
+          # sudo gdb -ex="bt" -ex="quit" -c unpack/CoreDump
 
       - uses: actions/upload-artifact@v3
         if: failure()
