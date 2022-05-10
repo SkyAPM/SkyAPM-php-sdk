@@ -82,10 +82,10 @@ jobs:
         run: |
           sudo mkdir -p /tmp/php${{ matrix.php-version }}
           cd /tmp/php${{ matrix.php-version }}
-          wget https://github.com/php/php-src/archive/refs/tags/php-${{ matrix.php-version }}.tar.gz
-          tar zxvf php-${{ matrix.php-version }}.tar.gz
+          sudo wget https://github.com/php/php-src/archive/refs/tags/php-${{ matrix.php-version }}.tar.gz
+          sudo tar zxvf php-${{ matrix.php-version }}.tar.gz
           cd php-src-php-${{ matrix.php-version }}
-          ./buildconf --force
+          sudo ./buildconf --force
           ./configure --with-config-file-scan-dir=/usr/local/lib/conf.d --enable-debug --enable-fpm --with-curl \
             --enable-mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli --enable-pdo --with-openssl
           make -j$(nproc)
