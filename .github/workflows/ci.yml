@@ -75,7 +75,7 @@ jobs:
           YAR_LIBS: libcurl4-openssl-dev
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: curl, json, redis, pdo_mysql, memcached, yar-laruence/yar@yar-2.2.0
+          extensions: dev, curl, json, redis, pdo_mysql, memcached, yar-laruence/yar@yar-2.2.0
           tools: php-config, phpize, composer
 
       - name: Install library
@@ -124,15 +124,15 @@ jobs:
       - name: Copy crash
         if: failure()
         run: |
-          sudo mkdir -p /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/crash
-          sudo cp /var/crash/* /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/crash/
-          sudo chmod 0644 /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/crash/*
+          sudo mkdir -p /tmp/crash
+          sudo cp /var/crash/* /tmp/crash/
+          sudo chmod 0644 /tmp/crash/*
 
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: crashes
-          path: /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/crash
+          path: /tmp/crash
 
   publish:
     if: github.repository == 'SkyAPM/SkyAPM-php-sdk'
