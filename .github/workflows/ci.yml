@@ -69,6 +69,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check System
+        run: |
+          sudo cat /etc/security/limits.conf
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
