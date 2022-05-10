@@ -95,6 +95,7 @@ jobs:
           sudo mv /usr/local/etc/php-fpm.d/www.conf.default /usr/local/etc/php-fpm.d/www.conf
           sudo sed -i "s#include=NONE#include=/usr/local#g" /usr/local/etc/php-fpm.conf
           sudo groupadd nobody
+          sudo mkdir -p /usr/local/lib/conf.d/
 
       - name: Setup Redis Client
         run: |
@@ -107,7 +108,6 @@ jobs:
           sudo ./configure
           sudo make
           sudo make install
-          sudo echo -e "extension=redis.so" >> $(php -i | grep 'additional .ini' | sed -e "s|.*=> s*||")/00-redis.ini
 
 #      - name: Setup PHP
 #        uses: shivammathur/setup-php@v2
@@ -138,6 +138,7 @@ jobs:
       - name: Start FPM and Nginx
         run: |
           ulimit -c unlimited
+          sudo cp e2e/00-redis.ini $(php -i | grep 'additional .ini' | sed -e "s|.*=> s*||")
           sudo cp e2e/99-skywalking.ini $(php -i | grep 'additional .ini' | sed -e "s|.*=> s*||")
           sudo cp e2e/nginx.conf /etc/nginx/conf.d/
           sudo cp -r e2e/vendor e2e/tests /var/www/html/
