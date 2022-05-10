@@ -83,12 +83,12 @@ jobs:
           sudo mkdir -p /tmp/php${{ matrix.php-version }}
           cd /tmp/php${{ matrix.php-version }}
           sudo wget https://github.com/php/php-src/archive/refs/tags/php-${{ matrix.php-version }}.tar.gz
-          sudo tar zxvf php-${{ matrix.php-version }}.tar.gz
+          sudo tar zxf php-${{ matrix.php-version }}.tar.gz
           cd php-src-php-${{ matrix.php-version }}
           sudo ./buildconf --force
-          ./configure --with-config-file-scan-dir=/usr/local/lib/conf.d --enable-debug --enable-fpm --with-curl \
+          sudo ./configure --with-config-file-scan-dir=/usr/local/lib/conf.d --enable-debug --enable-fpm --with-curl \
             --enable-mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli --enable-pdo --with-openssl
-          make -j$(nproc)
+          sudo make -j$(nproc)
           sudo make install
           sudo mv php.ini-development /usr/local/lib/php.ini
           sudo mv /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf
