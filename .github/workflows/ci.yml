@@ -101,7 +101,7 @@ jobs:
           sudo mkdir -p /tmp/redis
           cd /tmp/redis
           sudo wget https://github.com/phpredis/phpredis/archive/refs/tags/5.3.7.tar.gz
-          sudo tar zxf phpredis-5.3.7.tar.gz
+          sudo tar zxf 5.3.7.tar.gz
           cd phpredis-5.3.7
           sudo phpize
           sudo ./configure
