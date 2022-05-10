@@ -31,7 +31,8 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-version: ['8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0']
+        php-version: ['7.4']
+#        php-version: ['8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0']
         skywalking-version: ['9.0.0']
 #        , '8.9.1', '8.9.0', '8.8.1', '8.7.0-es7', '8.7.0-es6', '8.6.0-es7', '8.6.0-es6', '8.5.0-es6', '8.4.0-es6'
     name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
@@ -69,6 +70,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+#      - name: Install library
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install -y wget autoconf automake make g++
+#          sudo apt-get install -y pkg-config build-essential autoconf bison re2c libxml2-dev libsqlite3-dev
+#          sudo apt-get install -y libcurl4-openssl-dev zlib1g-dev
+#
+#      - name: Setup PHP
+#        run: |
+#          sudo mkdir -p /tmp/php${{ matrix.php-version }}
+#          cd /tmp/php${{ matrix.php-version }}
+#          wget https://github.com/php/php-src/archive/refs/tags/php-${{ matrix.php-version }}.tar.gz
+#          tar zxvf php-${{ matrix.php-version }}.tar.gz
+#          cd php-src-php-7.4.29
+#          ./buildconf --force
+#          ./configure --enable-debug --enable-fpm --with-curl --enable-mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli --enable-pdo
+#          make -j$(nproc)
+#          sudo make install
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         env:
@@ -81,7 +100,7 @@ jobs:
       - name: Install library
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl libcurl4-openssl-dev nginx
+          sudo apt-get install -y curl libcurl4-openssl-dev nginx gdb
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
           sudo apt-get install -y autoconf automake libtool curl make g++ unzip
           sudo apt-get install -y php${{ matrix.php-version }}-dev
@@ -122,12 +141,15 @@ jobs:
           sudo php -dskywalking.enable=0 e2e.php ${{ matrix.php-version }}
           sudo cat /tmp/skywalking-php.log
 
-      - name: Copy crash
+      - name: Backtrace
         if: failure()
         run: |
           sudo mkdir -p /tmp/crash
           sudo cp /var/crash/* /tmp/crash/
           sudo chmod 0644 /tmp/crash/*
+          cd /tmp/crash
+          apport-unpack _usr_sbin_php-fpm${{ matrix.php-version }}.0.crash unpack
+          gdb -ex="bt" -ex="quit" -c unpack/CoreDump
 
       - uses: actions/upload-artifact@v3
         if: failure()
