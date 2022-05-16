@@ -230,7 +230,7 @@ ZEND_NAMED_FUNCTION(sky_curl_exec_handler) {
 
         zval *response_http_code = zend_hash_str_find(Z_ARRVAL_P(url_response), ZEND_STRL("http_code"));
         char code[255] = {0};
-        sprintf(code, "%lld", Z_LVAL_P(response_http_code));
+        sprintf(code, "%ld", Z_LVAL_P(response_http_code));
         sky_core_span_add_tag(span, sky_core_tag_new("status_code", code));
         if (Z_LVAL_P(response_http_code) == 0) {
             // get errors

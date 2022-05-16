@@ -16,6 +16,8 @@
 .deps
 .DS_Store
 .idea
+target
+cmake-build-debug-remote
 cmake-build-debug
 CMakeLists.txt
 /configure.ac
@@ -65,3 +67,4 @@ e2e/vendor
 vendor
 composer.*
 /.vscode
+configure~
