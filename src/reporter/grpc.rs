@@ -118,7 +118,7 @@ pub fn new(address: String, service: String, mut service_instance: String) -> an
     simplelog::WriteLogger::init(
         simplelog::LevelFilter::Debug,
         simplelog::Config::default(),
-        File::open("/tmp/skywalking.log").unwrap(),
+        OpenOptions::new().append(true).write(true).open("/tmp/skywalking.log").unwrap(),
     ).unwrap();
 
     let rt = tokio::runtime::Builder::new_multi_thread()

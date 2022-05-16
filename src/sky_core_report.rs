@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate simplelog;
 
 use std::os::raw::{c_char, c_void};
@@ -43,19 +44,31 @@ pub mod reporter;
 
 #[no_mangle]
 extern "C" fn sky_core_report_ipc_init(max_length: usize) -> bool {
-    match ipc::init(max_length) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    return match ipc::init(max_length) {
+        Ok(_) => {
+            log::debug!("sky_core_report_ipc_init ok");
+            true
+        }
+        Err(e) => {
+            log::error!("sky_core_report_ipc_init err {}", e.to_string());
+            false
+        }
+    };
 }
 
 #[no_mangle]
 extern "C" fn sky_core_report_ipc_send(data: *const c_char, len: usize) -> bool {
     let data = unsafe { from_raw_parts(data.cast(), len) };
-    match ipc::send(data) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    return match ipc::send(data) {
+        Ok(_) => {
+            log::debug!("sky_core_report_ipc_send ok");
+            true
+        }
+        Err(e) => {
+            log::error!("sky_core_report_ipc_send err {}", e.to_string());
+            false
+        }
+    };
 }
 
 #[no_mangle]
