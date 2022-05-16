@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-use std::fs::OpenOptions;
 use std::io::Write;
 use crate::skywalking_proto::v3::SegmentObject;
 use crate::skywalking_proto::v3::InstanceProperties;
@@ -50,7 +49,10 @@ use std::{
         Arc,
     },
     fs::{
-        File
+        File, OpenOptions,
+    },
+    path::{
+        Path
     },
 };
 use crate::ipc;
@@ -109,10 +111,14 @@ pub struct Reporter {
 }
 
 pub fn new(address: String, service: String, mut service_instance: String) -> anyhow::Result<()> {
+    if !Path::new("/tmp/skywalking.log").exists() {
+        File::create("/tmp/skywalking.log").unwrap();
+    }
+
     simplelog::WriteLogger::init(
         simplelog::LevelFilter::Debug,
         simplelog::Config::default(),
-        File::create("/tmp/skywalking.log").unwrap(),
+        File::open("/tmp/skywalking.log").unwrap(),
     ).unwrap();
 
     let rt = tokio::runtime::Builder::new_multi_thread()
@@ -159,7 +165,7 @@ pub async fn do_connect(address: String) {
 }
 
 pub async fn login(service: String, service_instance: String) {
-    let mut props = vec![
+    let props = vec![
         KeyStringValuePair {
             key: "os_name".to_owned(),
             value: env::consts::OS.to_string(),
