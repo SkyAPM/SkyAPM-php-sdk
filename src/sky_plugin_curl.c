@@ -20,18 +20,39 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sky_utils.h"
+#include "sky_util_php.h"
 #include "php_skywalking.h"
 #include "ext/standard/url.h"
 
-void (*origin_curl_exec)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+zif_handler origin_curl_exec;
 
-void (*origin_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+zif_handler origin_curl_setopt;
 
-void (*origin_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+zif_handler origin_curl_setopt_array;
 
-void (*origin_curl_close)(INTERNAL_FUNCTION_PARAMETERS) = NULL;
+zif_handler origin_curl_close;
 
-void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
+void sky_plugin_curl_hooks() {
+    zend_function *origin_function;
+    if ((origin_function = sky_util_find_func("curl_exec")) != NULL) {
+        origin_curl_exec = origin_function->internal_function.handler;
+        origin_function->internal_function.handler = sky_curl_exec_handler;
+    }
+    if ((origin_function = sky_util_find_func("curl_setopt")) != NULL) {
+        origin_curl_setopt = origin_function->internal_function.handler;
+        origin_function->internal_function.handler = sky_curl_setopt_handler;
+    }
+    if ((origin_function = sky_util_find_func("curl_setopt_array")) != NULL) {
+        origin_curl_setopt_array = origin_function->internal_function.handler;
+        origin_function->internal_function.handler = sky_curl_setopt_array_handler;
+    }
+    if ((origin_function = sky_util_find_func("curl_close")) != NULL) {
+        origin_curl_close = origin_function->internal_function.handler;
+        origin_function->internal_function.handler = sky_curl_close_handler;
+    }
+}
+
+ZEND_NAMED_FUNCTION(sky_curl_setopt_handler) {
 
     sky_core_segment_t *segment = sky_util_find_segment_idx(execute_data, -1);
 
@@ -68,7 +89,7 @@ void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS) {
     origin_curl_setopt(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
+ZEND_NAMED_FUNCTION(sky_curl_setopt_array_handler) {
 
     sky_core_segment_t *segment = sky_util_find_segment_idx(execute_data, -1);
 
@@ -103,7 +124,7 @@ void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS) {
     origin_curl_setopt_array(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
+ZEND_NAMED_FUNCTION(sky_curl_exec_handler) {
     sky_core_segment_t *segment = sky_util_find_segment_idx(execute_data, -1);
 
     if (segment == NULL || segment->isSkip) {
@@ -238,7 +259,7 @@ void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS) {
     }
 }
 
-void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS) {
+ZEND_NAMED_FUNCTION(sky_curl_close_handler) {
 
     sky_core_segment_t *segment = sky_util_find_segment_idx(execute_data, -1);
 

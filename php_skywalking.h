@@ -86,10 +86,13 @@ PHP_RINIT_FUNCTION (skywalking);
 PHP_RSHUTDOWN_FUNCTION (skywalking);
 PHP_MINFO_FUNCTION (skywalking);
 
-
 ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     char *authentication;
     char *app_code;
+    // fixed UUID
+    char *instance_name;
+    char *real_service_instance;
+
     char *grpc;
     zend_bool enable;
     zval context;
@@ -121,9 +124,6 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // rate limit
     void *rate_limiter;
     int sample_n_per_3_secs;
-
-    // fixed UUID
-    char *instance_name;
 
     // queue name unique
     zend_bool mq_unique;

@@ -24,3 +24,7 @@ void *sky_util_find_obj_func(const char *obj, const char *name) {
     }
     return NULL;
 }
+
+void *sky_util_find_func(const char *name) {
+    return zend_hash_str_find_ptr(CG(function_table), name, strlen(name));
+}

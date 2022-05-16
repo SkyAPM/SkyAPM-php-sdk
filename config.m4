@@ -48,6 +48,8 @@ if test "$PHP_SKYWALKING" != "no"; then
   PHP_ADD_LIBRARY(pthread)
   PHP_ADD_LIBRARY(dl,,SKYWALKING_SHARED_LIBADD)
   PHP_ADD_LIBRARY(dl)
+  PHP_ADD_LIBRARY(rt,,SKYWALKING_SHARED_LIBADD)
+  PHP_ADD_LIBRARY(rt)
 
   PHP_SUBST(SKYWALKING_SHARED_LIBADD)
 
@@ -83,4 +85,4 @@ case $host in
     *)
       echo -e "target/debug/libsky_core_report.a:\n	cargo build" >> Makefile.objects
       ;;
-  esac
+esac

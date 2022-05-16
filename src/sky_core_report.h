@@ -24,10 +24,14 @@ typedef struct sky_core_report_t {
     char *service_instance;
 } sky_core_report_t;
 
-sky_core_report_t *sky_core_report_new(char *address, char *service, char *service_instance);
+bool sky_core_report_ipc_init(size_t max_length);
 
-void sky_core_report_push(sky_core_report_t *report, char *json);
+bool sky_core_report_ipc_send(char *data, size_t len);
+
+bool sky_core_report_new(char *address, char *service, char *service_instance);
 
 char *sky_core_report_trace_id();
+
+char *sky_core_service_instance_id();
 
 #endif //SKYWALKING_SKY_CORE_REPORT_H

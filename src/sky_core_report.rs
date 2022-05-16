@@ -12,15 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-use std::os::raw::c_char;
+#[macro_use] extern crate log;
+extern crate simplelog;
+
+use std::os::raw::{c_char, c_void};
 use std::boxed::Box;
+use std::cmp::max;
 use std::ffi::{CStr, CString};
 use reporter::grpc::Reporter;
+use reporter::{grpc, ipc};
 use tokio;
+use local_ip_address::local_ip;
 use uuid::Uuid;
 use std::process;
 use rand::Rng;
 use rand;
+use std::thread;
+use std::ptr::null_mut;
+use std::{
+    slice::from_raw_parts,
+};
 
 pub mod skywalking_proto {
     pub mod v3 {
@@ -31,6 +42,23 @@ pub mod skywalking_proto {
 pub mod reporter;
 
 #[no_mangle]
+extern "C" fn sky_core_report_ipc_init(max_length: usize) -> bool {
+    match ipc::init(max_length) {
+        Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+#[no_mangle]
+extern "C" fn sky_core_report_ipc_send(data: *const c_char, len: usize) -> bool {
+    let data = unsafe { from_raw_parts(data.cast(), len) };
+    match ipc::send(data) {
+        Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+#[no_mangle]
 extern "C" fn sky_core_report_trace_id() -> *const c_char {
     let mut rng: i32 = rand::thread_rng().gen_range(100000..999999);
     let mut trace_id = format!("{}.{}.{}", Uuid::new_v4().to_string(), process::id().to_string(), rng.to_string());
@@ -38,26 +66,24 @@ extern "C" fn sky_core_report_trace_id() -> *const c_char {
     return CString::new(trace_id).expect("").into_raw();
 }
 
+
 #[no_mangle]
-extern "C" fn sky_core_report_new(c_address: *const c_char, c_service: *const c_char, c_service_instance: *const c_char) -> *const Reporter {
-    let address = unsafe { CStr::from_ptr(c_address) };
-    let service = unsafe { CStr::from_ptr(c_service) };
-    let service_instance = unsafe { CStr::from_ptr(c_service_instance) };
-    let report = Reporter::new(address.to_str().unwrap().to_owned(), service.to_str().unwrap().to_owned(), service_instance.to_str().unwrap().to_owned());
-    println!("{}", unsafe { CStr::from_ptr(report.address).to_str().unwrap() });
-    Box::into_raw(Box::new(report)) as *const Reporter
+extern "C" fn sky_core_service_instance_id() -> *const c_char {
+    let service_instance = Uuid::new_v4().to_string() + "@" + &local_ip().unwrap().to_string();
+    return CString::new(service_instance).expect("").into_raw();
 }
 
 #[no_mangle]
-extern "C" fn sky_core_report_push(ptr: *mut Reporter, json: *const c_char) {
-    if ptr.is_null() {
-        return;
-    }
-
-    let report = unsafe {
-        &mut *(ptr as *mut Reporter)
+extern "C" fn sky_core_report_new(address: *const c_char, service: *const c_char, service_instance: *const c_char) -> bool {
+    let f = || unsafe {
+        let address = CStr::from_ptr(address).to_str()?;
+        let service = CStr::from_ptr(service).to_str()?;
+        let service_instance = CStr::from_ptr(service_instance).to_str()?;
+        grpc::new(address.to_string(), service.to_string(), service_instance.to_string())?;
+        Ok::<_, anyhow::Error>(())
     };
-
-    let c_json = unsafe { CStr::from_ptr(json) };
-    report.push(c_json.to_str().unwrap().to_owned());
+    match f() {
+        Ok(_) => true,
+        Err(e) => false
+    }
 }

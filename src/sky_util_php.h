@@ -48,4 +48,6 @@ typedef void (*zif_handler)(INTERNAL_FUNCTION_PARAMETERS);
 
 void *sky_util_find_obj_func(const char *obj, const char *name);
 
+void *sky_util_find_func(const char *name);
+
 #endif //SKYWALKING_SKY_UTIL_PHP_H

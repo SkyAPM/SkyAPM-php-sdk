@@ -21,81 +21,51 @@
 #include "ext/standard/php_var.h"
 #include "zend_hash.h"
 #include "sys/ipc.h"
+#include "pthread.h"
 
 #include "php_skywalking.h"
 #include "sky_core_segment.h"
 #include "sky_core_span.h"
 #include "sky_core_tag.h"
-#include "sky_core_cross_process.h"
 #include "sky_plugin_curl.h"
 #include "sky_core_report.h"
 #include "sky_plugin_redis.h"
+#include "sys/mman.h"
 
-int le_skywalking_pconnect;
-
-const char *skywalking_persistent_id = "skywalking_persistent_id";
-
-extern void (*ori_execute_ex)(zend_execute_data *execute_data);
-
-extern void (*ori_execute_internal)(zend_execute_data *execute_data, zval *return_value);
-
-extern void (*origin_curl_exec)(INTERNAL_FUNCTION_PARAMETERS);
-
-extern void (*origin_curl_setopt)(INTERNAL_FUNCTION_PARAMETERS);
-
-extern void (*origin_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
-
-extern void (*origin_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
+void *thread_sky_core_report_new(void *argv) {
+//    report_new_t *args = (report_new_t *) argv;
+    sky_core_report_new(SKYWALKING_G(grpc), SKYWALKING_G(app_code), SKYWALKING_G(real_service_instance));
+}
 
 int sky_core_module_init(INIT_FUNC_ARGS) {
 
+    if (strlen(SKYWALKING_G(instance_name)) == 0) {
+        char *instance = sky_core_service_instance_id();
+        char *service_instance = (char *) pemalloc(strlen(instance), 1);
+        memcpy(service_instance, instance, strlen(instance));
+        SKYWALKING_G(real_service_instance) = service_instance;
+    }
+
     if (1 == 1) {
-        sky_plugin_redis_hooks();
+//        sky_plugin_redis_hooks();
     }
 
     // todo if on
     if (1 == 1) {
-        zend_function *origin_function;
-        if ((origin_function = SKY_FIND_FUNC("curl_exec")) != NULL) {
-            origin_curl_exec = origin_function->internal_function.handler;
-            origin_function->internal_function.handler = sky_curl_exec_handler;
-        }
-        if ((origin_function = SKY_FIND_FUNC("curl_setopt")) != NULL) {
-            origin_curl_setopt = origin_function->internal_function.handler;
-            origin_function->internal_function.handler = sky_curl_setopt_handler;
-        }
-        if ((origin_function = SKY_FIND_FUNC("curl_setopt_array")) != NULL) {
-            origin_curl_setopt_array = origin_function->internal_function.handler;
-            origin_function->internal_function.handler = sky_curl_setopt_array_handler;
-        }
-        if ((origin_function = SKY_FIND_FUNC("curl_close")) != NULL) {
-            origin_curl_close = origin_function->internal_function.handler;
-            origin_function->internal_function.handler = sky_curl_close_handler;
-        }
+        sky_plugin_curl_hooks();
     }
-
-    // register
-    le_skywalking_pconnect = zend_register_list_destructors_ex(NULL, skywalking_dtor,
-                                                               "skywalking persistent connection", module_number);
 
     HashTable *segments = pemalloc(sizeof(HashTable), 1);
     zend_hash_init(segments, 0, NULL, ZVAL_PTR_DTOR, 1);
     SKYWALKING_G(segments) = segments;
 
-    // register
-    sky_core_report_t *report = sky_core_report_new(SKYWALKING_G(grpc),
-                                                    SKYWALKING_G(app_code),
-                                                    SKYWALKING_G(instance_name));
-#if PHP_VERSION_ID >= 70300
-    zend_register_persistent_resource(skywalking_persistent_id, strlen(skywalking_persistent_id), report,
-                                      le_skywalking_pconnect);
-#else
-    zend_resource new_le;
-    new_le.type = le_skywalking_pconnect;
-    new_le.ptr = report;
-    zend_hash_str_update_mem(&EG(persistent_list), skywalking_persistent_id, strlen(skywalking_persistent_id), &new_le, sizeof(zend_resource));
-#endif
-
+    if (sky_core_report_ipc_init(SKYWALKING_G(mq_max_message_length))) {
+        // register
+        pthread_t thread_id;
+        if (!pthread_create(&thread_id, 0, thread_sky_core_report_new, NULL)) {
+            pthread_detach(thread_id);
+        }
+    }
     return 0;
 }
 
@@ -108,7 +78,6 @@ void sky_core_module_free() {
 }
 
 void sky_core_request_init(zval *request, u_int64_t request_id) {
-
     if (strcasecmp("fpm-fcgi", sapi_module.name) == 0) {
         return;
     }
@@ -194,15 +163,16 @@ void sky_core_request_free(zval *response, u_int64_t request_id) {
     sky_core_span_set_end_time(core_segment->spans[0]);
 
 
-    zend_string *persistent_id = zend_string_init(skywalking_persistent_id, strlen(skywalking_persistent_id), 0);
-    zend_resource *le = zend_hash_find_ptr(&EG(persistent_list), persistent_id);
-    zend_string_release(persistent_id);
-    sky_core_report_t *report = (sky_core_report_t *) le->ptr;
-    sky_core_segment_set_service(core_segment, report->address);
-    sky_core_segment_set_service_instance(core_segment, report->service_instance);
+//    zend_string *persistent_id = zend_string_init(skywalking_persistent_id, strlen(skywalking_persistent_id), 0);
+//    zend_resource *le = zend_hash_find_ptr(&EG(persistent_list), persistent_id);
+//    zend_string_release(persistent_id);
+//    sky_core_report_t *report = (sky_core_report_t *) le->ptr;
+    sky_core_segment_set_service(core_segment, SKYWALKING_G(app_code));
+    sky_core_segment_set_service_instance(core_segment, SKYWALKING_G(real_service_instance));
 
     char *json = sky_core_segment_to_json(core_segment);
-    sky_core_report_push(report, json);
+    sky_core_report_ipc_send(json, strlen(json));
+//    sky_core_report_push(report, json);
 
     zend_hash_index_del(SKYWALKING_G(segments), request_id);
 //    efree(segment);
