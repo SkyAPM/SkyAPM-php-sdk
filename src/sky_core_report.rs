@@ -87,12 +87,26 @@ extern "C" fn sky_core_service_instance_id() -> *const c_char {
 }
 
 #[no_mangle]
-extern "C" fn sky_core_report_new(address: *const c_char, service: *const c_char, service_instance: *const c_char) -> bool {
+extern "C" fn sky_core_report_new(
+    address: *const c_char,
+    service: *const c_char,
+    service_instance: *const c_char,
+    log_level: *const c_char,
+    log_path: *const c_char,
+) -> bool {
     let f = || unsafe {
         let address = CStr::from_ptr(address).to_str()?;
         let service = CStr::from_ptr(service).to_str()?;
         let service_instance = CStr::from_ptr(service_instance).to_str()?;
-        grpc::new(address.to_string(), service.to_string(), service_instance.to_string())?;
+        let log_level = CStr::from_ptr(log_level).to_str()?;
+        let log_path = CStr::from_ptr(log_path).to_str()?;
+        grpc::init(
+            address.to_string(),
+            service.to_string(),
+            service_instance.to_string(),
+            log_level.to_string(),
+            log_path.to_string(),
+        )?;
         Ok::<_, anyhow::Error>(())
     };
     match f() {

@@ -110,16 +110,35 @@ pub struct Reporter {
     pub service_instance: *const c_char,
 }
 
-pub fn new(address: String, service: String, mut service_instance: String) -> anyhow::Result<()> {
-    if !Path::new("/tmp/skywalking.log").exists() {
-        File::create("/tmp/skywalking.log").unwrap();
+pub fn init(address: String, service: String, mut service_instance: String, log_level: String, log_path: String) -> anyhow::Result<()> {
+    let mut level = simplelog::LevelFilter::Debug;
+
+    if log_level == "off" {
+        level = simplelog::LevelFilter::Off;
+    } else if log_level == "error" {
+        level = simplelog::LevelFilter::Error;
+    } else if log_level == "warn" {
+        level = simplelog::LevelFilter::Warn;
+    } else if log_level == "info" {
+        level = simplelog::LevelFilter::Info;
+    } else if log_level == "debug" {
+        level = simplelog::LevelFilter::Debug;
+    } else if log_level == "trace" {
+        level = simplelog::LevelFilter::Trace;
     }
 
-    simplelog::WriteLogger::init(
-        simplelog::LevelFilter::Debug,
-        simplelog::Config::default(),
-        OpenOptions::new().append(true).write(true).open("/tmp/skywalking.log").unwrap(),
-    ).unwrap();
+    if log_level != "off" {
+        if !Path::new(log_path.clone().as_str()).exists() {
+            File::create(log_path.clone()).unwrap();
+        }
+
+        simplelog::WriteLogger::init(
+            level,
+            simplelog::Config::default(),
+            OpenOptions::new().append(true).write(true).open(log_path).unwrap(),
+        ).unwrap();
+    }
+
 
     let rt = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(4)
@@ -156,7 +175,9 @@ pub async fn do_connect(address: String) {
             Ok(channel) => {
                 break channel;
             }
-            Err(e) => {}
+            Err(e) => {
+                log::error!("do connect err {}", e.to_string())
+            }
         }
         sleep(Duration::from_secs(10)).await;
     };
@@ -201,9 +222,13 @@ pub async fn login(service: String, service_instance: String) {
             Some(channel) => channel,
             None => continue,
         };
+        log::debug!("login instance {:?}", instance);
         match do_login(channel.clone(), instance.clone()).await {
             Ok(r) => break,
-            Err(e) => continue
+            Err(e) => {
+                log::error!("login err {}", e.to_string());
+                continue;
+            }
         };
     }
 }

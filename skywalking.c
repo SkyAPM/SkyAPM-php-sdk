@@ -58,7 +58,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_private_key", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_private_key, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_cert_chain", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_cert_chain, zend_skywalking_globals, skywalking_globals)
 
-	STD_PHP_INI_BOOLEAN("skywalking.log_enable", "0", PHP_INI_ALL, OnUpdateBool, log_enable, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_BOOLEAN("skywalking.log_level", "off", PHP_INI_ALL, OnUpdateString, log_level, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp/skywalking-php.log", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
 
     STD_PHP_INI_BOOLEAN("skywalking.error_handler_enable", "0", PHP_INI_ALL, OnUpdateBool, error_handler_enable, zend_skywalking_globals, skywalking_globals)
@@ -92,7 +92,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     skywalking_globals->grpc_tls_pem_cert_chain = NULL;
 
     // log
-    skywalking_globals->log_enable = 0;
+    skywalking_globals->log_level = "off";
     skywalking_globals->log_path = NULL;
 
     // php error log

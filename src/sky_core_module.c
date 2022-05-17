@@ -34,7 +34,13 @@
 
 void *thread_sky_core_report_new(void *argv) {
 //    report_new_t *args = (report_new_t *) argv;
-    sky_core_report_new(SKYWALKING_G(grpc), SKYWALKING_G(app_code), SKYWALKING_G(real_service_instance));
+    sky_core_report_new(
+            SKYWALKING_G(grpc),
+            SKYWALKING_G(app_code),
+            SKYWALKING_G(real_service_instance),
+            SKYWALKING_G(log_level),
+            SKYWALKING_G(log_path)
+            );
 }
 
 int sky_core_module_init(INIT_FUNC_ARGS) {
