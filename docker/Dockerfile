@@ -20,7 +20,7 @@ ADD . /var/local/git/skywalking
 
 RUN set -ex \
     && docker-php-ext-install mysqli \
-    && apk --update add --no-cache cargo rust rustfmt git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
+    && apk --update add --no-cache cargo rust git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
     && echo "--- installing skywalking php ---" \
     && cd /var/local/git/skywalking \
     && phpize && ./configure && make && make install \

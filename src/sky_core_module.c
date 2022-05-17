@@ -54,7 +54,7 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
 
     // todo if on
     if (1 == 1) {
-        sky_plugin_redis_hooks();
+//        sky_plugin_redis_hooks();
     }
 
     // todo if on
