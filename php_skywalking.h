@@ -94,25 +94,18 @@ PHP_RSHUTDOWN_FUNCTION (skywalking);
 PHP_MINFO_FUNCTION (skywalking);
 
 ZEND_BEGIN_MODULE_GLOBALS(skywalking)
-    char *authentication;
-    char *app_code;
-    // fixed UUID
-    char *instance_name;
+    zend_bool enable;
+
+    char *service;
+    char *service_instance;
     char *real_service_instance;
 
-    char *grpc;
-    zend_bool enable;
-    zval context;
-
-    int version;
-
-    void *segments;
-    zend_bool is_swoole;
-
-    // protocol
-    char *cross_process_protocol;
+    char *oap_version;
+    char *oap_cross_process_protocol;
+    char *oap_authentication;
 
     // tls
+    char *grpc_address;
     zend_bool grpc_tls_enable;
     char *grpc_tls_pem_root_certs;
     char *grpc_tls_pem_private_key;
@@ -121,6 +114,10 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // log
     char *log_level;
     char *log_path;
+
+    // cURL
+    zend_bool curl_response_enable;
+    zval curl_cache;
 
     // php error log
     zend_bool error_handler_enable;
@@ -135,9 +132,8 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // queue name unique
     zend_bool mq_unique;
 
-    // cURL
-    zend_bool curl_response_enable;
-    zval curl_cache;
+    void *segments;
+    zend_bool is_swoole;
 
 ZEND_END_MODULE_GLOBALS(skywalking)
 

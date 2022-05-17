@@ -16,33 +16,14 @@
 ARG PHP_VERSION
 FROM php:${PHP_VERSION}-fpm-alpine
 
-ENV GRPC_RELEASE_TAG v1.31.x
-ENV PROTOBUF_RELEASE_TAG 3.13.x
-
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64
-ENV LD_RUN_PATH=$LD_RUN_PATH:/usr/local/lib:/usr/local/lib64
-
 ADD . /var/local/git/skywalking
 
 RUN set -ex \
     && docker-php-ext-install mysqli \
-    && apk --update add --no-cache boost-dev git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
-    && echo "--- clone grpc ---" \
-    && git clone --depth 1 -b ${GRPC_RELEASE_TAG} https://github.com/grpc/grpc /var/local/git/grpc \
-    && cd /var/local/git/grpc \
-    && git submodule update --init --recursive \
-    && echo "--- download cmake ---" \
-    && cd /var/local/git \
-    && curl -L -o cmake-3.19.1.tar.gz  https://github.com/Kitware/CMake/releases/download/v3.19.1/cmake-3.19.1.tar.gz \
-    && tar zxf cmake-3.19.1.tar.gz \
-    && cd cmake-3.19.1 && ./bootstrap && make -j$(nproc) && make install \
-    && echo "--- installing grpc ---" \
-    && cd /var/local/git/grpc \
-    && mkdir -p cmake/build && cd cmake/build && cmake ../.. \
-    && make -j$(nproc) \
+    && apk --update add --no-cache cargo rust rustfmt git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
     && echo "--- installing skywalking php ---" \
     && cd /var/local/git/skywalking \
-    && phpize && ./configure --with-grpc-src=/var/local/git/grpc && make && make install \
+    && phpize && ./configure && make && make install \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && mkdir -p /opt \
     && cp docker/entrypoint.sh /opt/ \

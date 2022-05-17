@@ -49,17 +49,24 @@ ZEND_DECLARE_MODULE_GLOBALS(skywalking)
 
 PHP_INI_BEGIN()
     STD_PHP_INI_BOOLEAN("skywalking.enable", "0", PHP_INI_ALL, OnUpdateBool, enable, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.version", "8", PHP_INI_ALL, OnUpdateLong, version, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.app_code", "hello_skywalking", PHP_INI_ALL, OnUpdateString, app_code, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.authentication", "", PHP_INI_ALL, OnUpdateString, authentication, zend_skywalking_globals, skywalking_globals)
-	STD_PHP_INI_ENTRY("skywalking.grpc", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc, zend_skywalking_globals, skywalking_globals)
+
+    STD_PHP_INI_ENTRY("skywalking.service", "hello_skywalking", PHP_INI_ALL, OnUpdateString, service, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.service_instance", "", PHP_INI_ALL, OnUpdateString, service_instance, zend_skywalking_globals, skywalking_globals)
+
+	STD_PHP_INI_ENTRY("skywalking.oap_version", "9.0.0", PHP_INI_ALL, OnUpdateString, oap_version, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.oap_cross_process_protocol", "3.0", PHP_INI_ALL, OnUpdateString, oap_cross_process_protocol, zend_skywalking_globals, skywalking_globals)
+	STD_PHP_INI_ENTRY("skywalking.oap_authentication", "", PHP_INI_ALL, OnUpdateString, oap_authentication, zend_skywalking_globals, skywalking_globals)
+
+	STD_PHP_INI_ENTRY("skywalking.grpc_address", "127.0.0.1:11800", PHP_INI_ALL, OnUpdateString, grpc_address, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_BOOLEAN("skywalking.grpc_tls_enable", "0", PHP_INI_ALL, OnUpdateBool, grpc_tls_enable, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_root_certs", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_root_certs, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_private_key", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_private_key, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_cert_chain", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_cert_chain, zend_skywalking_globals, skywalking_globals)
 
-	STD_PHP_INI_BOOLEAN("skywalking.log_level", "off", PHP_INI_ALL, OnUpdateString, log_level, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.log_level", "off", PHP_INI_ALL, OnUpdateString, log_level, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp/skywalking-php.log", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
+
+    STD_PHP_INI_BOOLEAN("skywalking.curl_response_enable", "0", PHP_INI_ALL, OnUpdateBool, curl_response_enable, zend_skywalking_globals, skywalking_globals)
 
     STD_PHP_INI_BOOLEAN("skywalking.error_handler_enable", "0", PHP_INI_ALL, OnUpdateBool, error_handler_enable, zend_skywalking_globals, skywalking_globals)
 
@@ -68,24 +75,21 @@ PHP_INI_BEGIN()
 
     STD_PHP_INI_ENTRY("skywalking.sample_n_per_3_secs", "-1", PHP_INI_ALL, OnUpdateLong, sample_n_per_3_secs, zend_skywalking_globals, skywalking_globals)
 
-    STD_PHP_INI_ENTRY("skywalking.instance_name", "", PHP_INI_ALL, OnUpdateString, instance_name, zend_skywalking_globals, skywalking_globals)
-
-    STD_PHP_INI_BOOLEAN("skywalking.curl_response_enable", "0", PHP_INI_ALL, OnUpdateBool, curl_response_enable, zend_skywalking_globals, skywalking_globals)
-
-
-
 PHP_INI_END()
 
 static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_globals) {
-    skywalking_globals->app_code = NULL;
     skywalking_globals->enable = 0;
-    skywalking_globals->version = 0;
-    skywalking_globals->authentication = NULL;
 
-    skywalking_globals->cross_process_protocol = "3.0";
+    skywalking_globals->service = NULL;
+    skywalking_globals->service_instance = NULL;
+    skywalking_globals->real_service_instance = "";
+
+    skywalking_globals->oap_version = "9.0.0";
+    skywalking_globals->oap_cross_process_protocol = "3.0";
+    skywalking_globals->oap_authentication = NULL;
 
     // tls
-    skywalking_globals->grpc = NULL;
+    skywalking_globals->grpc_address = NULL;
     skywalking_globals->grpc_tls_enable = 0;
     skywalking_globals->grpc_tls_pem_root_certs = NULL;
     skywalking_globals->grpc_tls_pem_private_key = NULL;
@@ -95,6 +99,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     skywalking_globals->log_level = "off";
     skywalking_globals->log_path = NULL;
 
+    skywalking_globals->curl_response_enable = 0;
     // php error log
     skywalking_globals->error_handler_enable = 0;
 
@@ -103,11 +108,6 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 
     // rate limit
     skywalking_globals->sample_n_per_3_secs = -1;
-
-    // uuid path
-    skywalking_globals->instance_name = NULL;
-
-    skywalking_globals->curl_response_enable = 0;
 }
 
 PHP_FUNCTION (skywalking_trace_id) {
