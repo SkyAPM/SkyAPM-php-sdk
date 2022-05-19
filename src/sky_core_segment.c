@@ -23,7 +23,7 @@
 #include "sky_core_cross_process.h"
 #include "sky_core_segment_reference.h"
 #include "sky_core_report.h"
-#include "sky_util_php.h"
+#include "ext/standard/php_smart_string.h"
 
 sky_core_segment_t *sky_core_segment_new(char *protocol) {
     sky_core_segment_t *segment = (sky_core_segment_t *) emalloc(sizeof(sky_core_segment_t));
@@ -90,48 +90,48 @@ void sky_core_segment_set_service_instance(sky_core_segment_t *segment, char *in
 }
 
 int sky_core_segment_to_json(char **json, sky_core_segment_t *segment) {
-    sky_util_smart_string spans = {0};
-    sky_util_smart_string_appendl(&spans, "[", 1);
+    smart_string spans = {0};
+    smart_string_appendl(&spans, "[", 1);
     for (int i = 0; i < segment->span_size; ++i) {
         sky_core_span_t *span = segment->spans[i];
         char *span_json = NULL;
         sky_core_span_to_json(&span_json, span);
-        sky_util_smart_string_appendl(&spans, span_json, strlen(span_json));
+        smart_string_appendl(&spans, span_json, strlen(span_json));
         efree(span_json);
         if (i + 1 < segment->span_size) {
-            sky_util_smart_string_appendl(&spans, ",", 1);
+            smart_string_appendl(&spans, ",", 1);
         }
     }
-    sky_util_smart_string_appendl(&spans, "]", 1);
-    sky_util_smart_string_0(&spans);
+    smart_string_appendl(&spans, "]", 1);
+    smart_string_0(&spans);
 
-    sky_util_smart_string str = {0};
-    sky_util_smart_string_appendl(&str, "{", 1);
-    sky_util_smart_string_appendl(&str, "\"trace_id\":\"", strlen("\"trace_id\":\""));
-    sky_util_smart_string_appendl(&str, segment->traceId, strlen(segment->traceId));
-    sky_util_smart_string_appendl(&str, "\",", 2);
+    smart_string str = {0};
+    smart_string_appendl(&str, "{", 1);
+    smart_string_appendl(&str, "\"trace_id\":\"", strlen("\"trace_id\":\""));
+    smart_string_appendl(&str, segment->traceId, strlen(segment->traceId));
+    smart_string_appendl(&str, "\",", 2);
 
-    sky_util_smart_string_appendl(&str, "\"trace_segment_id\":\"", strlen("\"trace_segment_id\":\""));
-    sky_util_smart_string_appendl(&str, segment->traceSegmentId, strlen(segment->traceSegmentId));
-    sky_util_smart_string_appendl(&str, "\",", 2);
+    smart_string_appendl(&str, "\"trace_segment_id\":\"", strlen("\"trace_segment_id\":\""));
+    smart_string_appendl(&str, segment->traceSegmentId, strlen(segment->traceSegmentId));
+    smart_string_appendl(&str, "\",", 2);
 
-    sky_util_smart_string_appendl(&str, "\"spans\":\"", strlen("\"spans\":"));
-    sky_util_smart_string_appendl(&str, sky_util_smart_string_to_char(spans), strlen(sky_util_smart_string_to_char(spans)));
-    sky_util_smart_string_appendl(&str, ",", 1);
+    smart_string_appendl(&str, "\"spans\":\"", strlen("\"spans\":"));
+    smart_string_appendl(&str, spans.c, spans.len);
+    smart_string_appendl(&str, ",", 1);
 
-    sky_util_smart_string_appendl(&str, "\"service\":\"", strlen("\"service\":\""));
-    sky_util_smart_string_appendl(&str, segment->service, strlen(segment->service));
-    sky_util_smart_string_appendl(&str, "\",", 2);
+    smart_string_appendl(&str, "\"service\":\"", strlen("\"service\":\""));
+    smart_string_appendl(&str, segment->service, strlen(segment->service));
+    smart_string_appendl(&str, "\",", 2);
 
-    sky_util_smart_string_appendl(&str, "\"service_instance\":\"", strlen("\"service_instance\":\""));
-    sky_util_smart_string_appendl(&str, segment->serviceInstance, strlen(segment->serviceInstance));
-    sky_util_smart_string_appendl(&str, "\",", 2);
+    smart_string_appendl(&str, "\"service_instance\":\"", strlen("\"service_instance\":\""));
+    smart_string_appendl(&str, segment->serviceInstance, strlen(segment->serviceInstance));
+    smart_string_appendl(&str, "\",", 2);
 
-    sky_util_smart_string_appendl(&str, "\"is_size_limited\":\"", strlen("\"is_size_limited\":"));
-    sky_util_smart_string_appendl(&str, btoa(segment->isSizeLimited), strlen(btoa(segment->isSizeLimited)));
+    smart_string_appendl(&str, "\"is_size_limited\":\"", strlen("\"is_size_limited\":"));
+    smart_string_appendl(&str, btoa(segment->isSizeLimited), strlen(btoa(segment->isSizeLimited)));
 
-    sky_util_smart_string_appendl(&str, "}", 1);
-    sky_util_smart_string_0(&str);
+    smart_string_appendl(&str, "}", 1);
+    smart_string_0(&str);
 
     efree(segment->traceId);
     efree(segment->traceSegmentId);
@@ -139,8 +139,8 @@ int sky_core_segment_to_json(char **json, sky_core_segment_t *segment) {
     efree(segment->service);
     efree(segment->serviceInstance);
 //    efree(segment);
-    *json = sky_util_smart_string_to_char(str);
-    return sky_util_smart_string_len(str);
+    *json = str.c;
+    return str.len;
 }
 
 //SkyCoreSegment::SkyCoreSegment(const std::string &header) {

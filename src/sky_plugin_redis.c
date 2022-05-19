@@ -19,6 +19,7 @@
 #include "sky_plugin_redis.h"
 #include "sky_util_php.h"
 #include "sky_utils.h"
+#include "ext/standard/php_smart_string.h"
 
 // strings
 zif_handler origin_redis_append = NULL;
@@ -72,14 +73,14 @@ void sky_plugin_redis_hooks() {
 }
 
 int sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
-    sky_util_smart_string cmd = {0};
+    smart_string cmd = {0};
 
     va_list ap;
     union resparg arg;
     size_t arglen;
     va_start(ap, fmt);
 
-    sky_util_smart_string_appendl(&cmd, kw, strlen(kw));
+    smart_string_appendl(&cmd, kw, strlen(kw));
 
     while (*fmt) {
         switch (*fmt) {
@@ -95,16 +96,16 @@ int sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                         size_t keylen;
                         ZEND_HASH_FOREACH_KEY_VAL(hash, idx, zkey, zmem) {
                             if (zkey) {
-                                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                                sky_util_smart_string_appendl(&cmd, ZSTR_VAL(zkey), ZSTR_LEN(zkey));
+                                smart_string_appendl(&cmd, " ", strlen(" "));
+                                smart_string_appendl(&cmd, ZSTR_VAL(zkey), ZSTR_LEN(zkey));
                             } else {
                                 keylen = snprintf(buf, sizeof(buf), "%ld", (long)idx);
-                                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                                sky_util_smart_string_appendl(&cmd, buf, keylen);
+                                smart_string_appendl(&cmd, " ", strlen(" "));
+                                smart_string_appendl(&cmd, buf, keylen);
                             }
                             if (Z_TYPE_P(arg.zv) == IS_STRING) {
-                                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                                sky_util_smart_string_appendl(&cmd, Z_STRVAL_P(zmem), Z_STRLEN_P(zmem));
+                                smart_string_appendl(&cmd, " ", strlen(" "));
+                                smart_string_appendl(&cmd, Z_STRVAL_P(zmem), Z_STRLEN_P(zmem));
                             }
                         } ZEND_HASH_FOREACH_END();
                     }
@@ -118,8 +119,8 @@ int sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                         zval *z_ele;
                         ZEND_HASH_FOREACH_VAL(hash, z_ele) {
                             zend_string *zstr = zval_get_string(z_ele);
-                                    sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                                    sky_util_smart_string_appendl(&cmd, ZSTR_VAL(zstr), ZSTR_LEN(zstr));
+                                    smart_string_appendl(&cmd, " ", strlen(" "));
+                                    smart_string_appendl(&cmd, ZSTR_VAL(zstr), ZSTR_LEN(zstr));
                             zend_string_release(zstr);
                         } ZEND_HASH_FOREACH_END();
                     }
@@ -128,20 +129,20 @@ int sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
             case 's':
                 arg.str = va_arg(ap, char*);
                 arglen = va_arg(ap, size_t);
-                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                sky_util_smart_string_appendl(&cmd, arg.str, arglen);
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, arg.str, arglen);
                 break;
             case 'k':
                 arg.str = va_arg(ap, char*);
                 arglen = va_arg(ap, size_t);
-                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                sky_util_smart_string_appendl(&cmd, arg.str, arglen);
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, arg.str, arglen);
                 break;
             case 'v':
                 arg.zv = va_arg(ap, zval*);
                 if (arg.zv && Z_TYPE_P(arg.zv) == IS_STRING) {
-                    sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                    sky_util_smart_string_appendl(&cmd, Z_STRVAL_P(arg.zv), Z_STRLEN_P(arg.zv));
+                    smart_string_appendl(&cmd, " ", strlen(" "));
+                    smart_string_appendl(&cmd, Z_STRVAL_P(arg.zv), Z_STRLEN_P(arg.zv));
                 }
                 break;
             case 'f':
@@ -151,24 +152,24 @@ int sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
                 int len;
                 len = snprintf(tmp, sizeof(tmp), "%.17g", arg.dval);
                 if ((p = strchr(tmp, ',')) != NULL) *p = '.';
-                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                sky_util_smart_string_appendl(&cmd, tmp, len);
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, tmp, len);
                 break;
             case 'i':
             case 'd':
                 arg.ival = va_arg(ap, int);
                 char int_buf[32];
                 int int_len = snprintf(int_buf, sizeof(int_buf), "%d", arg.ival);
-                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                sky_util_smart_string_appendl(&cmd, int_buf, int_len);
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, int_buf, int_len);
                 break;
             case 'l':
             case 'L':
                 arg.lval = va_arg(ap, long);
                 char long_buf[32];
                 int long_len = snprintf(long_buf, sizeof(long_buf), "%ld", arg.lval);
-                sky_util_smart_string_appendl(&cmd, " ", strlen(" "));
-                sky_util_smart_string_appendl(&cmd, long_buf, long_len);
+                smart_string_appendl(&cmd, " ", strlen(" "));
+                smart_string_appendl(&cmd, long_buf, long_len);
                 break;
         }
         fmt++;
@@ -176,9 +177,9 @@ int sky_plugin_redis_command(char **command, char *kw, char *fmt, ...) {
 
     va_end(ap);
 
-    sky_util_smart_string_0(&cmd);
-    *command = sky_util_smart_string_to_char(cmd);
-    return sky_util_smart_string_len(cmd);
+    smart_string_0(&cmd);
+    *command = cmd.c;
+    return cmd.len;
 }
 
 void sky_plugin_redis_append_handler(INTERNAL_FUNCTION_PARAMETERS) {

@@ -22,57 +22,33 @@
 #include "stdbool.h"
 
 #if PHP_VERSION_ID < 70200
+
 typedef void (*zif_handler)(INTERNAL_FUNCTION_PARAMETERS);
+
 #endif
 
-#if PHP_VERSION_ID >= 70200
-
-#include "zend_smart_string.h"
-
-#else
-#include "zend_smart_str.h"
-#endif
-
-#if PHP_VERSION_ID >= 70200
-#define sky_util_smart_string smart_string
-#define sky_util_smart_string_appendc(str, c) smart_string_appendc((str), (c))
-#define sky_util_smart_string_appendl(str, src, len) smart_string_appendl(str, src, len)
-#define sky_util_smart_string_append_long(str, val) smart_string_append_long(str, val)
-#define sky_util_smart_string_0(str) smart_string_0(str)
-#define sky_util_smart_string_to_char(str) str.c
-#define sky_util_smart_string_len(str) str.len
-#define sky_util_smart_string_free(str) smart_string_free(str);
-#else
-#define sky_util_smart_string smart_str
-#define sky_util_smart_string_appendc(str, c) smart_str_appendc((str), (c))
-#define sky_util_smart_string_appendl(str, src, len) smart_str_appendl(str, src, len)
-#define sky_util_smart_string_append_long(str, val) smart_str_append_long(str, val)
-#define sky_util_smart_string_0(str) smart_str_0(str)
-#define sky_util_smart_string_to_char(str) ZSTR_VAL(str.s)
-#define sky_util_smart_string_len(str) str.a
-#define sky_util_smart_string_free(str) smart_str_free(str);
-#endif
+#include "ext/standard/php_smart_string.h"
 
 void *sky_util_find_obj_func(const char *obj, const char *name);
 
 void *sky_util_find_func(const char *name);
 
-void sky_util_json_raw(sky_util_smart_string *dist, char *key, char *value, size_t value_len);
+void sky_util_json_raw(smart_string *dist, char *key, char *value, size_t value_len);
 
-void sky_util_json_raw_ex(sky_util_smart_string *dist, char *key, char *value, size_t value_len);
+void sky_util_json_raw_ex(smart_string *dist, char *key, char *value, size_t value_len);
 
-void sky_util_json_key(sky_util_smart_string *dist, char *key);
+void sky_util_json_key(smart_string *dist, char *key);
 
-void sky_util_json_int(sky_util_smart_string *dist, char *key, zend_long num);
+void sky_util_json_int(smart_string *dist, char *key, zend_long num);
 
-void sky_util_json_int_ex(sky_util_smart_string *dist, char *key, zend_long num);
+void sky_util_json_int_ex(smart_string *dist, char *key, zend_long num);
 
-void sky_util_json_str(sky_util_smart_string *dist, char *key, char *value, size_t value_len);
+void sky_util_json_str(smart_string *dist, char *key, char *value, size_t value_len);
 
-void sky_util_json_str_ex(sky_util_smart_string *dist, char *key, char *value, size_t value_len);
+void sky_util_json_str_ex(smart_string *dist, char *key, char *value, size_t value_len);
 
-void sky_util_json_bool(sky_util_smart_string *dist, char *key, bool value);
+void sky_util_json_bool(smart_string *dist, char *key, bool value);
 
-void sky_util_json_bool_ex(sky_util_smart_string *dist, char *key, bool value);
+void sky_util_json_bool_ex(smart_string *dist, char *key, bool value);
 
 #endif //SKYWALKING_SKY_UTIL_PHP_H

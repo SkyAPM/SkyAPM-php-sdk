@@ -22,6 +22,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include "sky_util_php.h"
+#include "ext/standard/php_smart_string.h"
 
 sky_core_span_t *sky_core_span_new(sky_core_span_type type, sky_core_span_layer layer, int componentId) {
     sky_core_span_t *span = (sky_core_span_t *) emalloc(sizeof(sky_core_span_t));
@@ -98,38 +99,38 @@ void sky_core_span_add_tag(sky_core_span_t *span, sky_core_tag_t *tag) {
 
 int sky_core_span_to_json(char **json, sky_core_span_t *span) {
 
-    sky_util_smart_string tags = {0};
-    sky_util_smart_string_appendl(&tags, "[", 1);
+    smart_string tags = {0};
+    smart_string_appendl(&tags, "[", 1);
     for (int i = 0; i < span->tags_size; ++i) {
         sky_core_tag_t *tag = span->tags[i];
         char *tag_json = NULL;
         int tag_len = sky_core_tag_to_json(&tag_json, tag);
-        sky_util_smart_string_appendl(&tags, tag_json, tag_len);
+        smart_string_appendl(&tags, tag_json, tag_len);
         efree(tag_json);
         if (i + 1 < span->tags_size) {
-            sky_util_smart_string_appendl(&tags, ",", 1);
+            smart_string_appendl(&tags, ",", 1);
         }
     }
-    sky_util_smart_string_appendl(&tags, "]", 1);
-    sky_util_smart_string_0(&tags);
+    smart_string_appendl(&tags, "]", 1);
+    smart_string_0(&tags);
 
-    sky_util_smart_string logs = {0};
-    sky_util_smart_string_appendl(&logs, "[", 1);
+    smart_string logs = {0};
+    smart_string_appendl(&logs, "[", 1);
     for (int i = 0; i < span->logs_size; ++i) {
         sky_core_log_t *log = span->logs[i];
         char *log_json = sky_core_log_to_json(log);
-        sky_util_smart_string_appendl(&logs, log_json, strlen(log_json));
+        smart_string_appendl(&logs, log_json, strlen(log_json));
         if (i + 1 < span->logs_size) {
-            sky_util_smart_string_appendl(&logs, ",", 1);
+            smart_string_appendl(&logs, ",", 1);
         }
     }
-    sky_util_smart_string_appendl(&logs, "]", 1);
-    sky_util_smart_string_0(&logs);
+    smart_string_appendl(&logs, "]", 1);
+    smart_string_0(&logs);
 
 
-    sky_util_smart_string str = {0};
+    smart_string str = {0};
 
-    sky_util_smart_string_appendl(&str, "{", 1);
+    smart_string_appendl(&str, "{", 1);
     sky_util_json_int_ex(&str, "span_id", span->spanId);
     sky_util_json_int_ex(&str, "parent_span_id", span->parentSpanId);
     sky_util_json_int_ex(&str, "start_time", span->startTime);
@@ -141,15 +142,11 @@ int sky_core_span_to_json(char **json, sky_core_span_t *span) {
     sky_util_json_int_ex(&str, "span_layer", span->spanLayer);
     sky_util_json_int_ex(&str, "component_id", span->componentId);
     sky_util_json_bool_ex(&str, "is_error", span->isError);
-    char *tags_json = sky_util_smart_string_to_char(tags);
-    size_t tags_len = sky_util_smart_string_len(tags);
-    sky_util_json_raw_ex(&str, "tags", tags_json, tags_len);
-    char *logs_json = sky_util_smart_string_to_char(logs);
-    size_t logs_len = sky_util_smart_string_len(logs);
-    sky_util_json_raw_ex(&str, "logs", logs_json, logs_len);
+    sky_util_json_raw_ex(&str, "tags", tags.c, tags.len);
+    sky_util_json_raw_ex(&str, "logs", logs.c, logs.len);
     sky_util_json_bool(&str, "skip_analysis", span->skipAnalysis);
-    sky_util_smart_string_appendl(&str, "}", 1);
-    sky_util_smart_string_0(&str);
+    smart_string_appendl(&str, "}", 1);
+    smart_string_0(&str);
 
     efree(span->refs);
     efree(span->operationName);
@@ -157,10 +154,10 @@ int sky_core_span_to_json(char **json, sky_core_span_t *span) {
     efree(span->tags);
     efree(span->logs);
     efree(span);
-    *json = sky_util_smart_string_to_char(str);
-    sky_util_smart_string_free(&tags);
-    sky_util_smart_string_free(&logs);
-    return sky_util_smart_string_len(str);
+    *json = str.c;
+    smart_string_free(&tags);
+    smart_string_free(&logs);
+    return str.len;
 }
 
 //SkyCoreSpan::SkyCoreSpan() {

@@ -20,8 +20,9 @@ ADD . /var/local/git/skywalking
 
 RUN set -ex \
     && docker-php-ext-install mysqli \
-    && apk --update add --no-cache cargo rust rustup git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
-    && rustup component add rustfmt \
+    && apk --update add --no-cache git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
+    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    && source $HOME/.cargo/env \
     && echo "--- installing skywalking php ---" \
     && cd /var/local/git/skywalking \
     && phpize && ./configure && make && make install \
