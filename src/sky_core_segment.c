@@ -90,7 +90,6 @@ void sky_core_segment_set_service_instance(sky_core_segment_t *segment, char *in
 }
 
 int sky_core_segment_to_json(char **json, sky_core_segment_t *segment) {
-    php_printf("segment span len %d", segment->span_size);
     sky_util_smart_string spans = {0};
     sky_util_smart_string_appendl(&spans, "[", 1);
     for (int i = 0; i < segment->span_size; ++i) {
