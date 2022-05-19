@@ -40,7 +40,12 @@ void *thread_sky_core_report_new(void *argv) {
             SKYWALKING_G(real_service_instance),
             SKYWALKING_G(log_level),
             SKYWALKING_G(log_path)
-            );
+    );
+}
+
+void delete_segments(zval *zv) {
+    sky_core_segment_t *t = Z_PTR_P(zv);
+    efree(t);
 }
 
 int sky_core_module_init(INIT_FUNC_ARGS) {
@@ -54,7 +59,7 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
 
     // todo if on
     if (1 == 1) {
-//        sky_plugin_redis_hooks();
+        sky_plugin_redis_hooks();
     }
 
     // todo if on
@@ -62,9 +67,8 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
         sky_plugin_curl_hooks();
     }
 
-    HashTable *segments = pemalloc(sizeof(HashTable), 1);
-    zend_hash_init(segments, 0, NULL, ZVAL_PTR_DTOR, 1);
-    SKYWALKING_G(segments) = segments;
+    SKYWALKING_G(segments) = pemalloc(sizeof(HashTable), 1);
+    zend_hash_init(SKYWALKING_G(segments), 0, NULL, delete_segments, 1);
 
     if (sky_core_report_ipc_init(SKYWALKING_G(mq_max_message_length))) {
         // register
@@ -81,7 +85,7 @@ static ZEND_RSRC_DTOR_FUNC(skywalking_dtor) {
 };
 
 void sky_core_module_free() {
-//    pefree(SKYWALKING_G(segments), 1);
+    pefree(SKYWALKING_G(segments), 1);
 }
 
 void sky_core_request_init(zval *request, u_int64_t request_id) {
@@ -146,9 +150,7 @@ void sky_core_request_init(zval *request, u_int64_t request_id) {
 
     sky_core_segment_add_span(core_segment, span);
 
-    zval segment;
-    ZVAL_PTR(&segment, core_segment);
-    zend_hash_index_add(SKYWALKING_G(segments), request_id, &segment);
+    zend_hash_index_add_ptr(SKYWALKING_G(segments), request_id, core_segment);
 }
 
 void sky_core_request_free(zval *response, u_int64_t request_id) {
@@ -161,8 +163,8 @@ void sky_core_request_free(zval *response, u_int64_t request_id) {
         return;
     }
 
-    zval *segment = zend_hash_index_find(SKYWALKING_G(segments), request_id);
-    sky_core_segment_t *core_segment = (sky_core_segment_t *) Z_PTR_P(segment);
+    sky_core_segment_t *core_segment = (sky_core_segment_t *) zend_hash_index_find_ptr(SKYWALKING_G(segments),
+                                                                                       request_id);
 
     if (response == NULL) {
 //        segment->setStatusCode(SG(sapi_headers).http_response_code);
@@ -177,11 +179,12 @@ void sky_core_request_free(zval *response, u_int64_t request_id) {
     sky_core_segment_set_service(core_segment, SKYWALKING_G(service));
     sky_core_segment_set_service_instance(core_segment, SKYWALKING_G(real_service_instance));
 
-    char *json = sky_core_segment_to_json(core_segment);
+    char *json = NULL;
+    sky_core_segment_to_json(&json, core_segment);
+    efree(json);
     sky_core_report_ipc_send(json, strlen(json));
 //    sky_core_report_push(report, json);
 
     zend_hash_index_del(SKYWALKING_G(segments), request_id);
 //    efree(segment);
-    free(json);
 }

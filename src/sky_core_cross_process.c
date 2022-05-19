@@ -26,6 +26,7 @@
 
 sky_core_cross_process_t *sky_core_cross_process_new(char *header) {
     sky_core_cross_process_t *cross_process = (sky_core_cross_process_t *) emalloc(sizeof(sky_core_cross_process_t));
+    memset(cross_process, 0, sizeof(sky_core_cross_process_t));
 
     if (header != NULL) {
         char **bag = (char **) malloc(8);

@@ -132,7 +132,7 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // queue name unique
     zend_bool mq_unique;
 
-    void *segments;
+    HashTable *segments;
     zend_bool is_swoole;
 
 ZEND_END_MODULE_GLOBALS(skywalking)
