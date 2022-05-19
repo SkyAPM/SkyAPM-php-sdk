@@ -35,7 +35,7 @@ sky_core_span_t *sky_core_span_new(sky_core_span_type type, sky_core_span_layer 
     struct timeval tv;
     gettimeofday(&tv, NULL);
     span->startTime = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    span->refs = (sky_core_segment_ref_t **) emalloc(span->refs_total);
+    span->refs = (sky_core_segment_ref_t **) emalloc(span->refs_total * sizeof(sky_core_segment_ref_t));
     span->peer = (char *) emalloc(512);
     bzero(span->peer, 512);
     span->spanType = type;
@@ -43,8 +43,8 @@ sky_core_span_t *sky_core_span_new(sky_core_span_type type, sky_core_span_layer 
     span->componentId = componentId;
 
     span->isError = false;
-    span->tags = (sky_core_tag_t **) emalloc(span->tags_total);
-    span->logs = (sky_core_log_t **) emalloc(span->logs_total);
+    span->tags = (sky_core_tag_t **) emalloc(span->tags_total * sizeof(sky_core_tag_t));
+    span->logs = (sky_core_log_t **) emalloc(span->logs_total * sizeof(sky_core_log_t));
     span->skipAnalysis = false;
     return span;
 }
@@ -72,10 +72,9 @@ void sky_core_span_set_operation_name(sky_core_span_t *span, char *name) {
 
 void sky_core_span_set_peer(sky_core_span_t *span, char *peer) {
     if (peer == NULL) {
-        span->peer = "";
         return;
     }
-    span->peer = peer;
+    memcpy(span->peer, peer, strlen(span->peer));
 }
 
 void sky_core_span_set_error(sky_core_span_t *span, bool isError) {
@@ -84,7 +83,7 @@ void sky_core_span_set_error(sky_core_span_t *span, bool isError) {
 
 void sky_core_span_add_tag(sky_core_span_t *span, sky_core_tag_t *tag) {
     if (span->tags_size == span->tags_total - 1) {
-        sky_core_tag_t **more = (sky_core_tag_t **) erealloc(span->tags, span->tags_total * 2);
+        sky_core_tag_t **more = (sky_core_tag_t **) erealloc(span->tags, span->tags_total * 2 * sizeof(sky_core_tag_t));
         if (more != NULL) {
             span->tags_total *= 2;
             span->tags = more;
@@ -97,31 +96,16 @@ void sky_core_span_add_tag(sky_core_span_t *span, sky_core_tag_t *tag) {
     span->tags_size++;
 }
 
-char *sky_core_span_to_json(sky_core_span_t *span) {
-    char *json;
-    char *temp = "{"
-                 "\"span_id\":%d,"
-                 "\"parent_span_id\":%d,"
-                 "\"start_time\":%ld,"
-                 "\"end_time\":%ld,"
-                 "\"refs\":%s,"
-                 "\"operation_name\":\"%s\","
-                 "\"peer\":\"%s\","
-                 "\"span_type\":%d,"
-                 "\"span_layer\":%d,"
-                 "\"component_id\":%d,"
-                 "\"is_error\":%s,"
-                 "\"tags\":%s,"
-                 "\"logs\":%s,"
-                 "\"skip_analysis\":%s"
-                 "}";
+int sky_core_span_to_json(char **json, sky_core_span_t *span) {
 
     sky_util_smart_string tags = {0};
     sky_util_smart_string_appendl(&tags, "[", 1);
     for (int i = 0; i < span->tags_size; ++i) {
         sky_core_tag_t *tag = span->tags[i];
-        char *tag_json = sky_core_tag_to_json(tag);
-        sky_util_smart_string_appendl(&tags, tag_json, strlen(tag_json));
+        char *tag_json = NULL;
+        int tag_len = sky_core_tag_to_json(&tag_json, tag);
+        sky_util_smart_string_appendl(&tags, tag_json, tag_len);
+        efree(tag_json);
         if (i + 1 < span->tags_size) {
             sky_util_smart_string_appendl(&tags, ",", 1);
         }
@@ -143,23 +127,40 @@ char *sky_core_span_to_json(sky_core_span_t *span) {
     sky_util_smart_string_0(&logs);
 
 
-    asprintf(&json, temp,
-             span->spanId,
-             span->parentSpanId,
-             span->startTime,
-             span->endTime,
-             "[]", // refs
-             span->operationName,
-             span->peer,
-             span->spanType,
-             span->spanLayer,
-             span->componentId,
-             span->isError ? "true" : "false",
-             sky_util_smart_string_to_char(tags),
-             sky_util_smart_string_to_char(logs),
-             span->skipAnalysis ? "true" : "false"
-    );
-    return json;
+    sky_util_smart_string str = {0};
+
+    sky_util_smart_string_appendl(&str, "{", 1);
+    sky_util_json_int_ex(&str, "span_id", span->spanId);
+    sky_util_json_int_ex(&str, "parent_span_id", span->parentSpanId);
+    sky_util_json_int_ex(&str, "start_time", span->startTime);
+    sky_util_json_int_ex(&str, "end_time", span->endTime);
+    sky_util_json_raw_ex(&str, "refs", "[]", 2);
+    sky_util_json_str_ex(&str, "operation_name", span->operationName, strlen(span->operationName));
+    sky_util_json_str_ex(&str, "peer", span->peer, strlen(span->peer));
+    sky_util_json_int_ex(&str, "span_type", span->spanType);
+    sky_util_json_int_ex(&str, "span_layer", span->spanLayer);
+    sky_util_json_int_ex(&str, "component_id", span->componentId);
+    sky_util_json_bool_ex(&str, "is_error", span->isError);
+    char *tags_json = sky_util_smart_string_to_char(tags);
+    size_t tags_len = sky_util_smart_string_len(tags);
+    sky_util_json_raw_ex(&str, "tags", tags_json, tags_len);
+    char *logs_json = sky_util_smart_string_to_char(logs);
+    size_t logs_len = sky_util_smart_string_len(logs);
+    sky_util_json_raw_ex(&str, "logs", logs_json, logs_len);
+    sky_util_json_bool(&str, "skip_analysis", span->skipAnalysis);
+    sky_util_smart_string_appendl(&str, "}", 1);
+    sky_util_smart_string_0(&str);
+
+    efree(span->refs);
+    efree(span->operationName);
+    efree(span->peer);
+    efree(span->tags);
+    efree(span->logs);
+    efree(span);
+    *json = sky_util_smart_string_to_char(str);
+    sky_util_smart_string_free(&tags);
+    sky_util_smart_string_free(&logs);
+    return sky_util_smart_string_len(str);
 }
 
 //SkyCoreSpan::SkyCoreSpan() {

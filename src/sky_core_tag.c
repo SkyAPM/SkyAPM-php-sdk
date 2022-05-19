@@ -19,20 +19,31 @@
 #include "sky_core_tag.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "sky_util_php.h"
 
-sky_core_tag_t *sky_core_tag_new(const char *key, const char *value) {
-    sky_core_tag_t *tag = (sky_core_tag_t *) malloc(sizeof(sky_core_tag_t));
-    tag->key = key;
-    tag->value = value;
+sky_core_tag_t *sky_core_tag_new(char *key, char *value) {
+    sky_core_tag_t *tag = (sky_core_tag_t *) emalloc(sizeof(sky_core_tag_t));
+    tag->key = (char *) emalloc(strlen(key) + 1);
+    memcpy(tag->key, key, strlen(key) + 1);
+    tag->value = (char *) emalloc(strlen(value) + 1);
+    memcpy(tag->value, value, strlen(value) + 1);
     return tag;
 }
 
-void sky_core_tag_free(sky_core_tag_t *tag) {
+int sky_core_tag_to_json(char **json, sky_core_tag_t *tag) {
+    sky_util_smart_string str = {0};
+    sky_util_smart_string_appendc(&str, '{');
+    sky_util_json_str_ex(&str, "key", tag->key, strlen(tag->key));
+    sky_util_json_str(&str, "value", tag->value, strlen(tag->value));
+    sky_util_smart_string_appendc(&str, '}');
+    sky_util_smart_string_0(&str);
 
-}
-
-char *sky_core_tag_to_json(sky_core_tag_t *tag) {
-    char *json;
-    asprintf(&json, "{\"key\":\"%s\",\"value\":\"%s\"}", tag->key, tag->value);
-    return json;
+    efree(tag->key);
+    efree(tag->value);
+    efree(tag);
+    int len = sky_util_smart_string_len(str);
+    *json = (char *) emalloc(len + 1);
+    memcpy(*json, sky_util_smart_string_to_char(str), len + 1);
+    sky_util_smart_string_free(&str);
+    return len;
 }

@@ -32,13 +32,19 @@ sky_core_segment_t *sky_core_segment_new(char *protocol) {
 
     // Tracing.proto
     segment->traceId = NULL;
-    segment->traceSegmentId = sky_core_report_trace_id();
-    segment->spans = (sky_core_span_t **) emalloc(segment->span_total);
+    char *segmentId = sky_core_report_trace_id();
+    segment->traceSegmentId = (char *) emalloc(strlen(segmentId) + 1);
+    bzero(segment->traceSegmentId, strlen(segmentId) + 1);
+    memcpy(segment->traceSegmentId, segmentId, strlen(segmentId));
+    segment->spans = (sky_core_span_t **) emalloc(segment->span_total * sizeof(sky_core_span_t));
 
     segment->cross_process = sky_core_cross_process_new(protocol);
     sky_core_cross_process_set_trace_id(segment->cross_process, segment->traceSegmentId);
-    segment->traceId = segment->cross_process->traceId;
+    segment->traceId = (char *) emalloc(strlen(segment->cross_process->traceId) + 1);
+    bzero(segment->traceId, strlen(segment->cross_process->traceId) + 1);
+    memcpy(segment->traceId, segment->cross_process->traceId, strlen(segment->cross_process->traceId));
 
+    segment->isSizeLimited = false;
     return segment;
 }
 
@@ -49,9 +55,8 @@ void sky_core_segment_add_span(sky_core_segment_t *segment, sky_core_span_t *spa
         sky_core_span_add_refs(span, ref);
     }
 
-
     if (segment->span_size == segment->span_total - 1) {
-        sky_core_span_t **more = (sky_core_span_t **) erealloc(segment->spans, segment->span_total * 2);
+        sky_core_span_t **more = (sky_core_span_t **) erealloc(segment->spans, segment->span_total * 2 * sizeof(sky_core_span_t));
         if (more != NULL) {
             segment->span_total *= 2;
             segment->spans = more;
@@ -84,22 +89,16 @@ void sky_core_segment_set_service_instance(sky_core_segment_t *segment, char *in
     memcpy(segment->serviceInstance, instance, strlen(instance));
 }
 
-char *sky_core_segment_to_json(sky_core_segment_t *segment) {
-    char *json;
-    char *temp = "{"
-                 "\"trace_id\":\"%s\","
-                 "\"trace_segment_id\":\"%s\","
-                 "\"spans\":%s,"
-                 "\"service\":\"%s\","
-                 "\"service_instance\":\"%s\","
-                 "\"is_size_limited\":%s"
-                 "}";
+int sky_core_segment_to_json(char **json, sky_core_segment_t *segment) {
+    php_printf("segment span len %d", segment->span_size);
     sky_util_smart_string spans = {0};
     sky_util_smart_string_appendl(&spans, "[", 1);
     for (int i = 0; i < segment->span_size; ++i) {
         sky_core_span_t *span = segment->spans[i];
-        char *span_json = sky_core_span_to_json(span);
+        char *span_json = NULL;
+        sky_core_span_to_json(&span_json, span);
         sky_util_smart_string_appendl(&spans, span_json, strlen(span_json));
+        efree(span_json);
         if (i + 1 < segment->span_size) {
             sky_util_smart_string_appendl(&spans, ",", 1);
         }
@@ -107,15 +106,42 @@ char *sky_core_segment_to_json(sky_core_segment_t *segment) {
     sky_util_smart_string_appendl(&spans, "]", 1);
     sky_util_smart_string_0(&spans);
 
-    asprintf(&json, temp,
-             segment->traceId,
-             segment->traceSegmentId,
-             sky_util_smart_string_to_char(spans),
-             segment->service,
-             segment->serviceInstance,
-             btoa(segment->isSizeLimited)
-    );
-    return json;
+    sky_util_smart_string str = {0};
+    sky_util_smart_string_appendl(&str, "{", 1);
+    sky_util_smart_string_appendl(&str, "\"trace_id\":\"", strlen("\"trace_id\":\""));
+    sky_util_smart_string_appendl(&str, segment->traceId, strlen(segment->traceId));
+    sky_util_smart_string_appendl(&str, "\",", 2);
+
+    sky_util_smart_string_appendl(&str, "\"trace_segment_id\":\"", strlen("\"trace_segment_id\":\""));
+    sky_util_smart_string_appendl(&str, segment->traceSegmentId, strlen(segment->traceSegmentId));
+    sky_util_smart_string_appendl(&str, "\",", 2);
+
+    sky_util_smart_string_appendl(&str, "\"spans\":\"", strlen("\"spans\":"));
+    sky_util_smart_string_appendl(&str, sky_util_smart_string_to_char(spans), strlen(sky_util_smart_string_to_char(spans)));
+    sky_util_smart_string_appendl(&str, ",", 1);
+
+    sky_util_smart_string_appendl(&str, "\"service\":\"", strlen("\"service\":\""));
+    sky_util_smart_string_appendl(&str, segment->service, strlen(segment->service));
+    sky_util_smart_string_appendl(&str, "\",", 2);
+
+    sky_util_smart_string_appendl(&str, "\"service_instance\":\"", strlen("\"service_instance\":\""));
+    sky_util_smart_string_appendl(&str, segment->serviceInstance, strlen(segment->serviceInstance));
+    sky_util_smart_string_appendl(&str, "\",", 2);
+
+    sky_util_smart_string_appendl(&str, "\"is_size_limited\":\"", strlen("\"is_size_limited\":"));
+    sky_util_smart_string_appendl(&str, btoa(segment->isSizeLimited), strlen(btoa(segment->isSizeLimited)));
+
+    sky_util_smart_string_appendl(&str, "}", 1);
+    sky_util_smart_string_0(&str);
+
+    efree(segment->traceId);
+    efree(segment->traceSegmentId);
+    efree(segment->spans);
+    efree(segment->service);
+    efree(segment->serviceInstance);
+//    efree(segment);
+    *json = sky_util_smart_string_to_char(str);
+    return sky_util_smart_string_len(str);
 }
 
 //SkyCoreSegment::SkyCoreSegment(const std::string &header) {

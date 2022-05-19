@@ -98,6 +98,7 @@ impl<T> CountedReceiver<T> {
 }
 
 static GRPC_CHANNEL: OnceCell<Channel> = OnceCell::const_new();
+static REGISTER: OnceCell<bool> = OnceCell::const_new();
 
 pub type ManagementClient = ManagementServiceClient<Channel>;
 pub type SegmentReportClient = TraceSegmentReportServiceClient<Channel>;
@@ -113,7 +114,7 @@ pub struct Reporter {
 pub fn init(address: String, service: String, mut service_instance: String, log_level: String, log_path: String) -> anyhow::Result<()> {
     let mut level = simplelog::LevelFilter::Debug;
 
-    if log_level == "off" {
+    if log_level == "disable" {
         level = simplelog::LevelFilter::Off;
     } else if log_level == "error" {
         level = simplelog::LevelFilter::Error;
@@ -127,7 +128,7 @@ pub fn init(address: String, service: String, mut service_instance: String, log_
         level = simplelog::LevelFilter::Trace;
     }
 
-    if log_level != "off" {
+    if log_level != "disable" {
         if !Path::new(log_path.clone().as_str()).exists() {
             File::create(log_path.clone()).unwrap();
         }
@@ -179,7 +180,7 @@ pub async fn do_connect(address: String) {
                 log::error!("do connect err {}", e.to_string())
             }
         }
-        sleep(Duration::from_secs(10)).await;
+        sleep(Duration::from_secs(1)).await;
     };
 
     GRPC_CHANNEL.set(channel);
@@ -217,14 +218,17 @@ pub async fn login(service: String, service_instance: String) {
     };
 
     loop {
-        sleep(Duration::from_secs(5)).await;
+        sleep(Duration::from_secs(1)).await;
         let channel = match GRPC_CHANNEL.get() {
             Some(channel) => channel,
             None => continue,
         };
         log::debug!("login instance {:?}", instance);
         match do_login(channel.clone(), instance.clone()).await {
-            Ok(r) => break,
+            Ok(r) => {
+                REGISTER.set(true);
+                break;
+            },
             Err(e) => {
                 log::error!("login err {}", e.to_string());
                 continue;
@@ -248,10 +252,16 @@ pub async fn keep_alive(service: String, service_instance: String) {
 
     loop {
         sleep(Duration::from_secs(5)).await;
+        let register = match REGISTER.get() {
+            Some(register) => register,
+            None => continue,
+        };
+        log::debug!("keep alive register {}", register);
         let channel = match GRPC_CHANNEL.get() {
             Some(channel) => channel,
             None => continue,
         };
+        log::debug!("keep alive instance {:?}", instance);
         match do_keep_alive(channel.clone(), instance.clone()).await {
             Ok(r) => continue,
             Err(e) => continue
@@ -282,7 +292,7 @@ async fn receive_once(segment_sender: CountedSender<SegmentObject>) -> anyhow::R
     let s = str::from_utf8(&content)?;
     debug!("receive_once segment {}", s);
     if !s.is_empty() {
-        let segment: SegmentObject = serde_json::from_str(s).unwrap();
+        let segment: SegmentObject = serde_json::from_str(s)?;
         segment_sender.try_send(segment)?;
     }
 
@@ -291,10 +301,17 @@ async fn receive_once(segment_sender: CountedSender<SegmentObject>) -> anyhow::R
 
 async fn sender(mut segment_receiver: CountedReceiver<SegmentObject>) {
     loop {
+        let register = match REGISTER.get() {
+            Some(register) => register,
+            None => {
+                sleep(Duration::from_secs(1)).await;
+                continue;
+            },
+        };
         let channel = match GRPC_CHANNEL.get() {
             Some(channel) => channel,
             None => {
-                sleep(Duration::from_secs(5)).await;
+                sleep(Duration::from_secs(1)).await;
                 continue;
             }
         };

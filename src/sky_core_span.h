@@ -79,7 +79,7 @@ void sky_core_span_set_error(sky_core_span_t *span, bool isError);
 
 void sky_core_span_add_tag(sky_core_span_t *span, sky_core_tag_t *tag);
 
-char *sky_core_span_to_json(sky_core_span_t *span);
+int sky_core_span_to_json(char **json, sky_core_span_t *span);
 
 //class SkyCoreSpan {
 //public:

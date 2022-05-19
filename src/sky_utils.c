@@ -175,17 +175,16 @@ bool starts_with(const char *pre, const char *str) {
     return str_len < pre_len ? false : memcmp(pre, str, pre_len) == 0;
 }
 
-zval *sky_util_call_user_func(const char *name, uint32_t count, zval params[]) {
+int sky_util_call_user_func(const char *name, zval *retval_ptr, uint32_t count, zval params[]) {
     zval func;
-    zval *result = (zval *) emalloc(sizeof(zval));
     ZVAL_STRING(&func, name);
-    call_user_function(CG(function_table), NULL, &func, result, count, params);
+    int ret = call_user_function(CG(function_table), NULL, &func, retval_ptr, count, params);
     zval_dtor(&func);
 
     for (int i = 0; i < count; i++) {
         zval_dtor(&params[i]);
     }
-    return result;
+    return ret;
 }
 
 //bool sky_insert_segment(uint64_t request_id, SkyCoreSegment *segment) {

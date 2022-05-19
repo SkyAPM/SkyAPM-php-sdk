@@ -158,10 +158,12 @@
     char *cmd = NULL; \
     sky_plugin_redis_command(&cmd, kw, "kv", key, key_len, z_value); \
     REDIS_SPAN(obj, cmd)
+
 #define REDIS_SPAN(operation, command) \
     sky_core_span_t *span = sky_core_span_new(Exit, Cache, 7); \
     sky_core_span_add_tag(span, sky_core_tag_new("db.type", "redis")); \
     sky_core_span_add_tag(span, sky_core_tag_new("db.command", command)); \
+    efree(command); \
     sky_core_span_set_operation_name(span, operation);
 
 #define REDIS_SPAN_END \
@@ -183,7 +185,7 @@ union resparg {
 
 void sky_plugin_redis_hooks();
 
-void sky_plugin_redis_command(char **command, char *kw, char *fmt, ...);
+int sky_plugin_redis_command(char **command, char *kw, char *fmt, ...);
 
 // strings
 void sky_plugin_redis_append_handler(INTERNAL_FUNCTION_PARAMETERS);

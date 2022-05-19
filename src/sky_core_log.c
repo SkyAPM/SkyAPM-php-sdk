@@ -29,13 +29,13 @@ sky_core_log_t *sky_core_log_new() {
     log->time = tv.tv_sec * 1000 + tv.tv_usec / 1000;
     log->data_total = 4;
     log->data_size = 0;
-    log->data = (sky_core_log_data_t **) emalloc(log->data_total);
+    log->data = (sky_core_log_data_t **) emalloc(log->data_total * sizeof(sky_core_log_data_t));
     return log;
 }
 
 void sky_core_log_add_data(sky_core_log_t *log, const char *key, const char *value) {
     if (log->data_size == log->data_total - 1) {
-        sky_core_log_data_t **more = (sky_core_log_data_t **) erealloc(log->data, log->data_total * 2);
+        sky_core_log_data_t **more = (sky_core_log_data_t **) erealloc(log->data, log->data_total * 2 * sizeof(sky_core_log_data_t));
         if (more != NULL) {
             log->data_total *= 2;
             log->data = more;

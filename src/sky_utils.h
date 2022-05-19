@@ -26,8 +26,7 @@ sky_core_segment_t *sky_util_find_segment_idx(zend_execute_data *execute_data, i
 
 bool starts_with(const char *pre, const char *str);
 
-zval *sky_util_call_user_func(const char *name, uint32_t count, zval params[]);
-
+int sky_util_call_user_func(const char *name, zval *retval_ptr, uint32_t count, zval params[]);
 //#include <string>
 
 //#define SKY_IS_OBJECT(p) p != nullptr && Z_TYPE_P(p) == IS_OBJECT

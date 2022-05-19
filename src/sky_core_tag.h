@@ -20,14 +20,12 @@
 #define SKYWALKING_SKY_CORE_TAG_H
 
 typedef struct sky_core_tag_t {
-    const char *key;
-    const char *value;
+    char *key;
+    char *value;
 } sky_core_tag_t;
 
-sky_core_tag_t *sky_core_tag_new(const char *key, const char *value);
+sky_core_tag_t *sky_core_tag_new(char *key, char *value);
 
-void sky_core_tag_free(sky_core_tag_t *tag);
-
-char *sky_core_tag_to_json(sky_core_tag_t *span);
+int sky_core_tag_to_json(char **json, sky_core_tag_t *tag);
 
 #endif //SKYWALKING_SKY_CORE_TAG_H

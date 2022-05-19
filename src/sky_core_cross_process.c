@@ -54,8 +54,9 @@ sky_core_cross_process_t *sky_core_cross_process_new(char *header) {
 
 void sky_core_cross_process_set_trace_id(sky_core_cross_process_t *cross_process, char *trace_id) {
     if (cross_process->traceId == NULL) {
-        cross_process->traceId = (char *) emalloc(strlen(trace_id));
-        strcpy(cross_process->traceId, trace_id);
+        cross_process->traceId = (char *) emalloc(strlen(trace_id) + 1);
+        bzero(cross_process->traceId, strlen(trace_id) + 1);
+        memcpy(cross_process->traceId, trace_id, strlen(trace_id));
     }
 }
 

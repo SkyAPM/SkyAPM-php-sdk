@@ -150,11 +150,12 @@ ZEND_NAMED_FUNCTION(sky_curl_exec_handler) {
 
     zval params[5];
     ZVAL_COPY(&params[0], zid);
-    zval *url_info = sky_util_call_user_func("curl_getinfo", 1, params);
+    zval url_info;
+    sky_util_call_user_func("curl_getinfo", &url_info, 1, params);
 
     // check
     php_url *url_parse = NULL;
-    zval *z_url = zend_hash_str_find(Z_ARRVAL_P(url_info), ZEND_STRL("url"));
+    zval *z_url = zend_hash_str_find(Z_ARRVAL(url_info), ZEND_STRL("url"));
     char *url_str = Z_STRVAL_P(z_url);
     if (strlen(url_str) > 0 && (starts_with("http://", url_str) || starts_with("https://", url_str))) {
         url_parse = php_url_parse(url_str);
@@ -201,6 +202,7 @@ ZEND_NAMED_FUNCTION(sky_curl_exec_handler) {
         char *peer = (char *) emalloc(sizeof(php_url_host) + 6);
         sprintf(peer, "%s:%d", php_url_host, peer_port);
         sky_core_span_set_peer(span, peer);
+        efree(peer);
         sky_core_span_set_operation_name(span, php_url_path == NULL ? "/" : php_url_path);
         sky_core_span_add_tag(span, sky_core_tag_new("url", url_str));
 
@@ -210,7 +212,8 @@ ZEND_NAMED_FUNCTION(sky_curl_exec_handler) {
         ZVAL_COPY(&params[0], zid);
         ZVAL_LONG(&params[1], SKY_CURLOPT_HTTPHEADER);
         ZVAL_COPY(&params[2], header);
-        zval *set_result = sky_util_call_user_func("curl_setopt", 3, params);
+        zval set_result;
+        sky_util_call_user_func("curl_setopt", &set_result, 3, params);
         zval_dtor(&set_result);
 
         if (is_malloc) {
@@ -226,19 +229,22 @@ ZEND_NAMED_FUNCTION(sky_curl_exec_handler) {
 
         // get response
         ZVAL_COPY(&params[0], zid);
-        zval *url_response = sky_util_call_user_func("curl_getinfo", 1, params);
+        zval url_response;
+        sky_util_call_user_func("curl_getinfo", &url_response, 1, params);
 
-        zval *response_http_code = zend_hash_str_find(Z_ARRVAL_P(url_response), ZEND_STRL("http_code"));
+        zval *response_http_code = zend_hash_str_find(Z_ARRVAL(url_response), ZEND_STRL("http_code"));
         char code[255] = {0};
         sprintf(code, "%ld", Z_LVAL_P(response_http_code));
         sky_core_span_add_tag(span, sky_core_tag_new("status_code", code));
+
         if (Z_LVAL_P(response_http_code) == 0) {
             // get errors
             ZVAL_COPY(&params[0], zid);
-            zval *curl_error = sky_util_call_user_func("curl_error", 1, params);
+            zval curl_error;
+            sky_util_call_user_func("curl_error", &curl_error, 1, params);
 //            span->addLog("CURL_ERROR", Z_STRVAL(curl_error));
             sky_core_span_set_error(span, true);
-            zval_dtor(curl_error);
+            zval_dtor(&curl_error);
         } else if (Z_LVAL_P(response_http_code) >= 400) {
             if (SKYWALKING_G(curl_response_enable) && Z_TYPE_P(return_value) == IS_STRING) {
                 sky_core_span_add_tag(span, sky_core_tag_new("http.response", Z_STRVAL_P(return_value)));
@@ -248,12 +254,14 @@ ZEND_NAMED_FUNCTION(sky_curl_exec_handler) {
         } else {
             sky_core_span_set_error(span, false);
         }
-        zval_dtor(url_response);
+
+        zval_dtor(&url_response);
 
         sky_core_span_set_end_time(span);
+        sky_core_segment_add_span(segment, span);
     }
 
-    zval_dtor(url_info);
+    zval_dtor(&url_info);
     if (url_parse != NULL) {
         php_url_free(url_parse);
     }

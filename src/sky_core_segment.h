@@ -50,7 +50,7 @@ void sky_core_segment_set_service(sky_core_segment_t *segment, char *service);
 
 void sky_core_segment_set_service_instance(sky_core_segment_t *segment, char *instance);
 
-char *sky_core_segment_to_json(sky_core_segment_t *segment);
+int sky_core_segment_to_json(char **json, sky_core_segment_t *segment);
 
 //#include <string>
 //#include <vector>

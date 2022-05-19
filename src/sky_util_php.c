@@ -28,3 +28,56 @@ void *sky_util_find_obj_func(const char *obj, const char *name) {
 void *sky_util_find_func(const char *name) {
     return zend_hash_str_find_ptr(CG(function_table), name, strlen(name));
 }
+
+void sky_util_json_raw(sky_util_smart_string *dist, char *key, char *value, size_t value_len) {
+    sky_util_json_key(dist, key);
+    sky_util_smart_string_appendl(dist, value, value_len);
+}
+
+void sky_util_json_raw_ex(sky_util_smart_string *dist, char *key, char *value, size_t value_len) {
+    sky_util_json_raw(dist, key, value, value_len);
+    sky_util_smart_string_appendc(dist, ',');
+}
+
+void sky_util_json_key(sky_util_smart_string *dist, char *key) {
+    sky_util_smart_string_appendc(dist, '"');
+    sky_util_smart_string_appendl(dist, key, strlen(key));
+    sky_util_smart_string_appendc(dist, '"');
+    sky_util_smart_string_appendc(dist, ':');
+}
+
+void sky_util_json_int(sky_util_smart_string *dist, char *key, zend_long num) {
+    sky_util_json_key(dist, key);
+    sky_util_smart_string_append_long(dist, num);
+}
+
+void sky_util_json_int_ex(sky_util_smart_string *dist, char *key, zend_long num) {
+    sky_util_json_int(dist, key, num);
+    sky_util_smart_string_appendc(dist, ',');
+}
+
+void sky_util_json_str(sky_util_smart_string *dist, char *key, char *value, size_t value_len) {
+    sky_util_json_key(dist, key);
+    sky_util_smart_string_appendc(dist, '"');
+    sky_util_smart_string_appendl(dist, value, value_len);
+    sky_util_smart_string_appendc(dist, '"');
+}
+
+void sky_util_json_str_ex(sky_util_smart_string *dist, char *key, char *value, size_t value_len) {
+    sky_util_json_str(dist, key, value, value_len);
+    sky_util_smart_string_appendc(dist, ',');
+}
+
+void sky_util_json_bool(sky_util_smart_string *dist, char *key, bool value) {
+    sky_util_json_key(dist, key);
+    if (value) {
+        sky_util_smart_string_appendl(dist, "true", 4);
+    } else {
+        sky_util_smart_string_appendl(dist, "false", 5);
+    }
+}
+
+void sky_util_json_bool_ex(sky_util_smart_string *dist, char *key, bool value) {
+    sky_util_json_bool(dist, key, value);
+    sky_util_smart_string_appendc(dist, ',');
+}
