@@ -18,14 +18,24 @@ FROM php:${PHP_VERSION}-fpm-alpine
 
 ADD . /var/local/git/skywalking
 
+ENV PROTOBUF_VERSION 3.14.0
+ENV PROTOBUF_URL https://github.com/protocolbuffers/protobuf/releases/download/v"$PROTOBUF_VERSION"/protobuf-cpp-"$PROTOBUF_VERSION".zip
+ENV RUSTFLAGS="-Ctarget-feature=-crt-static"
+
 RUN set -ex \
     && docker-php-ext-install mysqli \
-    && apk --update add --no-cache git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
+    && apk --update add --no-cache git ca-certificates build-base unzip autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
     && curl https://sh.rustup.rs -sSf | sh -s -- -y \
     && source $HOME/.cargo/env \
+    && curl --silent -L -o protobuf.zip "$PROTOBUF_URL" \
+    && unzip protobuf.zip \
+    && cd protobuf-"$PROTOBUF_VERSION" \
+    && ./configure && make -j$(nproc) && make install \
+    && cd .. && rm protobuf.zip \
     && echo "--- installing skywalking php ---" \
     && cd /var/local/git/skywalking \
-    && phpize && ./configure && make && make install \
+    && git submodule --init \
+    && phpize && ./configure && make -j$(nproc) && make install \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && mkdir -p /opt \
     && cp docker/entrypoint.sh /opt/ \
