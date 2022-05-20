@@ -34,7 +34,7 @@ RUN set -ex \
     && cd .. && rm protobuf.zip \
     && echo "--- installing skywalking php ---" \
     && cd /var/local/git/skywalking \
-    && git submodule --init \
+    && git submodule update --init \
     && phpize && ./configure && make -j$(nproc) && make install \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && mkdir -p /opt \
