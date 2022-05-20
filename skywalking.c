@@ -63,7 +63,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_private_key", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_private_key, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.grpc_tls_pem_cert_chain", "", PHP_INI_ALL, OnUpdateString, grpc_tls_pem_cert_chain, zend_skywalking_globals, skywalking_globals)
 
-    STD_PHP_INI_ENTRY("skywalking.log_level", "off", PHP_INI_ALL, OnUpdateString, log_level, zend_skywalking_globals, skywalking_globals)
+    STD_PHP_INI_ENTRY("skywalking.log_level", "disable", PHP_INI_ALL, OnUpdateString, log_level, zend_skywalking_globals, skywalking_globals)
 	STD_PHP_INI_ENTRY("skywalking.log_path", "/tmp/skywalking-php.log", PHP_INI_ALL, OnUpdateString, log_path, zend_skywalking_globals, skywalking_globals)
 
     STD_PHP_INI_BOOLEAN("skywalking.curl_response_enable", "0", PHP_INI_ALL, OnUpdateBool, curl_response_enable, zend_skywalking_globals, skywalking_globals)
@@ -96,7 +96,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
     skywalking_globals->grpc_tls_pem_cert_chain = NULL;
 
     // log
-    skywalking_globals->log_level = "off";
+    skywalking_globals->log_level = "disable";
     skywalking_globals->log_path = NULL;
 
     skywalking_globals->curl_response_enable = 0;

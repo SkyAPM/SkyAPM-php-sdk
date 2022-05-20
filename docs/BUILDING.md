@@ -6,12 +6,13 @@ This document has detailed instructions on how to build SkyWalking PHP Agent fro
 
 1. gcc
 2. make
-3. golang
+3. rust
+4. protoc
 
 ### Linux
 ```shell
 $ [sudo] apt-get install build-essential autoconf automake libtool curl make gcc unzip pkg-config
-$ [sudo] apt-get install cmake
+$ [sudo] apt-get install cmake rust cargo rustfmt
 ```
 
 ### MacOS
@@ -27,7 +28,7 @@ On a Mac, you will first need to install Xcode or Command Line Tools for Xcode a
 ```shell
  $ apk --update add --no-cache git ca-certificates autoconf automake libtool 
  $ apk --update add --no-cache cmake gcc make file linux-headers file re2c 
- $ apk --update add --no-cache pkgconf openssl openssl-dev curl curl-dev nginx
+ $ apk --update add --no-cache pkgconf openssl openssl-dev curl curl-dev nginx protoc rust rustfmt cargo
 ```
 
 ## Build from source (PHP Extension)
