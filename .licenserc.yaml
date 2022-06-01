@@ -19,12 +19,17 @@ header:
     copyright-owner: SkyAPM
 
   paths-ignore:
+    - '.gitmodules'
+    - 'configure~'
     - 'dist'
     - 'licenses'
     - '**/*.md'
     - '**/*.o'
     - '**/*.a'
     - '**/*.lo'
+    - '**/*.dep'
+    - 'target'
+    - 'Cargo.lock'
     - 'LICENSE'
     - 'NOTICE'
     - 'CREDITS'
@@ -32,6 +37,10 @@ header:
     - 'config.m4'
     - 'config.w32'
     - 'config.w32'
+    - 'go.mod'
+    - 'go.sum'
+    - 'src/protocol'
+    - 'src/collect'
     - 'e2e/composer.json'
 
   comment: on-failure

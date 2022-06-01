@@ -16,33 +16,26 @@
 ARG PHP_VERSION
 FROM php:${PHP_VERSION}-fpm-alpine
 
-ENV GRPC_RELEASE_TAG v1.31.x
-ENV PROTOBUF_RELEASE_TAG 3.13.x
-
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64
-ENV LD_RUN_PATH=$LD_RUN_PATH:/usr/local/lib:/usr/local/lib64
-
 ADD . /var/local/git/skywalking
+
+ENV PROTOBUF_VERSION 3.14.0
+ENV PROTOBUF_URL https://github.com/protocolbuffers/protobuf/releases/download/v"$PROTOBUF_VERSION"/protobuf-cpp-"$PROTOBUF_VERSION".zip
+ENV RUSTFLAGS="-Ctarget-feature=-crt-static"
 
 RUN set -ex \
     && docker-php-ext-install mysqli \
-    && apk --update add --no-cache boost-dev git ca-certificates autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
-    && echo "--- clone grpc ---" \
-    && git clone --depth 1 -b ${GRPC_RELEASE_TAG} https://github.com/grpc/grpc /var/local/git/grpc \
-    && cd /var/local/git/grpc \
-    && git submodule update --init --recursive \
-    && echo "--- download cmake ---" \
-    && cd /var/local/git \
-    && curl -L -o cmake-3.19.1.tar.gz  https://github.com/Kitware/CMake/releases/download/v3.19.1/cmake-3.19.1.tar.gz \
-    && tar zxf cmake-3.19.1.tar.gz \
-    && cd cmake-3.19.1 && ./bootstrap && make -j$(nproc) && make install \
-    && echo "--- installing grpc ---" \
-    && cd /var/local/git/grpc \
-    && mkdir -p cmake/build && cd cmake/build && cmake ../.. \
-    && make -j$(nproc) \
+    && apk --update add --no-cache git ca-certificates build-base unzip autoconf automake libtool g++ make file linux-headers file re2c pkgconf openssl openssl-dev curl-dev nginx \
+    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    && source $HOME/.cargo/env \
+    && curl --silent -L -o protobuf.zip "$PROTOBUF_URL" \
+    && unzip protobuf.zip \
+    && cd protobuf-"$PROTOBUF_VERSION" \
+    && ./configure && make -j$(nproc) && make install \
+    && cd .. && rm protobuf.zip \
     && echo "--- installing skywalking php ---" \
     && cd /var/local/git/skywalking \
-    && phpize && ./configure --with-grpc-src=/var/local/git/grpc && make && make install \
+    && git submodule update --init \
+    && phpize && ./configure && make -j$(nproc) && make install \
     && cp php.ini $PHP_INI_DIR/conf.d/ext-skywalking.ini \
     && mkdir -p /opt \
     && cp docker/entrypoint.sh /opt/ \

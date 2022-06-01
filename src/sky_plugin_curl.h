@@ -19,16 +19,23 @@
 #ifndef SKYWALKING_SKY_PLUGIN_CURL_H
 #define SKYWALKING_SKY_PLUGIN_CURL_H
 
-#include "php_skywalking.h"
+#include "php.h"
+#include <curl/curl.h>
+
+#if PHP_VERSION_ID >= 80000
+#include "ext/curl/php_curl.h"
+#endif
 
 #define SKY_CURLOPT_HTTPHEADER 9923
 
-void sky_curl_setopt_handler(INTERNAL_FUNCTION_PARAMETERS);
+void sky_plugin_curl_hooks();
 
-void sky_curl_setopt_array_handler(INTERNAL_FUNCTION_PARAMETERS);
+ZEND_NAMED_FUNCTION(sky_curl_setopt_handler);
 
-void sky_curl_exec_handler(INTERNAL_FUNCTION_PARAMETERS);
+ZEND_NAMED_FUNCTION(sky_curl_setopt_array_handler);
 
-void sky_curl_close_handler(INTERNAL_FUNCTION_PARAMETERS);
+ZEND_NAMED_FUNCTION(sky_curl_exec_handler);
+
+ZEND_NAMED_FUNCTION(sky_curl_close_handler);
 
 #endif //SKYWALKING_SKY_PLUGIN_CURL_H

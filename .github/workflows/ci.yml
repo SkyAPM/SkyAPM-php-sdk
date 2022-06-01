@@ -32,9 +32,8 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-version: ['8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0']
-        skywalking-version: ['8.9.1', '8.9.0', '8.8.1', '8.7.0-es7', '8.7.0-es6', '8.6.0-es7', '8.6.0-es6', '8.5.0-es6', '8.4.0-es6', '8.3.0-es6', '8.2.0-es6', '8.1.0-es6', '8.0.1-es6', '8.0.0-es6']
-        library-grpc: ['static', 'shared']
-    name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }} [${{ matrix.library-grpc }}]
+        skywalking-version: ['9.0.0', '8.9.1', '8.9.0', '8.8.1', '8.7.0-es7', '8.7.0-es6', '8.6.0-es7', '8.6.0-es6', '8.5.0-es6', '8.4.0-es6']
+    name: PHP ${{ matrix.php-version }} Test on SW ${{ matrix.skywalking-version }}
     services:
       skywalking:
         image: apache/skywalking-oap-server:${{ matrix.skywalking-version }}
@@ -61,27 +60,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules: 'true'
 
       - name: Check License
         uses: apache/skywalking-eyes@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cache gRPC
-        id: cache-grpc
-        uses: actions/cache@v2
-        with:
-          path: /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
-          key: ${{ runner.os }}-grpc-${{ matrix.library-grpc }}-v1
-
-      - name: Checkout GRPC
-        if: steps.cache-grpc.outputs.cache-hit != 'true'
-        uses: actions/checkout@v2
-        with:
-          ref: v1.31.x
-          repository: grpc/grpc
-          path: grpc
-          submodules: true
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -97,7 +82,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl libcurl4-openssl-dev nginx
           sudo apt-get install -y build-essential autoconf libtool pkg-config cmake
-          sudo apt-get install -y autoconf automake libtool curl make g++ unzip libboost-all-dev
+          sudo apt-get install -y autoconf automake libtool curl make g++ unzip
           if ! [ -e /usr/bin/php-fpm ]; then
             sudo apt-get install -y php${{ matrix.php-version }}-fpm
             sudo cp /usr/sbin/php-fpm${{ matrix.php-version }} /usr/bin/php-fpm
@@ -106,51 +91,7 @@ jobs:
           composer install
           cd ..
 
-      - name: Build GRPC static
-        if: steps.cache-grpc.outputs.cache-hit != 'true' && matrix.library-grpc == 'static'
-        run: |
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
-          mkdir -p cmake/build
-          cd cmake/build
-          cmake ../..
-          make -j$(nproc)
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
-
-      - name: Build GRPC shared
-        if: steps.cache-grpc.outputs.cache-hit != 'true' && matrix.library-grpc == 'shared'
-        run: |
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
-          ./autogen.sh && ./configure
-          make -j$(nproc)
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
-          mkdir -p cmake/build
-          cd cmake/build
-          cmake ../.. -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON
-          make -j$(nproc)
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
-
-      - name: Install GRPC shared
-        if: matrix.library-grpc == 'shared'
-        run: |
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/third_party/protobuf
-          sudo make install
-          sudo ldconfig
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc/cmake/build
-          sudo make install
-          sudo ldconfig
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
-
-      - name: Build SkyWalking-PHP static
-        if: matrix.library-grpc == 'static'
-        run: |
-          cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
-          phpize
-          ./configure --with-grpc-src=/home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk/grpc
-          make -j$(nproc)
-          sudo make install
-
-      - name: Build SkyWalking-PHP shared
-        if: matrix.library-grpc == 'shared'
+      - name: Build SkyWalking-PHP
         run: |
           cd /home/runner/work/SkyAPM-php-sdk/SkyAPM-php-sdk
           phpize
@@ -198,6 +139,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules: 'true'
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v1

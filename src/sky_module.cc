@@ -19,19 +19,21 @@
 #include <unordered_map>
 #include <iostream>
 #include "sky_module.h"
-#include <boost/interprocess/ipc/message_queue.hpp>
 #include <fstream>
 
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 #include "sky_plugin_curl.h"
 #include "sky_execute.h"
-#include "manager.h"
 #include "sky_plugin_error.h"
 #include "sky_log.h"
 #include "sky_rate_limit.h"
+#include "sky_go_wrapper.h"
+#include "sky_go_utils.h"
+#include "sys/ipc.h"
+#include "sys/shm.h"
 
-extern struct service_info *s_info;
+extern mutex_service *ms;
 
 extern void (*ori_execute_ex)(zend_execute_data *execute_data);
 
@@ -46,6 +48,23 @@ extern void (*orig_curl_setopt_array)(INTERNAL_FUNCTION_PARAMETERS);
 extern void (*orig_curl_close)(INTERNAL_FUNCTION_PARAMETERS);
 
 void sky_module_init() {
+
+    key_t key = ftok("./", 1);
+    if (key < 0) {
+        return;
+    }
+    const int id = shmget(key, sizeof(mutex_service), IPC_CREAT | 0666);
+    if (id < 0) {
+        return;
+    }
+    ms = (mutex_service *) shmat(id, nullptr, SHM_R | SHM_W);
+    ms->id = id;
+    pthread_mutexattr_init(&(ms->lock_attr));
+    pthread_mutexattr_setpshared(&(ms->lock_attr), PTHREAD_PROCESS_SHARED);
+    pthread_mutex_init(&(ms->lock), &(ms->lock_attr));
+
+
+
     ori_execute_ex = zend_execute_ex;
     zend_execute_ex = sky_execute_ex;
 
@@ -75,54 +94,32 @@ void sky_module_init() {
         old_function->internal_function.handler = sky_curl_close_handler;
     }
 
-    std::unordered_map<uint64_t, Segment *> *segments = new std::unordered_map<uint64_t, Segment *>;
+    auto *segments = new std::unordered_map<uint64_t, SkyCoreSegment *>;
     SKYWALKING_G(segment) = segments;
 
-    FixedWindowRateLimiter *rate_limiter = new FixedWindowRateLimiter(SKYWALKING_G(sample_n_per_3_secs));
+    auto *rate_limiter = new FixedWindowRateLimiter(SKYWALKING_G(sample_n_per_3_secs));
     SKYWALKING_G(rate_limiter) = rate_limiter;
 
-    if (SKYWALKING_G(mq_unique)) {
-        sprintf(s_info->mq_name, "skywalking_queue");
-    }else{
-        sprintf(s_info->mq_name, "skywalking_queue_%d", getpid());
-    }
-
-    try {
-        boost::interprocess::message_queue::remove(s_info->mq_name);
-        boost::interprocess::message_queue(
-                boost::interprocess::open_or_create,
-                s_info->mq_name,
-                1024,
-                SKYWALKING_G(mq_max_message_length),
-                boost::interprocess::permissions(0666)
-        );
-    } catch (boost::interprocess::interprocess_exception &ex) {
-        php_error(E_WARNING, "%s %s", "[skywalking] create queue fail ", ex.what());
-    }
-
-    ManagerOptions opt;
-    opt.version = SKYWALKING_G(version);
-    opt.code = SKYWALKING_G(app_code);
-    opt.grpc = SKYWALKING_G(grpc);
-    opt.grpc_tls = SKYWALKING_G(grpc_tls_enable);
-    opt.root_certs = SKYWALKING_G(grpc_tls_pem_root_certs);
-    opt.private_key = SKYWALKING_G(grpc_tls_pem_private_key);
-    opt.cert_chain = SKYWALKING_G(grpc_tls_pem_cert_chain);
-    opt.authentication = SKYWALKING_G(authentication);
-    opt.instance_name = SKYWALKING_G(instance_name);
-
-    Manager::init(opt, s_info);
+    GoString address = NewGoString(SKYWALKING_G(grpc), sizeof(SKYWALKING_G(grpc)) - 1);
+    GoString server = NewGoString(SKYWALKING_G(app_code), sizeof(SKYWALKING_G(app_code)) - 1);
+    GoString instance = NewGoString(SKYWALKING_G(instance_name), sizeof(SKYWALKING_G(instance_name)) - 1);
+    GoString realInstance = NewProtocol(address, server, instance);
+    pthread_mutex_lock(&(ms->lock));
+    strcpy(ms->service, server.p);
+    strcpy(ms->serviceInstance, std::string(realInstance.p, realInstance.n).c_str());
+    pthread_mutex_unlock(&(ms->lock));
+    ReportInstanceProperties();
 }
 
 void sky_module_cleanup() {
-    char mq_name[32];
 
-    sprintf(mq_name, "skywalking_queue_%d", getpid());
-    if (SKYWALKING_G(mq_unique) || strcmp(s_info->mq_name, mq_name) == 0) {
-        boost::interprocess::message_queue::remove(s_info->mq_name);
+    if (ms != nullptr) {
+        pthread_mutex_destroy(&(ms->lock));
+        pthread_mutexattr_destroy(&(ms->lock_attr));
+        shmctl(ms->id, IPC_RMID, nullptr);
     }
 
-    std::unordered_map<uint64_t, Segment *> *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>(SKYWALKING_G(segment));
+    auto *segments = static_cast<std::unordered_map<uint64_t, SkyCoreSegment *> *>(SKYWALKING_G(segment));
     for (auto entry : *segments) {
         delete entry.second;
     }
@@ -135,7 +132,7 @@ void sky_request_init(zval *request, uint64_t request_id) {
     array_init(&SKYWALKING_G(curl_header));
 
     if (!static_cast<FixedWindowRateLimiter*>(SKYWALKING_G(rate_limiter))->validate()) {
-        auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), "");
+        auto *segment = new SkyCoreSegment("");
         segment->setSkip(true);
         (void)sky_insert_segment(request_id, segment);
 
@@ -176,85 +173,7 @@ void sky_request_init(zval *request, uint64_t request_id) {
             peer += std::to_string(Z_LVAL_P(peer_val));
         }
     } else {
-        zend_bool jit_initialization = PG(auto_globals_jit);
 
-        if (jit_initialization) {
-            zend_string *server_str = zend_string_init("_SERVER", sizeof("_SERVER") - 1, 0);
-            zend_is_auto_global(server_str);
-            zend_string_release(server_str);
-        }
-        carrier = zend_hash_str_find(&EG(symbol_table), ZEND_STRL("_SERVER"));
-
-        if (SKYWALKING_G(version) == 5) {
-            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW3", sizeof("HTTP_SW3") - 1);
-        } else if (SKYWALKING_G(version) == 6 || SKYWALKING_G(version) == 7) {
-            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW6", sizeof("HTTP_SW6") - 1);
-        } else if (SKYWALKING_G(version) == 8) {
-            sw = zend_hash_str_find(Z_ARRVAL_P(carrier), "HTTP_SW8", sizeof("HTTP_SW8") - 1);
-        } else {
-            sw = nullptr;
-        }
-
-        header = (sw != nullptr ? Z_STRVAL_P(sw) : "");
-        uri = get_page_request_uri();
-        peer = get_page_request_peer();
     }
 
-    std::unordered_map<uint64_t, Segment *> *segments = static_cast<std::unordered_map<uint64_t, Segment *> *>SKYWALKING_G(segment);
-
-    auto *segment = new Segment(s_info->service, s_info->service_instance, SKYWALKING_G(version), header);
-    (void)sky_insert_segment(request_id, segment);
-
-    auto *span = segments->at(request_id)->createSpan(SkySpanType::Entry, SkySpanLayer::Http, 8001);
-    span->setOperationName(uri);
-    span->setPeer(peer);
-    span->addTag("url", uri);
-    segments->at(request_id)->createRefs();
-
-    zval *request_method = zend_hash_str_find(Z_ARRVAL(PG(http_globals)[TRACK_VARS_SERVER]), ZEND_STRL("REQUEST_METHOD"));
-    if (request_method != NULL) {
-        span->addTag("http.method", Z_STRVAL_P(request_method));
-    }
-}
-
-
-void sky_request_flush(zval *response, uint64_t request_id) {
-    auto *segment = sky_get_segment(nullptr, request_id);
-    if (nullptr == segment) {
-        return;
-    }
-    if (segment->skip()) {
-        delete segment;
-        sky_remove_segment(request_id);
-
-        return;
-    }
-
-    if (response == nullptr) {
-        segment->setStatusCode(SG(sapi_headers).http_response_code);
-    }
-
-    std::string msg = segment->marshal();
-    delete segment;
-    sky_remove_segment(request_id);
-
-    int msg_length = static_cast<int>(msg.size());
-    int max_length = SKYWALKING_G(mq_max_message_length);
-    if (msg_length > max_length) {
-        sky_log("message is too big: " + std::to_string(msg_length) + ", mq_max_message_length=" + std::to_string(max_length));
-        return;
-    }
-
-    try {
-        boost::interprocess::message_queue mq(
-                boost::interprocess::open_only,
-                s_info->mq_name
-        );
-        if (!mq.try_send(msg.data(), msg.size(), 0)) {
-            sky_log("sky_request_flush message_queue is fulled");
-        }
-    } catch (boost::interprocess::interprocess_exception &ex) {
-        sky_log("sky_request_flush message_queue ex" + std::string(ex.what()));
-        php_error(E_WARNING, "%s %s", "[skywalking] open queue fail ", ex.what());
-    }
 }

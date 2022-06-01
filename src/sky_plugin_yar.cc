@@ -19,18 +19,18 @@
 #include "php_skywalking.h"
 #include "zend_types.h"
 
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 
 std::vector<std::string> clientKeysCommands = {"__call"};
 std::vector<std::string> serverKeysCommands = {"__construct"};
-Span *sky_plugin_yar_client(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_plugin_yar_client(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
   std::string cmd = function_name;
   std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::tolower);
   if (std::find(clientKeysCommands.begin(), clientKeysCommands.end(), cmd) != clientKeysCommands.end()) {
     auto *segment = sky_get_segment(execute_data, -1);
     if (segment) {
-      auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::RPCFramework, 8002);
+      auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::RPCFramework, 8002);
       span->setOperationName(class_name + "->" + function_name);
       span->addTag("yar.type", "client");
 
@@ -133,13 +133,13 @@ Span *sky_plugin_yar_client(zend_execute_data *execute_data, const std::string &
   return nullptr;
 }
 
-Span *sky_plugin_yar_server(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_plugin_yar_server(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
   std::string cmd = function_name;
   std::transform(function_name.begin(), function_name.end(), cmd.begin(), ::tolower);
   if (std::find(serverKeysCommands.begin(), serverKeysCommands.end(), cmd) != serverKeysCommands.end()) {
     auto *segment = sky_get_segment(execute_data, -1);
     if (segment) {
-      auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::RPCFramework, 8002);
+      auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::RPCFramework, 8002);
       span->setOperationName(class_name + "->" + function_name);
       span->addTag("yar.type", "server");
       return span;

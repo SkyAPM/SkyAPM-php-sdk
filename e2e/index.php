@@ -31,11 +31,11 @@ echo("tag success\n");
 testAddLog();
 echo("log success\n");
 
-testMysqli();
+//testMysqli();
 echo("mysqli success\n");
 
-testMemcached();
+//testMemcached();
 echo("memcached success\n");
 
-testYar();
+//testYar();
 echo("yar success\n");

@@ -18,19 +18,19 @@
 
 #include "sky_plugin_hyperf_guzzle.h"
 #include "php_skywalking.h"
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 
 extern void (*ori_execute_ex)(zend_execute_data *execute_data);
 
-Span *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_plugin_hyperf_guzzle(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
     auto *segment = sky_get_segment(execute_data, -1);
     if (segment->skip()) {
         return nullptr;
     }
 
-    auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::Http, 8002);
+    auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::Http, 8002);
 
     uint32_t arg_count = ZEND_CALL_NUM_ARGS(execute_data);
 

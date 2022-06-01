@@ -16,12 +16,15 @@
 .deps
 .DS_Store
 .idea
+target
+cmake-build-debug-remote
 cmake-build-debug
 CMakeLists.txt
 /configure.ac
 /skywalking.loT
 *.lo
 *.la
+*.dep
 .libs
 /acinclude.m4
 /aclocal.m4
@@ -64,3 +67,4 @@ e2e/vendor
 vendor
 composer.*
 /.vscode
+configure~

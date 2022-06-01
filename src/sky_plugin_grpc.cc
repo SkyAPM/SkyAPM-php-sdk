@@ -18,14 +18,14 @@
 
 
 #include "sky_plugin_grpc.h"
-#include "segment.h"
+#include "sky_core_segment.h"
 
 #include "php_skywalking.h"
 #include "sky_utils.h"
 
 extern void (*ori_execute_ex)(zend_execute_data *execute_data);
 
-Span *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, char *function_name) {
+SkyCoreSpan *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, char *function_name) {
     std::string _class_name(class_name);
     std::string _function_name(function_name);
 
@@ -37,7 +37,7 @@ Span *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, char *f
             return nullptr;
         }
 
-        auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::RPCFramework, 23);
+        auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::RPCFramework, 23);
         span->setOperationName(_class_name + "->" + _function_name);
         span->addTag("rpc.type", "grpc");
 

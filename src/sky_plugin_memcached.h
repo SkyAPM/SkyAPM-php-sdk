@@ -23,10 +23,10 @@
 #include <string>
 #include <functional>
 #include <map>
-#include "span.h"
-#include "segment.h"
+#include "sky_core_span.h"
+#include "sky_core_segment.h"
 
-Span *sky_plugin_memcached(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
+SkyCoreSpan *sky_plugin_memcached(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
 std::string sky_plugin_memcached_peer(zend_execute_data *execute_data);
 

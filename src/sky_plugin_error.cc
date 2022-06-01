@@ -18,7 +18,7 @@
 
 #include "sky_plugin_error.h"
 #include "php_skywalking.h"
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 #include <string>
 

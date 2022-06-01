@@ -33,39 +33,10 @@
 
 
 #ifndef PHP_SKYWALKING_H
-#define PHP_SKYWALKING_H
-
-#include "thread"
-
-#include "src/common.h"
-
-SKY_BEGIN_EXTERN_C()
-
-#include "php.h"
-#include "php_ini.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "main/SAPI.h"
-#include "zend_API.h"
-#include <curl/curl.h>
-#include "ext/standard/url.h"
-#if PHP_VERSION_ID >= 80000
-#include "ext/curl/php_curl.h"
-#endif
-#include "zend_interfaces.h"
-#include "ext/pdo/php_pdo_driver.h"
-#include "ext/standard/php_var.h"
-
-#include "zend_smart_str.h"
-#include "Zend/zend_smart_str.h"
-#include "ext/json/php_json.h"
-#include "ext/standard/php_smart_string.h"
+# define PHP_SKYWALKING_H
 
 extern zend_module_entry skywalking_module_entry;
-#define phpext_skywalking_ptr &skywalking_module_entry
+# define phpext_skywalking_ptr &skywalking_module_entry
 
 #define PHP_SKYWALKING_VERSION "4.2.0"
 
@@ -107,36 +78,46 @@ extern zend_module_entry skywalking_module_entry;
 #endif /* HOST_NAME_MAX */
 
 PHP_FUNCTION (skywalking_trace_id);
+
 PHP_FUNCTION (skywalking_log);
+
 PHP_FUNCTION (skywalking_tag);
+
 PHP_MINIT_FUNCTION (skywalking);
+
 PHP_MSHUTDOWN_FUNCTION (skywalking);
+
 PHP_RINIT_FUNCTION (skywalking);
+
 PHP_RSHUTDOWN_FUNCTION (skywalking);
+
 PHP_MINFO_FUNCTION (skywalking);
 
-
 ZEND_BEGIN_MODULE_GLOBALS(skywalking)
-    char *authentication;
-    char *app_code;
-    char *grpc;
     zend_bool enable;
-    zval context;
-    zval curl_header;
-    int version;
 
-    void *segment;
-    zend_bool is_swoole;
+    char *service;
+    char *service_instance;
+    char *real_service_instance;
+
+    char *oap_version;
+    char *oap_cross_process_protocol;
+    char *oap_authentication;
 
     // tls
+    char *grpc_address;
     zend_bool grpc_tls_enable;
     char *grpc_tls_pem_root_certs;
     char *grpc_tls_pem_private_key;
     char *grpc_tls_pem_cert_chain;
 
     // log
-    zend_bool log_enable;
+    char *log_level;
     char *log_path;
+
+    // cURL
+    zend_bool curl_response_enable;
+    zval curl_cache;
 
     // php error log
     zend_bool error_handler_enable;
@@ -148,14 +129,11 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     void *rate_limiter;
     int sample_n_per_3_secs;
 
-    // fixed UUID
-    char *instance_name;
-
     // queue name unique
     zend_bool mq_unique;
 
-    // cURL
-    zend_bool curl_response_enable;
+    HashTable *segments;
+    zend_bool is_swoole;
 
 ZEND_END_MODULE_GLOBALS(skywalking)
 
@@ -167,9 +145,8 @@ extern ZEND_DECLARE_MODULE_GLOBALS(skywalking);
 #define SKYWALKING_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(skywalking, v)
 #endif
 
-#if defined(ZTS) && defined(COMPILE_DL_SKYWALKING)
+# if defined(ZTS) && defined(COMPILE_DL_SKYWALKING)
 ZEND_TSRMLS_CACHE_EXTERN()
-#endif
+# endif
 
-SKY_END_EXTERN_C()
 #endif

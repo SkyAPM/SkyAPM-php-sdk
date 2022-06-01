@@ -20,14 +20,14 @@
 #define SKYWALKING_SKY_MYSQLI_H
 
 #include "php_skywalking.h"
-#include "span.h"
+#include "sky_core_span.h"
 #include <string>
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"
 #endif
 
-Span *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
+SkyCoreSpan *sky_plugin_mysqli(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
-void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, Span *span, int is_oop);
+void sky_plugin_mysqli_check_errors(zend_execute_data *execute_data, SkyCoreSpan *span, int is_oop);
 
 #endif //SKYWALKING_SKY_MYSQLI_H

@@ -1,0 +1,3 @@
+[submodule "src/protocol"]
+	path = src/protocol
+	url = https://github.com/apache/skywalking-data-collect-protocol.git

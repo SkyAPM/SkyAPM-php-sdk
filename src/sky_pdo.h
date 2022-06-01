@@ -20,17 +20,17 @@
 #define SKYWALKING_SKY_PDO_H
 
 #include "php_skywalking.h"
-#include "span.h"
+#include "sky_core_span.h"
 #include <string>
 
-Span *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
+SkyCoreSpan *sky_pdo(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name);
 
-std::string sky_pdo_statement_peer(Span *span, zend_execute_data *execute_data);
+std::string sky_pdo_statement_peer(SkyCoreSpan *span, zend_execute_data *execute_data);
 
-std::string sky_pdo_peer(Span *span, zend_execute_data *execute_data);
+std::string sky_pdo_peer(SkyCoreSpan *span, zend_execute_data *execute_data);
 
-std::string sky_pdo_dbh_peer(Span *span, pdo_dbh_t *dbh);
+std::string sky_pdo_dbh_peer(SkyCoreSpan *span, pdo_dbh_t *dbh);
 
-void sky_pdo_check_errors(zend_execute_data *execute_data, Span *span);
+void sky_pdo_check_errors(zend_execute_data *execute_data, SkyCoreSpan *span);
 
 #endif //SKYWALKING_SKY_PDO_H

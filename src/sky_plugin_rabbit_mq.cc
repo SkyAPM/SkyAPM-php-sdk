@@ -17,17 +17,17 @@
 
 
 #include "sky_plugin_rabbit_mq.h"
-#include "segment.h"
+#include "sky_core_segment.h"
 #include "sky_utils.h"
 
-Span *sky_plugin_rabbit_mq(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
+SkyCoreSpan *sky_plugin_rabbit_mq(zend_execute_data *execute_data, const std::string &class_name, const std::string &function_name) {
 
     if (function_name == "basic_publish") {
         auto *segment = sky_get_segment(execute_data, -1);
         if (segment->skip()) {
             return nullptr;
         }
-        auto *span = segment->createSpan(SkySpanType::Exit, SkySpanLayer::MQ, 52);
+        auto *span = segment->createSpan(SkyCoreSpanType::Exit, SkyCoreSpanLayer::MQ, 52);
 
         span->setOperationName(class_name + "->" + function_name);
 
