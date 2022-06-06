@@ -25,8 +25,14 @@ if test "$PHP_SKYWALKING" != "no"; then
   PHP_ADD_LIBRARY(pthread)
   PHP_ADD_LIBRARY(dl,,SKYWALKING_SHARED_LIBADD)
   PHP_ADD_LIBRARY(dl)
-  PHP_ADD_LIBRARY(rt,,SKYWALKING_SHARED_LIBADD)
-  PHP_ADD_LIBRARY(rt)
+  case $host in
+    *darwin*)
+      ;;
+    *)
+      PHP_ADD_LIBRARY(rt,,SKYWALKING_SHARED_LIBADD)
+      PHP_ADD_LIBRARY(rt)
+      ;;
+  esac
 
   PHP_SUBST(SKYWALKING_SHARED_LIBADD)
 
