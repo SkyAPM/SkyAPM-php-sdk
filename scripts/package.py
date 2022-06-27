@@ -79,7 +79,7 @@ config = [
     {'key': 'license', 'value': 'Apache2.0', 'attr': [
         {'key': 'uri', 'value': 'http://www.apache.org/licenses/LICENSE-2.0.html'}
     ]},
-    {'key': 'notes', 'value': 'Fix bugs'}, # release notes
+    {'key': 'notes', 'value': 'Support Skywalking 9.0.0'}, # release notes
     {'key': 'contents', 'child': [
         {'key': 'dir', 'attr': [
             {'key': 'name', 'value': '/'},
