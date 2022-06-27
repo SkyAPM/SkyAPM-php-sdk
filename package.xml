@@ -26,10 +26,10 @@
 		<email>yanlong@php.net</email>
 		<active>yes</active>
 	</lead>
-	<date>2021-11-02</date>
+	<date>2022-06-27</date>
 	<version>
-		<release>4.2.0</release>
-		<api>4.2.0</api>
+		<release>5.0.0</release>
+		<api>5.0.0</api>
 	</version>
 	<stability>
 		<release>stable</release>
@@ -40,9 +40,12 @@
 	<contents>
 		<dir name="/">
 			<file role="doc" name="CREDITS"/>
+			<file role="src" name="Cargo.lock"/>
+			<file role="src" name="Cargo.toml"/>
 			<file role="doc" name="EXPERIMENTAL"/>
 			<file role="doc" name="LICENSE"/>
 			<file role="doc" name="README.md"/>
+			<file role="src" name="build.rs"/>
 			<file role="src" name="config.m4"/>
 			<file role="src" name="config.w32"/>
 			<file role="src" name="docker/Dockerfile"/>
@@ -68,35 +71,38 @@
 			<file role="src" name="e2e/tests/mysqli.php"/>
 			<file role="src" name="e2e/tests/redis.php"/>
 			<file role="src" name="e2e/tests/yar.php"/>
+			<file role="src" name="go.mod"/>
+			<file role="src" name="go.sum"/>
 			<file role="src" name="php.ini"/>
 			<file role="src" name="php_skywalking.h"/>
+			<file role="src" name="rust-toolchain.toml"/>
+			<file role="src" name="scripts/generate-protocol.sh"/>
 			<file role="src" name="scripts/package.py"/>
 			<file role="src" name="scripts/pecl.sh"/>
 			<file role="src" name="scripts/version.sh"/>
-			<file role="src" name="skywalking.cc"/>
+			<file role="src" name="skywalking.c"/>
 			<file role="src" name="skywalking.php"/>
-			<file role="src" name="src/base64.cc"/>
-			<file role="src" name="src/base64.h"/>
-			<file role="src" name="src/common.h"/>
-			<file role="src" name="src/cross_process_bag.cc"/>
-			<file role="src" name="src/cross_process_bag.h"/>
-			<file role="src" name="src/manager.cc"/>
-			<file role="src" name="src/manager.h"/>
-			<file role="doc" name="src/protocol/v3/README.md"/>
-			<file role="src" name="src/protocol/v3/browser/BrowserPerf.proto"/>
-			<file role="src" name="src/protocol/v3/common/Common.proto"/>
-			<file role="src" name="src/protocol/v3/language-agent/CLRMetric.proto"/>
-			<file role="src" name="src/protocol/v3/language-agent/JVMMetric.proto"/>
-			<file role="src" name="src/protocol/v3/language-agent/Tracing.proto"/>
-			<file role="src" name="src/protocol/v3/management/Management.proto"/>
-			<file role="src" name="src/protocol/v3/profile/Profile.proto"/>
-			<file role="src" name="src/protocol/v3/service-mesh-probe/service-mesh.proto"/>
-			<file role="src" name="src/segment.cc"/>
-			<file role="src" name="src/segment.h"/>
-			<file role="src" name="src/segment_reference.cc"/>
-			<file role="src" name="src/segment_reference.h"/>
-			<file role="src" name="src/sky_core_span_log.cc"/>
-			<file role="src" name="src/sky_core_span_log.h"/>
+			<file role="doc" name="src/protocol"/>
+			<file role="src" name="src/reporter/grpc.rs"/>
+			<file role="src" name="src/reporter/ipc.rs"/>
+			<file role="src" name="src/reporter/mod.rs"/>
+			<file role="src" name="src/sky_base.h"/>
+			<file role="src" name="src/sky_core_cross_process.c"/>
+			<file role="src" name="src/sky_core_cross_process.h"/>
+			<file role="src" name="src/sky_core_log.c"/>
+			<file role="src" name="src/sky_core_log.h"/>
+			<file role="src" name="src/sky_core_module.c"/>
+			<file role="src" name="src/sky_core_module.h"/>
+			<file role="src" name="src/sky_core_report.h"/>
+			<file role="src" name="src/sky_core_report.rs"/>
+			<file role="src" name="src/sky_core_segment.c"/>
+			<file role="src" name="src/sky_core_segment.h"/>
+			<file role="src" name="src/sky_core_segment_reference.c"/>
+			<file role="src" name="src/sky_core_segment_reference.h"/>
+			<file role="src" name="src/sky_core_span.c"/>
+			<file role="src" name="src/sky_core_span.h"/>
+			<file role="src" name="src/sky_core_tag.c"/>
+			<file role="src" name="src/sky_core_tag.h"/>
 			<file role="src" name="src/sky_execute.cc"/>
 			<file role="src" name="src/sky_execute.h"/>
 			<file role="src" name="src/sky_log.cc"/>
@@ -105,7 +111,7 @@
 			<file role="src" name="src/sky_module.h"/>
 			<file role="src" name="src/sky_pdo.cc"/>
 			<file role="src" name="src/sky_pdo.h"/>
-			<file role="src" name="src/sky_plugin_curl.cc"/>
+			<file role="src" name="src/sky_plugin_curl.c"/>
 			<file role="src" name="src/sky_plugin_curl.h"/>
 			<file role="src" name="src/sky_plugin_error.cc"/>
 			<file role="src" name="src/sky_plugin_error.h"/>
@@ -121,7 +127,7 @@
 			<file role="src" name="src/sky_plugin_predis.h"/>
 			<file role="src" name="src/sky_plugin_rabbit_mq.cc"/>
 			<file role="src" name="src/sky_plugin_rabbit_mq.h"/>
-			<file role="src" name="src/sky_plugin_redis.cc"/>
+			<file role="src" name="src/sky_plugin_redis.c"/>
 			<file role="src" name="src/sky_plugin_redis.h"/>
 			<file role="src" name="src/sky_plugin_swoole_curl.cc"/>
 			<file role="src" name="src/sky_plugin_swoole_curl.h"/>
@@ -129,14 +135,12 @@
 			<file role="src" name="src/sky_plugin_yar.h"/>
 			<file role="src" name="src/sky_rate_limit.cc"/>
 			<file role="src" name="src/sky_rate_limit.h"/>
-			<file role="src" name="src/sky_shm.cc"/>
-			<file role="src" name="src/sky_shm.h"/>
-			<file role="src" name="src/sky_utils.cc"/>
+			<file role="src" name="src/sky_util_base64.c"/>
+			<file role="src" name="src/sky_util_base64.h"/>
+			<file role="src" name="src/sky_util_php.c"/>
+			<file role="src" name="src/sky_util_php.h"/>
+			<file role="src" name="src/sky_utils.c"/>
 			<file role="src" name="src/sky_utils.h"/>
-			<file role="src" name="src/span.cc"/>
-			<file role="src" name="src/span.h"/>
-			<file role="src" name="src/tag.cc"/>
-			<file role="src" name="src/tag.h"/>
 			<file role="src" name="swoole.php"/>
 		</dir>
 	</contents>
@@ -153,6 +157,17 @@
 	<providesextension>skywalking</providesextension>
 	<extsrcrelease/>
 	<changelog>
+		<release>
+			<version>
+				<release>5.0.0</release>
+				<api>5.0.0</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Support Skywalking 9.0.0</notes>
+		</release>
 		<release>
 			<version>
 				<release>4.2.0</release>
