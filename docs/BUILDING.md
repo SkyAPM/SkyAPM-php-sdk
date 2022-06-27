@@ -34,9 +34,9 @@ On a Mac, you will first need to install Xcode or Command Line Tools for Xcode a
 ## Build from source (PHP Extension)
 
 ```shell script
-curl -Lo v4.2.0.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v4.2.0.tar.gz
-tar zxvf v4.2.0.tar.gz
-cd SkyAPM-php-sdk-4.2.0
+curl -Lo v5.0.0.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v5.0.0.tar.gz
+tar zxvf v5.0.0.tar.gz
+cd SkyAPM-php-sdk-5.0.0
 phpize
 ./configure
 make
