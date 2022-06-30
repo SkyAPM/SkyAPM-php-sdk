@@ -16,16 +16,23 @@
 import xml.dom.minidom
 import time, os
 
-version = '5.0.0'
+version = '5.0.1'
 
 git = os.popen('git ls-files')
 res = git.read()
 child = []
 
-for line in res.splitlines():
+git_files = res.splitlines()
+
+for root, dirs, files in os.walk("./src/protocol"):
+    for file in files:
+        git_files.append((root + "/" + file)[2:])
+
+for line in git_files:
     if line == "":
         continue
-
+    if line == "src/protocol":
+        continue
     if line == "package.xml" or line[0:1] == '.':
         continue
 
@@ -98,6 +105,20 @@ config = [
     {'key': 'providesextension', 'value': 'skywalking'},
     {'key': 'extsrcrelease'},
     {'key': 'changelog', 'child': [
+        {'key': 'release', 'child': [
+            {'key': 'version', 'child': [
+                {'key': 'release', 'value': '5.0.1'},
+                {'key': 'api', 'value': '5.0.1'}
+            ]
+             },
+            {'key': 'stability', 'child': [
+                {'key': 'release', 'value': 'stable'},
+                {'key': 'api', 'value': 'stable'}
+            ]
+             },
+            {'key': 'notes', 'value': 'Support Skywalking 9.0.0'}
+        ]
+         },
         {'key': 'release', 'child': [
             {'key': 'version', 'child': [
                     {'key': 'release', 'value': '5.0.0'},

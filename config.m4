@@ -18,7 +18,7 @@ if test "$PHP_SKYWALKING" != "no"; then
     AC_MSG_ERROR([rustfmt command missing, please reinstall the cargo distribution])
   fi
 
-  EXTRA_LDFLAGS="$EXTRA_LDFLAGS target/release/libsky_core_report.a"
+  EXTRA_LDFLAGS="$EXTRA_LDFLAGS $srcdir/target/release/libsky_core_report.a"
   LIBS="-lpthread $LIBS"
 
   SKYWALKING_SHARED_LIBADD="-lpthread $SKYWALKING_SHARED_LIBADD"
@@ -54,18 +54,19 @@ if test "$PHP_SKYWALKING" != "no"; then
       src/sky_util_php.c \
       src/sky_utils.c \
   , $ext_shared)
+  PHP_ADD_BUILD_DIR($ext_builddir/src)
 fi
 
 if test -r $phpincludedir/ext/mysqli/mysqli_mysqlnd.h; then
     AC_DEFINE([MYSQLI_USE_MYSQLND], 1, [Whether mysqlnd is enabled])
 fi
-shared_objects_skywalking="target/release/libsky_core_report.a $shared_objects_skywalking"
+shared_objects_skywalking="$srcdir/target/release/libsky_core_report.a $shared_objects_skywalking"
 dnl PHP_SUBST(shared_objects_skywalking)
 case $host in
     *darwin*)
-      echo "target/release/libsky_core_report.a:\n	cargo build --release" >> Makefile.objects
+      echo "$srcdir/target/release/libsky_core_report.a:\n	cargo build --release --manifest-path=$srcdir/Cargo.toml" >> Makefile.objects
       ;;
     *)
-      echo -e "target/release/libsky_core_report.a:\n	cargo build --release" >> Makefile.objects
+      echo -e "$srcdir/target/release/libsky_core_report.a:\n	cargo build --release --manifest-path=$srcdir/Cargo.toml" >> Makefile.objects
       ;;
 esac

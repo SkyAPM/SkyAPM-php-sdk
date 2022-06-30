@@ -39,7 +39,7 @@
 #include "ext/standard/info.h"
 #include "php_skywalking.h"
 
-#include "sky_core_module.h"
+#include "src/sky_core_module.h"
 
 #ifdef MYSQLI_USE_MYSQLND
 #include "ext/mysqli/php_mysqli_structs.h"

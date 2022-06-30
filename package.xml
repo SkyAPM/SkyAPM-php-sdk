@@ -26,10 +26,10 @@
 		<email>yanlong@php.net</email>
 		<active>yes</active>
 	</lead>
-	<date>2022-06-27</date>
+	<date>2022-06-30</date>
 	<version>
-		<release>5.0.0</release>
-		<api>5.0.0</api>
+		<release>5.0.1</release>
+		<api>5.0.1</api>
 	</version>
 	<stability>
 		<release>stable</release>
@@ -82,7 +82,6 @@
 			<file role="src" name="scripts/version.sh"/>
 			<file role="src" name="skywalking.c"/>
 			<file role="src" name="skywalking.php"/>
-			<file role="doc" name="src/protocol"/>
 			<file role="src" name="src/reporter/grpc.rs"/>
 			<file role="src" name="src/reporter/ipc.rs"/>
 			<file role="src" name="src/reporter/mod.rs"/>
@@ -142,6 +141,39 @@
 			<file role="src" name="src/sky_utils.c"/>
 			<file role="src" name="src/sky_utils.h"/>
 			<file role="src" name="swoole.php"/>
+			<file role="src" name="src/protocol/.asf.yaml"/>
+			<file role="doc" name="src/protocol/WORKSPACE"/>
+			<file role="doc" name="src/protocol/README.md"/>
+			<file role="doc" name="src/protocol/.gitignore"/>
+			<file role="doc" name="src/protocol/.git"/>
+			<file role="doc" name="src/protocol/.bazelrc"/>
+			<file role="src" name="src/protocol/service-mesh-probe/service-mesh.proto"/>
+			<file role="src" name="src/protocol/service-mesh-probe/service-mesh-compat.proto"/>
+			<file role="src" name="src/protocol/language-agent/MeterCompat.proto"/>
+			<file role="src" name="src/protocol/language-agent/TracingCompat.proto"/>
+			<file role="src" name="src/protocol/language-agent/Meter.proto"/>
+			<file role="src" name="src/protocol/language-agent/CLRMetricCompat.proto"/>
+			<file role="src" name="src/protocol/language-agent/JVMMetricCompat.proto"/>
+			<file role="src" name="src/protocol/language-agent/Tracing.proto"/>
+			<file role="src" name="src/protocol/language-agent/ConfigurationDiscoveryService.proto"/>
+			<file role="src" name="src/protocol/language-agent/JVMMetric.proto"/>
+			<file role="src" name="src/protocol/language-agent/CLRMetric.proto"/>
+			<file role="doc" name="src/protocol/language-agent/BUILD"/>
+			<file role="src" name="src/protocol/management/ManagementCompat.proto"/>
+			<file role="src" name="src/protocol/management/Management.proto"/>
+			<file role="src" name="src/protocol/browser/BrowserPerfCompat.proto"/>
+			<file role="src" name="src/protocol/browser/BrowserPerf.proto"/>
+			<file role="doc" name="src/protocol/common/BUILD"/>
+			<file role="src" name="src/protocol/common/Common.proto"/>
+			<file role="src" name="src/protocol/profile/ProfileCompat.proto"/>
+			<file role="src" name="src/protocol/profile/Profile.proto"/>
+			<file role="doc" name="src/protocol/bazel/BUILD"/>
+			<file role="src" name="src/protocol/bazel/repositories.bzl"/>
+			<file role="src" name="src/protocol/.github/workflows/ci.yaml"/>
+			<file role="src" name="src/protocol/ebpf/profiling/Process.proto"/>
+			<file role="src" name="src/protocol/ebpf/profiling/Profile.proto"/>
+			<file role="src" name="src/protocol/event/Event.proto"/>
+			<file role="src" name="src/protocol/logging/Logging.proto"/>
 		</dir>
 	</contents>
 	<dependencies>
@@ -157,6 +189,17 @@
 	<providesextension>skywalking</providesextension>
 	<extsrcrelease/>
 	<changelog>
+		<release>
+			<version>
+				<release>5.0.1</release>
+				<api>5.0.1</api>
+			</version>
+			<stability>
+				<release>stable</release>
+				<api>stable</api>
+			</stability>
+			<notes>Support Skywalking 9.0.0</notes>
+		</release>
 		<release>
 			<version>
 				<release>5.0.0</release>
