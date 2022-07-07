@@ -101,7 +101,7 @@ void sky_core_request_init(zval *request, u_int64_t request_id) {
     char *peer = NULL;
 
     if (request != NULL) {
-
+        // todo
     } else { // fpm or cli mode
         zend_bool jit = PG(auto_globals_jit);
         if (jit) {
@@ -116,10 +116,10 @@ void sky_core_request_init(zval *request, u_int64_t request_id) {
 
         // name
         if (strcasecmp("cli", sapi_module.name) == 0) {
-            operation_name = "cli";
+            asprintf(&operation_name, "%s", "cli");
         } else {
             zval *request_uri = zend_hash_str_find(Z_ARRVAL_P(_server), ZEND_STRL("REQUEST_URI"));
-            operation_name = Z_STRVAL_P(request_uri);
+            asprintf(&operation_name, "%s", Z_STRVAL_P(request_uri));
         }
 
         // peer
