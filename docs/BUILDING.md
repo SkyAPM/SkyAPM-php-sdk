@@ -37,6 +37,7 @@ On a Mac, you will first need to install Xcode or Command Line Tools for Xcode a
 curl -Lo v5.0.1.tar.gz https://github.com/SkyAPM/SkyAPM-php-sdk/archive/v5.0.1.tar.gz
 tar zxvf v5.0.1.tar.gz
 cd SkyAPM-php-sdk-5.0.1
+git clone -b v9.1.0 https://github.com/apache/skywalking-data-collect-protocol.git src/protocol
 phpize
 ./configure
 make
