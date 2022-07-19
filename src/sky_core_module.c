@@ -15,6 +15,8 @@
  *
  */
 
+#include <sys/prctl.h>
+
 #include "sky_core_module.h"
 #include "php.h"
 #include "SAPI.h"
@@ -72,9 +74,13 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
 
     if (sky_core_report_ipc_init(SKYWALKING_G(mq_max_message_length))) {
         // register
-        pthread_t thread_id;
-        if (!pthread_create(&thread_id, 0, thread_sky_core_report_new, NULL)) {
-            pthread_detach(thread_id);
+        pid_t pid = fork();
+        if (pid < 0) {
+            fprintf(stderr, "fork failed");
+        } else if (pid == 0) {
+            prctl(PR_SET_PDEATHSIG, SIGTERM);
+            thread_sky_core_report_new(NULL);
+            exit(0);
         }
     }
     return 0;

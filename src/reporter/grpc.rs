@@ -13,12 +13,14 @@
 // limitations under the License.
 //
 use std::io::Write;
+use std::process::exit;
 use crate::skywalking_proto::v3::SegmentObject;
 use crate::skywalking_proto::v3::InstanceProperties;
 use crate::skywalking_proto::v3::KeyStringValuePair;
 use crate::skywalking_proto::v3::InstancePingPkg;
 use crate::skywalking_proto::v3::management_service_client::ManagementServiceClient;
 use crate::skywalking_proto::v3::trace_segment_report_service_client::TraceSegmentReportServiceClient;
+use tokio::signal::{self, unix::SignalKind};
 use tonic::{
     transport::{Channel, Endpoint},
     Request,
@@ -37,6 +39,7 @@ use tokio::{
     sync::{mpsc, OnceCell},
     task::spawn_blocking,
     time::sleep,
+    signal::unix::signal,
 };
 use serde_json;
 use futures_util::stream;
@@ -140,7 +143,6 @@ pub fn init(address: String, service: String, mut service_instance: String, log_
         ).unwrap();
     }
 
-
     let rt = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(4)
         .enable_all()
@@ -155,7 +157,10 @@ pub async fn worker(address: String, service: String, service_instance: String) 
     spawn(login(service.to_owned(), service_instance.to_owned()));
     spawn(keep_alive(service.to_owned(), service_instance.to_owned()));
     spawn(sender(segment_receiver));
-    receive(segment_sender).await;
+    spawn(receive(segment_sender));
+
+    signal(SignalKind::terminate()).expect("wait signal SIGTERM failed").recv().await;
+    exit(0);
 }
 
 
