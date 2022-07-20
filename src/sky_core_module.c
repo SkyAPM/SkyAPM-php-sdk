@@ -15,6 +15,7 @@
  *
  */
 
+#include <signal.h>
 #include <sys/prctl.h>
 
 #include "sky_core_module.h"
