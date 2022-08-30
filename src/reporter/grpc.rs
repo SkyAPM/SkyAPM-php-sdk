@@ -24,6 +24,9 @@ use tokio::signal::{self, unix::SignalKind};
 use tonic::{
     transport::{Channel, Endpoint},
     Request,
+    metadata::{
+        MetadataMap, MetadataValue
+    }
 };
 use std::os::raw::c_char;
 use std::thread;
@@ -114,7 +117,7 @@ pub struct Reporter {
     pub service_instance: *const c_char,
 }
 
-pub fn init(address: String, service: String, mut service_instance: String, log_level: String, log_path: String) -> anyhow::Result<()> {
+pub fn init(address: String, service: String, mut service_instance: String, log_level: String, log_path: String, authentication: String) -> anyhow::Result<()> {
     let mut level = simplelog::LevelFilter::Debug;
 
     if log_level == "disable" {
@@ -147,15 +150,15 @@ pub fn init(address: String, service: String, mut service_instance: String, log_
         .worker_threads(4)
         .enable_all()
         .build()?;
-    rt.block_on(worker(address, service, service_instance));
+    rt.block_on(worker(address, service, service_instance, authentication));
     Ok(())
 }
 
-pub async fn worker(address: String, service: String, service_instance: String) {
+pub async fn worker(address: String, service: String, service_instance: String, authentication: String) {
     let (segment_sender, segment_receiver) = counted_channel(5000);
     spawn(do_connect(address.to_owned()));
-    spawn(login(service.to_owned(), service_instance.to_owned()));
-    spawn(keep_alive(service.to_owned(), service_instance.to_owned()));
+    spawn(login(service.to_owned(), service_instance.to_owned(), authentication.to_owned()));
+    spawn(keep_alive(service.to_owned(), service_instance.to_owned(), authentication.to_owned()));
     spawn(sender(segment_receiver));
     spawn(receive(segment_sender));
 
@@ -191,7 +194,7 @@ pub async fn do_connect(address: String) {
     GRPC_CHANNEL.set(channel);
 }
 
-pub async fn login(service: String, service_instance: String) {
+pub async fn login(service: String, service_instance: String, authentication: String) {
     let props = vec![
         KeyStringValuePair {
             key: "os_name".to_owned(),
@@ -229,7 +232,7 @@ pub async fn login(service: String, service_instance: String) {
             None => continue,
         };
         log::debug!("login instance {:?}", instance);
-        match do_login(channel.clone(), instance.clone()).await {
+        match do_login(channel.clone(), instance.clone(), authentication.clone()).await {
             Ok(r) => {
                 REGISTER.set(true);
                 break;
@@ -242,13 +245,15 @@ pub async fn login(service: String, service_instance: String) {
     }
 }
 
-pub async fn do_login(channel: Channel, instance: InstanceProperties) -> anyhow::Result<()> {
+pub async fn do_login(channel: Channel, instance: InstanceProperties, authentication: String) -> anyhow::Result<()> {
     let mut client = ManagementServiceClient::new(channel);
-    client.report_instance_properties(Request::new(instance)).await?;
+    let mut request = Request::new(instance);
+    request.metadata_mut().insert("Authentication", MetadataValue::from(authentication));
+    client.report_instance_properties(request).await?;
     Ok(())
 }
 
-pub async fn keep_alive(service: String, service_instance: String) {
+pub async fn keep_alive(service: String, service_instance: String, authentication: String) {
     let instance = InstancePingPkg {
         service: service.clone(),
         service_instance: service_instance.clone(),
@@ -267,16 +272,18 @@ pub async fn keep_alive(service: String, service_instance: String) {
             None => continue,
         };
         log::debug!("keep alive instance {:?}", instance);
-        match do_keep_alive(channel.clone(), instance.clone()).await {
+        match do_keep_alive(channel.clone(), instance.clone(), authentication.clone()).await {
             Ok(r) => continue,
             Err(e) => continue
         };
     }
 }
 
-pub async fn do_keep_alive(channel: Channel, instance: InstancePingPkg) -> anyhow::Result<()> {
+pub async fn do_keep_alive(channel: Channel, instance: InstancePingPkg, authentication: String) -> anyhow::Result<()> {
     let mut client = ManagementServiceClient::new(channel);
-    client.keep_alive(Request::new(instance)).await?;
+    let mut request = Request::new(instance);
+    request.metadata_mut().insert("Authentication", MetadataValue::from(authentication));
+    client.keep_alive(request).await?;
     Ok(())
 }
 

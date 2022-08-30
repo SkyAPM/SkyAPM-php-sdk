@@ -28,7 +28,14 @@ bool sky_core_report_ipc_init(size_t max_length);
 
 bool sky_core_report_ipc_send(char *data, size_t len);
 
-bool sky_core_report_new(char *address, char *service, char *service_instance, char *log_level, char *log_path);
+bool sky_core_report_new(
+        char *address,
+        char *service,
+        char *service_instance,
+        char *log_level,
+        char *log_path,
+        char *oap_authentication
+        );
 
 char *sky_core_report_trace_id();
 

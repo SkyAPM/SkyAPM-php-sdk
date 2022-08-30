@@ -93,6 +93,7 @@ extern "C" fn sky_core_report_new(
     service_instance: *const c_char,
     log_level: *const c_char,
     log_path: *const c_char,
+    oap_authentication: *const c_char
 ) -> bool {
     let f = || unsafe {
         let address = CStr::from_ptr(address).to_str()?;
@@ -100,12 +101,14 @@ extern "C" fn sky_core_report_new(
         let service_instance = CStr::from_ptr(service_instance).to_str()?;
         let log_level = CStr::from_ptr(log_level).to_str()?;
         let log_path = CStr::from_ptr(log_path).to_str()?;
+        let oap_authentication = CStr::from_ptr(oap_authentication).to_str()?;
         grpc::init(
             address.to_string(),
             service.to_string(),
             service_instance.to_string(),
             log_level.to_string(),
             log_path.to_string(),
+            oap_authentication.to_string(),
         )?;
         Ok::<_, anyhow::Error>(())
     };
