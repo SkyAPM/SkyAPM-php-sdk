@@ -24,20 +24,16 @@ use std::{
 };
 use tokio::sync::OnceCell;
 
-const MAX_MESSAGE_QUEUE_COUNT: usize = 100;
+const MAX_MESSAGE_QUEUE_COUNT: usize = 4096;
 
 static MESSAGE_QUEUE_SENDER: OnceCell<Mutex<IpcBytesSender>> = OnceCell::const_new();
 static MESSAGE_QUEUE_RECEIVER: OnceCell<Mutex<IpcBytesReceiver>> = OnceCell::const_new();
 static MESSAGE_QUEUE_COUNT: OnceCell<IpcSharedMemory> = OnceCell::const_new();
-static MESSAGE_QUEUE_MAX_LENGTH: AtomicUsize = AtomicUsize::new(0);
 
-pub fn init(max_length: usize) -> anyhow::Result<()> {
+pub fn init() -> anyhow::Result<()> {
     // init count
     let count: [u8; size_of::<AtomicUsize>()] = unsafe { transmute(AtomicUsize::new(0)) };
     MESSAGE_QUEUE_COUNT.set(IpcSharedMemory::from_bytes(&count))?;
-
-    // init channel
-    MESSAGE_QUEUE_MAX_LENGTH.store(max_length, Ordering::SeqCst);
 
     let (sender, receiver) = bytes_channel()?;
     MESSAGE_QUEUE_SENDER.set(Mutex::new(sender))?;
@@ -47,13 +43,10 @@ pub fn init(max_length: usize) -> anyhow::Result<()> {
 }
 
 pub fn send(data: &[u8]) -> anyhow::Result<()> {
-    let max_length = MESSAGE_QUEUE_MAX_LENGTH.load(Ordering::SeqCst);
-    if data.len() > max_length {
-        bail!("send data is too big");
-    }
 
     let old_count = get_message_queue_count()?.fetch_add(1, Ordering::SeqCst);
 
+    log::debug!("ipc::send current ipc have {} items", old_count);
     if old_count >= MAX_MESSAGE_QUEUE_COUNT {
         get_message_queue_count()?.fetch_min(MAX_MESSAGE_QUEUE_COUNT, Ordering::SeqCst);
         bail!("message queue is fulled");
