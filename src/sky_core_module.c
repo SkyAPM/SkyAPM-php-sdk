@@ -73,7 +73,7 @@ int sky_core_module_init(INIT_FUNC_ARGS) {
     SKYWALKING_G(segments) = pemalloc(sizeof(HashTable), 1);
     zend_hash_init(SKYWALKING_G(segments), 0, NULL, delete_segments, 1);
 
-    if (sky_core_report_ipc_init(SKYWALKING_G(mq_max_message_length))) {
+    if (sky_core_report_ipc_init()) {
         // register
         pid_t pid = fork();
         if (pid < 0) {
