@@ -248,7 +248,7 @@ pub async fn login(service: String, service_instance: String, authentication: St
 pub async fn do_login(channel: Channel, instance: InstanceProperties, authentication: String) -> anyhow::Result<()> {
     let mut client = ManagementServiceClient::new(channel);
     let mut request = Request::new(instance);
-    request.metadata_mut().insert("Authentication", authentication.as_str().parse().unwrap());
+    request.metadata_mut().insert("Authentication", authentication.as_str().parse()?);
     client.report_instance_properties(request).await?;
     Ok(())
 }
@@ -282,7 +282,7 @@ pub async fn keep_alive(service: String, service_instance: String, authenticatio
 pub async fn do_keep_alive(channel: Channel, instance: InstancePingPkg, authentication: String) -> anyhow::Result<()> {
     let mut client = ManagementServiceClient::new(channel);
     let mut request = Request::new(instance);
-    request.metadata_mut().insert("Authentication", authentication.as_str().parse().unwrap());
+    request.metadata_mut().insert("Authentication", authentication.as_str().parse()?);
     client.keep_alive(request).await?;
     Ok(())
 }
