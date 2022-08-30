@@ -122,9 +122,6 @@ ZEND_BEGIN_MODULE_GLOBALS(skywalking)
     // php error log
     zend_bool error_handler_enable;
 
-    // message queue
-    int mq_max_message_length;
-
     // rate limit
     void *rate_limiter;
     int sample_n_per_3_secs;

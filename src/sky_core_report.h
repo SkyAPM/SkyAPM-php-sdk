@@ -24,7 +24,7 @@ typedef struct sky_core_report_t {
     char *service_instance;
 } sky_core_report_t;
 
-bool sky_core_report_ipc_init(size_t max_length);
+bool sky_core_report_ipc_init();
 
 bool sky_core_report_ipc_send(char *data, size_t len);
 

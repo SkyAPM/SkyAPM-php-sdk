@@ -43,8 +43,8 @@ pub mod skywalking_proto {
 pub mod reporter;
 
 #[no_mangle]
-extern "C" fn sky_core_report_ipc_init(max_length: usize) -> bool {
-    return match ipc::init(max_length) {
+extern "C" fn sky_core_report_ipc_init() -> bool {
+    return match ipc::init() {
         Ok(_) => {
             log::debug!("sky_core_report_ipc_init ok");
             true
