@@ -66,19 +66,32 @@ SkyCoreSpan *sky_plugin_grpc(zend_execute_data *execute_data, char *class_name, 
         }
 
         std::string sw_header = segment->createHeader(span);
+        zval *sw8_val;
+#if PHP_MAJOR_VERSION < 7
+        MAKE_STD_ZVAL(sw8_val);
+        array_init(sw8_val);
+        add_next_index_stringl(sw8_val, sw_header.c_str(), sw_header.length(), 1);
+#else
+        sw8_val = (zval *)emalloc(sizeof(zval));
+        array_init(sw8_val);
+        add_next_index_stringl(sw8_val, sw_header.c_str(), sw_header.length());
+#endif
         if (nullptr != metadata) {
             if (Z_TYPE_P(metadata) == IS_UNDEF) {
                 array_init(metadata);
-                add_assoc_str(metadata, "sw8", zend_string_init(sw_header.c_str(), sw_header.length(), 0));
+                add_assoc_zval(metadata, "sw8", sw8_val);
                 ZVAL_ARR(ZEND_CALL_ARG(execute_data, offset), Z_ARR_P(metadata));
                 execute_data->This.u2.num_args = offset;
             } else if (Z_TYPE_P(metadata) == IS_ARRAY) {
                 SEPARATE_ARRAY(metadata);
-                add_assoc_str(metadata, "sw8", zend_string_init(sw_header.c_str(), sw_header.length(), 0));
+                add_assoc_zval(metadata, "sw8", sw8_val);
             }
         }
 
         ori_execute_ex(execute_data);
+#if PHP_MAJOR_VERSION >= 7
+        efree(sw8_val);
+#endif     
         span->setEndTIme();
         return span;
     }
