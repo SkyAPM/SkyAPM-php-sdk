@@ -88,7 +88,7 @@ void sky_plugin_error_cb(int type, zend_string *error_filename, const uint32_t e
 
     if (!SKYWALKING_G(is_swoole) && SKYWALKING_G(enable) && SKYWALKING_G(segment) != nullptr) {
         auto segment = sky_get_segment(0);
-         if (segment != nullptr) {
+         if (segment != nullptr && !segment->skip()) {
             auto span = segment->firstSpan();
             span->addLog(level, log);
             if (isError) {
