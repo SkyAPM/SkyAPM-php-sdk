@@ -13,6 +13,8 @@ SkyAPM PHP
 
 **SkyAPM PHP** is the PHP instrumentation agent, which is compatible with [Apache SkyWalking](https://github.com/apache/skywalking) backend and others compatible agents/SDKs
 
+### This agent is going to be replaced by official [SkyWalking PHP Agent](https://github.com/apache/skywalking-php)
+
 ## Support List
 1. cURL ([PHP cURL](https://www.php.net/manual/en/book.curl.php))
 2. PDO ([PHP PDO](https://www.php.net/manual/en/book.pdo.php))
