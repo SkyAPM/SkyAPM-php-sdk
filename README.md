@@ -1,3 +1,5 @@
+## This agent is being replaced by upstream [SkyWalking PHP Agent](https://github.com/apache/skywalking-php)
+
 SkyAPM PHP
 ==========
 ![CI](https://github.com/SkyAPM/SkyAPM-php-sdk/workflows/CI/badge.svg)
@@ -12,8 +14,6 @@ SkyAPM PHP
 <img src="https://skyapmtest.github.io/page-resources/SkyAPM/skyapm.png" alt="Sky Walking logo" height="90px" align="right" />
 
 **SkyAPM PHP** is the PHP instrumentation agent, which is compatible with [Apache SkyWalking](https://github.com/apache/skywalking) backend and others compatible agents/SDKs
-
-### This agent is going to be replaced by official [SkyWalking PHP Agent](https://github.com/apache/skywalking-php)
 
 ## Support List
 1. cURL ([PHP cURL](https://www.php.net/manual/en/book.curl.php))
@@ -45,17 +45,6 @@ $ docker run --restart always -d -e SW_OAP_ADDRESS=oap:11800 skyapm/skywalking-p
 
 ## Downloads
 Please head to the [releases page](https://pecl.php.net/package/skywalking) to download a release of SkyAPM PHP.
-
-## Live Demo
-- Find the [live demo](https://skywalking.apache.org/#demo) and [screenshots](https://skywalking.apache.org/#arch) on our website.
-- Follow the [showcase](https://skywalking.apache.org/docs/skywalking-showcase/latest/readme/) to set up preview deployment quickly.
-
-# Contact Us
-* Mail list: **dev@skywalking.apache.org**. Mail to `dev-subscribe@skywalking.apache.org`, follow the reply to subscribe the mail list.
-* Send `Request to join SkyWalking slack` mail to the mail list(`dev@skywalking.apache.org`), we will invite you in.
-* Twitter, [ASFSkyWalking](https://twitter.com/AsfSkyWalking)
-* QQ Group: 901167865(Recommended), 392443393
-* [bilibili B站 视频](https://space.bilibili.com/390683219)
 
 ## Stargazers over time
 
