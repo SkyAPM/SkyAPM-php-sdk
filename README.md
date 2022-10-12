@@ -1,6 +1,6 @@
-## This agent is being replaced by upstream [SkyWalking PHP Agent](https://github.com/apache/skywalking-php)
+# This agent is being replaced by upstream [SkyWalking PHP Agent](https://github.com/apache/skywalking-php)
 
-SkyAPM PHP
+~~SkyAPM PHP~~
 ==========
 ![CI](https://github.com/SkyAPM/SkyAPM-php-sdk/workflows/CI/badge.svg)
 ![release](https://img.shields.io/github/release/SkyAPM/SkyAPM-php-sdk.svg)
