@@ -85,7 +85,7 @@ static void php_skywalking_init_globals(zend_skywalking_globals *skywalking_glob
 
     skywalking_globals->oap_version = "9.0.0";
     skywalking_globals->oap_cross_process_protocol = "3.0";
-    skywalking_globals->oap_authentication = NULL;
+    skywalking_globals->oap_authentication = "";
 
     // tls
     skywalking_globals->grpc_address = NULL;
